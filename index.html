@@ -870,6 +870,12 @@ opacity: 0.75;
 line-height: 1.35;
 }
 .hero .title { margin-bottom: 0; }
+.orbit-paths .seg { gap: 6px; }
+.orbit-paths .seg-btn {
+min-height: 40px; padding: 6px 10px; font-size: 0.8125rem; font-weight: 600;
+border-radius: 980px; flex: 1 1 auto; text-align: center;
+}
+.orbit-paths .seg-field legend { font-size: 0; height: 0; overflow: hidden; margin: 0; }
 </style>
 </head>
 <body>
@@ -1690,7 +1696,7 @@ const BADGES = [
 { id: 'perfect', icon: '💯', name: 'Perfect Pack', how: 'Finish a pack with every answer right', goal: 1, val: () => Object.values(st().packs).filter(p => p.perfect).length },
 { id: 'packs', icon: '🎧', name: 'Pack Collector', how: 'Complete 5 packs', goal: 5, val: () => Object.values(st().packs).filter(p => p.done).length },
 { id: 'tamer', icon: '🪐', name: 'Orbit Tamer', how: 'Beat Orbit in a duel', goal: 1, val: () => st().orbit.won || 0 },
-{ id: 'slayer', icon: '👑', name: 'Orbit Slayer', how: 'Beat Orbit on Hard', goal: 1, val: () => (st().orbit.byDiff.hard || {}).won || 0 }
+{ id: 'slayer', icon: '👑', name: 'Orbit Slayer', how: 'Beat Orbit on Radial', goal: 1, val: () => (st().orbit.byDiff.radial || {}).won || (st().orbit.byDiff.hard || {}).won || 0 }
 ];
 function badgeState() { return BADGES.map(b => { const v = Math.min(b.goal, b.val()); return Object.assign({}, b, { v, got: v >= b.goal }); }); }
 function checkBadges() {
@@ -1978,10 +1984,14 @@ checkBadges();
 next();
 }
 const ORBIT = {
-easy: { acc: .55, ms: [6500, 10500], label: 'Easy', blurb: 'Orbit is warming up: slower and makes mistakes.' },
-medium: { acc: .72, ms: [4200, 8000], label: 'Medium', blurb: 'A fair fight. Orbit is quick and usually right.' },
-hard: { acc: .88, ms: [2300, 5200], label: 'Hard', blurb: 'Full power: Orbit buzzes fast and rarely misses.' }
+circle:     { acc: .48, ms: [7000, 11000], label: 'Circle',     blurb: 'Gentle loop. Orbit is warming up and often misses.', allow: ['easy'] },
+ellipse:    { acc: .60, ms: [5500, 9500],  label: 'Ellipse',    blurb: 'A stretched path. Orbit is steady, still human.', allow: ['easy', 'medium'] },
+parabola:   { acc: .72, ms: [4200, 8000],  label: 'Parabola',   blurb: 'A fair arc. Orbit is quick and usually right.', allow: ['easy', 'medium'] },
+hyperbola:  { acc: .84, ms: [2800, 5800],  label: 'Hyperbola',  blurb: 'Open curve. Orbit buzzes hard and rarely slips.', allow: ['medium', 'hard'] },
+radial:     { acc: .93, ms: [1800, 4200],  label: 'Radial',     blurb: 'Straight at the hub. Full power — almost never misses.', allow: ['hard', 'medium'] }
 };
+const ORBIT_ALIAS = { easy: 'circle', medium: 'parabola', hard: 'radial' }; // old share / deep links
+const resolveOrbit = d => ORBIT[d] ? d : (ORBIT_ALIAS[d] || 'ellipse');
 const LINES = {
 hello: ['Orbit here. I have read every question in the bank. Twice.', 'Warm up those thumbs. I do not blink.', 'Five questions. One quizmaster. Let us see.'],
 orbitRound: ['Too slow! Orbit takes it.', 'Beep boop, that one is mine.', 'I would apologise, but I am a quizmaster.', 'Orbit strikes again.'],
@@ -1993,22 +2003,22 @@ draw: ['A draw! The universe is balanced.', 'Neck and neck. Again?']
 };
 const DSECS = 15;
 const topicPool = (topic, diff) => {
-const t = E.TOPICS.find(x => x.id === topic); const allow = diff === 'easy' ? ['easy'] : diff === 'hard' ? ['medium', 'hard'] : ['easy', 'medium'];
+const t = E.TOPICS.find(x => x.id === topic); const key = resolveOrbit(diff); const allow = (ORBIT[key] && ORBIT[key].allow) || ['easy', 'medium'];
 const base = pool(q => isMcqText(q) && (!t || t.cat === '*' || q.category === t.cat));
 const f = base.filter(q => allow.includes(q.difficulty)); return f.length >= 5 ? f : base;
 };
 function duelSetup(seed, topic, diff) {
 const r = U.rng('orbit-' + seed); const qs = U.shuffle(topicPool(topic, diff), r).slice(0, 5);
-const O = ORBIT[diff] || ORBIT.medium;
+diff = resolveOrbit(diff); const O = ORBIT[diff];
 const plan = qs.map(q => ({ ok: r() < O.acc - (q.difficulty === 'hard' ? .08 : 0), ms: Math.round(O.ms[0] + r() * (O.ms[1] - O.ms[0])) }));
 return { qs: qs.map(q => ({ q, options: U.shuffle(q.options, U.rng('oo-' + seed + q.id)) })), plan };
 }
 const newSeed = () => Math.random().toString(36).slice(2, 8);
 const params = new URLSearchParams(location.search);
-const CH = (() => { const d = params.get('duel'); if (!d) return null; const [seed, topic, diff] = d.split('.');
-if (!seed || !ORBIT[diff]) return null; const sc = (params.get('s') || '').split('-').map(Number);
+const CH = (() => { const d = params.get('duel'); if (!d) return null; const [seed, topic, rawDiff] = d.split('.');
+const diff = resolveOrbit(rawDiff); if (!seed || !ORBIT[diff]) return null; const sc = (params.get('s') || '').split('-').map(Number);
 return { seed, topic: topic || 'mixed-bag', diff, from: (params.get('from') || 'A friend').slice(0, 24), rounds: sc[0] || 0, pts: sc[1] || 0 }; })();
-let lastDiff = 'medium', lastTopic = 'mixed-bag';
+let lastDiff = 'ellipse', lastTopic = 'mixed-bag';
 function duelHome() {
 const o = st().orbit;
 view(`
@@ -2019,8 +2029,8 @@ view(`
 <p class="muted small">${o.played ? `You ${o.won}–${o.played - o.won - (o.draws || 0)} Orbit${o.draws ? ` · ${o.draws} drawn` : ''}` : 'No duels yet. Orbit is waiting.'}</p>
 </section>
 ${CH ? `<a class="card challenge-card" href="#/duel/c"><span class="s-ico">📨</span><div><b>${esc(CH.from)} challenged you!</b><small>${CH.rounds}/5 rounds · ${CH.pts} pts. Same 5 questions, can you beat it?</small></div></a>` : ''}
-<h2 class="section-title">Orbit's level</h2>
-${K.segmented('odiff', Object.entries(ORBIT).map(([k, v]) => [k, v.label]), lastDiff, 'Difficulty')}
+<h2 class="section-title">Orbit's path</h2>
+<div class="orbit-paths">${K.segmented('odiff', Object.entries(ORBIT).map(([k, v]) => [k, v.label]), lastDiff, "Orbit's path")}</div>
 <p class="muted small" id="diffBlurb">${ORBIT[lastDiff].blurb}</p>
 <h2 class="section-title">Topic</h2>
 <div class="chip-wrap" id="topicChips" role="radiogroup" aria-label="Topic">${E.TOPICS.map(t => `<button type="button" class="chip-btn ${t.id === lastTopic ? 'on' : ''}" role="radio" aria-checked="${t.id === lastTopic}" data-topic="${t.id}">${t.icon} ${esc(t.name)}</button>`).join('')}</div>
@@ -2033,7 +2043,7 @@ onShow(() => K.floatCta('#duelStart'));
 }
 function duelPlay(topic, diff, challenge) {
 if (challenge && !CH) return go('#/duel');
-const c = challenge ? CH : null; topic = c ? c.topic : (E.TOPICS.find(t => t.id === topic) ? topic : 'mixed-bag'); diff = c ? c.diff : (ORBIT[diff] ? diff : 'medium');
+const c = challenge ? CH : null; topic = c ? c.topic : (E.TOPICS.find(t => t.id === topic) ? topic : 'mixed-bag'); diff = c ? c.diff : resolveOrbit(diff);
 lastTopic = topic; lastDiff = diff;
 const seed = c ? c.seed : newSeed(); const T = E.TOPICS.find(t => t.id === topic);
 const { qs, plan } = duelSetup(seed, topic, diff);
@@ -3472,7 +3482,7 @@ case 'topics': return SX.library();
 case 'pack': return arg2 === 'play' ? SX.packPlay(arg) : SX.packPage(arg);
 case 'board': return leaderboard();
 case 'topic': return arg2 === 'play' ? topicPlay(arg) : topicDetail(arg);
-case 'duel': return !arg ? SX.duelHome() : arg === 'c' ? SX.duelPlay(null, null, true) : SX.duelPlay(arg, arg2 || 'medium');
+case 'duel': return !arg ? SX.duelHome() : arg === 'c' ? SX.duelPlay(null, null, true) : SX.duelPlay(arg, arg2 || 'ellipse');
 case 'leaderboard': return SX.leagues();
 case 'join': return join();
 case 'me': return SX.meProfile();
