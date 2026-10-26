@@ -860,6 +860,16 @@ color: #f5f5f7;
 .qmeta { color: var(--muted); font-weight: 600; font-size: 0.8125rem; opacity: 0.9; }
 .host-line { color: var(--muted); font-weight: 500; }
 .opt { font-weight: 600; font-size: 1rem; color: var(--ink); opacity: 0.95; }
+.hero .lead, .hero .lead.whisper {
+margin: 6px 0 0;
+font-size: 0.8125rem;
+font-weight: 500;
+letter-spacing: 0.01em;
+color: var(--muted);
+opacity: 0.75;
+line-height: 1.35;
+}
+.hero .title { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -2537,7 +2547,7 @@ view(`
 <section class="hero">
 <p class="kicker">Daily quiz</p>
 <h1 class="title">${set.length === 5 ? 'Five' : 'Eight'} rounds. One orbit.</h1>
-<p class="lead">Same questions for everyone. About three minutes.</p>
+<p class="lead whisper">Same for everyone · ~3 min</p>
 </section>
 <section class="card episode">
 <div class="ep-head">
