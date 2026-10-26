@@ -1345,16 +1345,17 @@ return k ? T[k] : T[q.answer] || 'gem'; // an alias of the rarest answer (e.g. a
 const TITLES = [[100, 'Quizmaster Supreme', '🏆'], [80, 'Studio Champion', '🥇'], [60, 'Grand Finalist', '🎖️'],
 [40, 'Semi-Finalist', '🎓'], [20, 'Brave Contestant', '🙋'], [0, 'Audience Favourite', '👏']];
 function titleFor(score, max) { const pct = Math.round((score / max) * 100); const t = TITLES.find(([m]) => pct >= m); return { title: t[1], emoji: t[2] }; }
-const MARK_EMOJI = { full: '🟩', part: '🟨', wrong: '🟥', time: '⏰' };
+const MARK_EMOJI = { full: '🟩', part: '🟨', wrong: '🟥', time: '⬛' };
 function shareText(rec, date, stats) {
 const t = titleFor(rec.score, rec.max);
-const cells = rec.marks.map((m, i) => (rec.icons ? rec.icons[i] : '') + MARK_EMOJI[m]);
-const url = /^https?:/.test(location.protocol) ? '\n' + location.origin + location.pathname : '';
+const cells = rec.marks.map(m => MARK_EMOJI[m] || '⬛');
+const path = (location.pathname || '/').replace(/\/index\.html$/i, '/').replace(/\/preview\.html$/i, '/');
+const url = /^https?:/.test(location.protocol) ? '\n' + location.origin + path : '';
 const avg = rec.avgMs != null ? rec.avgMs : avgMs(rec.answers);
-const grid = cells.length > 5 ? cells.slice(0, 4).join(' ') + '\n' + cells.slice(4).join(' ') : cells.join(' ');
-return `🪐 Quorbit #${U.dayNumber(date)}: ${rec.score}/${rec.max}\n${grid}\n` +
-(avg != null ? `⚡ avg ${fmtSecs(avg)} per answer\n` : '') +
-`${t.emoji} ${t.title} · 🔥 ${stats.streak}-day streak` + url;
+const grid = cells.length > 5 ? cells.slice(0, 4).join('') + '\n' + cells.slice(4).join('') : cells.join('');
+return `Quorbit #${U.dayNumber(date)}: ${rec.score}/${rec.max}\n${grid}\n` +
+(avg != null ? `avg ${fmtSecs(avg)} per answer\n` : '') +
+`${t.title} · ${stats.streak}-day streak` + url;
 }
 function recordDaily(date, rec, preview) {
 QB.store.update(s => {
