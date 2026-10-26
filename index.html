@@ -575,8 +575,6 @@ background: #ffffff; color: #120c4c; font-family: var(--mono); box-shadow: 0 0 0
 .ww-key i, .t-name i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .k-full { background: var(--green); } .k-part { background: var(--yellow); } .k-wrong { background: var(--red); } .k-time { background: var(--yellow); }
 .k-easy { background: var(--green); } .k-medium { background: var(--blue); } .k-hard { background: var(--red); }
-.lineup-orbit { margin: 4px 0 8px; }
-.orbit-diff-key { margin-top: 0; }
 .share-wheel { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .share-wheel span { display: flex; flex-direction: column; font-weight: 800; } .share-wheel b { font-family: var(--mono); font-size: 1.5rem; color: var(--gold); }
 .topic-bars li { grid-template-columns: minmax(0,1fr) auto 3.5em; font-size: 1rem; }
@@ -795,10 +793,53 @@ background: #1c1c1e; border: 1px solid var(--line); box-shadow: 0 10px 30px rgba
 .lock-ctas { margin-top: 12px; }
 .t-ico { position: relative; }
 .t-ico .lock-dot { position: absolute; right: -4px; bottom: -4px; font-size: 0.75rem; line-height: 1; background: rgba(0,0,0,.55); border-radius: 50%; padding: 2px; }
+.lineup-orbit { flex-direction: column; align-items: center; margin: 8px 0 4px; }
+.diff-pie { width: 100%; max-width: 280px; height: auto; display: block; overflow: visible; }
+.pie-field { fill: rgba(255,255,255,.03); stroke: rgba(255,255,255,.08); stroke-width: 1; }
+.pie-slice { stroke: var(--deep, #000); stroke-width: 2; }
+.pie-slice.easy { fill: var(--green); }
+.pie-slice.medium { fill: var(--blue); }
+.pie-slice.hard { fill: var(--red); }
+.pie-hub { fill: #1c1c1e; stroke: var(--gold); stroke-width: 2; }
+.pie-c1 { font: 800 18px var(--mono, ui-monospace, Menlo, monospace); fill: var(--ink); }
+.pie-c2 { font: 600 9px -apple-system, system-ui, sans-serif; fill: var(--muted); letter-spacing: .12em; }
+.topic-ico { fill: #fff; opacity: .95; }
+.topic-ico .stroke { fill: none; stroke: #fff; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.orbit-diff-key {
+display: flex; justify-content: center; flex-wrap: wrap; gap: 8px;
+margin: 12px 0 0; width: 100%;
+}
+.diff-chip {
+display: inline-flex; align-items: center; gap: 6px;
+font-size: .8125rem; font-weight: 650; color: var(--ink);
+padding: 6px 12px; border-radius: 980px;
+background: rgba(255,255,255,.06); border: 1px solid var(--line);
+}
+.diff-chip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0; }
+.orbit-topic-legend {
+display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 10px;
+margin: 10px 0 0; width: 100%; padding-top: 10px;
+border-top: 1px solid var(--line);
+}
+.topic-leg {
+display: inline-flex; align-items: center; gap: 4px;
+font-size: .6875rem; font-weight: 600; color: var(--muted);
+letter-spacing: -.01em; line-height: 1;
+}
+.topic-leg svg { width: 14px; height: 14px; flex-shrink: 0; overflow: visible; }
+.topic-leg .topic-ico { fill: #d1d1d6; opacity: 1; }
+.topic-leg .topic-ico .stroke { stroke: #d1d1d6; }
+.topic-leg .topic-ico circle[fill="#fff"],
+.topic-leg .topic-ico [fill="#fff"] { fill: #d1d1d6; }
+.orbit-score-strip {
+margin: 8px 0 2px; text-align: center;
+font-size: .6875rem; font-weight: 600; color: var(--muted);
+letter-spacing: .02em; font-variant-numeric: tabular-nums;
+}
+.lineup-orbit .ww-key { display: none; }
 .hero .lead { max-width: 36em; }
 .episode { box-shadow: none; }
-.lineup-orbit .wagon { opacity: .95; }
-.orbit-diff-key { opacity: .85; font-size: .875rem; }
+.orbit-diff-key { opacity: .9; }
 .home-more { margin: 10px 0 4px; }
 .home-more > summary { list-style: none; cursor: pointer; font-weight: 800; color: var(--muted); min-height: 44px; display: flex; align-items: center; justify-content: space-between; }
 .home-more > summary::-webkit-details-marker { display: none; }
@@ -2700,19 +2741,139 @@ function mixLine(set) {
 return `<div class="mixline" id="mixline">${['easy', 'medium', 'hard'].map(d => `<span class="mx">${DIFFBADGE(d)} ×${set.filter(x => x.difficulty === d).length}</span>`).join('')}
 <span class="muted small fast">max ${E.episodeMax(set)} · combo ×${E.COMBO.mult}</span></div>`;
 }
+function topicShort(x) {
+if (!x) return '';
+if (x.slot && x.slot.key === 'visual') return 'Picture';
+if (x.slot && x.slot.key === 'connect') return 'Connect';
+if (x.slot && x.slot.key === 'cricket') return 'Cricket';
+const SHORT = {
+History: 'History', Geography: 'Geo', Literature: 'Lit', Business: 'Business',
+Sports: 'Sports', Cricket: 'Cricket', 'Bollywood & Culture': 'Film', World: 'World',
+Science: 'Science', 'Mixed Bag': 'Mixed', Connect: 'Connect', Mythology: 'Myth',
+Film: 'Film', Entertainment: 'Film'
+};
+return SHORT[x.category] || String(x.category || '').split(/\s+/)[0] || 'Topic';
+}
+function topicGlyphKey(x) {
+if (!x) return 'mixed';
+if (x.slot && x.slot.key === 'visual') return 'picture';
+if (x.slot && x.slot.key === 'connect') return 'connect';
+if (x.slot && x.slot.key === 'cricket') return 'cricket';
+const MAP = {
+History: 'history', Geography: 'geography', Literature: 'literature', Business: 'business',
+Sports: 'sports', Cricket: 'cricket', 'Bollywood & Culture': 'film', World: 'world',
+Science: 'science', 'Mixed Bag': 'mixed', Connect: 'connect', Mythology: 'mythology',
+Film: 'film', Entertainment: 'film'
+};
+return MAP[x.category] || 'mixed';
+}
+const TOPIC_GLYPHS = {
+history: `<g class="topic-ico"><path class="stroke" d="M-5.5 -6.5h9a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5h-9a1.5 1.5 0 0 1-1.5-1.5v-10a1.5 1.5 0 0 1 1.5-1.5z"/><path class="stroke" d="M-3.2 -2.2h6.4M-3.2 .8h6.4M-3.2 3.8h4"/></g>`,
+cricket: `<g class="topic-ico"><path class="stroke" d="M-1.2 6.8 L1.8 -1.2 C2.4 -2.8 4.6 -5.8 6.2 -5.2 C7.4 -4.7 5.8 -1.4 4.6 .6 L1.6 7.4 C1.1 8.2 .2 8.0 -.4 7.4 Z" stroke-width="1.7"/><path class="stroke" d="M-1.0 6.5 L-4.8 3.2" stroke-width="2.2"/><circle cx="5.6" cy="4.8" r="2.4" fill="#fff"/></g>`,
+science: `<g class="topic-ico"><path class="stroke" d="M-2 -7h4M0 -7v4.5L5 6.5H-5L0 -2.5"/><circle cx="-1.2" cy="3.2" r="1" fill="#fff"/><circle cx="1.6" cy="4.6" r=".7" fill="#fff"/></g>`,
+picture: `<g class="topic-ico"><rect class="stroke" x="-6.5" y="-5.5" width="13" height="11" rx="1.2"/><path class="stroke" d="M-5 3.5 L-1.5 -1 L1.5 2 L3.5 -.5 L6 3.5"/><circle cx="3.2" cy="-2.4" r="1.3" fill="#fff"/></g>`,
+connect: `<g class="topic-ico"><circle cx="-4.5" cy="-3.5" r="2.2" fill="#fff"/><circle cx="4.5" cy="-3.5" r="2.2" fill="#fff"/><circle cx="0" cy="4.2" r="2.2" fill="#fff"/><path class="stroke" d="M-3 -2.2 L3 -2.2 M-3.2 -1.8 L-.8 2.8 M3.2 -1.8 L.8 2.8" stroke-width="1.8"/></g>`,
+business: `<g class="topic-ico"><rect class="stroke" x="-6.5" y="-3" width="13" height="9.5" rx="1.4"/><path class="stroke" d="M-2.5 -3v-1.8a1.8 1.8 0 0 1 1.8-1.8h1.4a1.8 1.8 0 0 1 1.8 1.8V-3M-6.5 1.5h13"/></g>`,
+geography: `<g class="topic-ico"><circle class="stroke" r="6.2"/><ellipse class="stroke" rx="2.6" ry="6.2"/><path class="stroke" d="M-5.6 -2.2h11.2M-5.6 2.2h11.2"/></g>`,
+literature: `<g class="topic-ico"><path class="stroke" d="M-5.5 -6.5 Q0 -4.5 5.5 -6.5 V6 Q0 8  -5.5 6 Z"/><path class="stroke" d="M0 -5.2v11.5"/></g>`,
+world: `<g class="topic-ico"><circle class="stroke" r="6.2"/><path class="stroke" d="M-4 -1.5c1.5-2 3-2.5 4.5-.5s3 2 4.5.2M-5.5 2.5c2 1.5 4 1 5.5-.2s3.2-1.5 5 .3"/><path class="stroke" d="M-5.8 0h11.6"/></g>`,
+film: `<g class="topic-ico"><rect class="stroke" x="-6.5" y="-5" width="13" height="10" rx="1.2"/><path class="stroke" d="M-6.5 -2h13M-6.5 2h13M-4 -5v10M4 -5v10"/><circle cx="0" cy="0" r="1.6" fill="#fff"/></g>`,
+sports: `<g class="topic-ico"><circle class="stroke" r="6"/><path class="stroke" d="M-4.2 -4.2 L4.2 4.2 M4.2 -4.2 L-4.2 4.2"/></g>`,
+mixed: `<g class="topic-ico"><circle class="stroke" r="2.2" cx="-3.5" cy="-3"/><circle class="stroke" r="2.2" cx="3.5" cy="-3"/><circle class="stroke" r="2.2" cx="-3.5" cy="3.5"/><circle class="stroke" r="2.2" cx="3.5" cy="3.5"/></g>`,
+mythology: `<g class="topic-ico"><path class="stroke" d="M0 -6.5 L2 0 L6.5 0 L3 3 L4.2 7 L0 4.2 L-4.2 7 L-3 3 L-6.5 0 L-2 0 Z"/></g>`
+};
+function diffMixPie(set, opts = {}) {
+const n = Math.max(1, set.length);
+const ep = opts.ep != null ? opts.ep : U.dayNumber(TODAY);
+const size = opts.size || 280;
+const R = 112, Ri = 72, Rh = 32;
+const counts = { easy: 0, medium: 0, hard: 0 };
+set.forEach(x => { counts[x.difficulty] = (counts[x.difficulty] || 0) + 1; });
+const order = ['easy', 'medium', 'hard'].filter(d => counts[d] > 0);
+const byDiff = {};
+order.forEach(d => { byDiff[d] = set.filter(x => x.difficulty === d); });
+const polar = (deg, r) => {
+const a = (deg - 90) * Math.PI / 180;
+return [r * Math.cos(a), r * Math.sin(a)];
+};
+const arcPath = (a0, a1, r) => {
+const [x0, y0] = polar(a0, r), [x1, y1] = polar(a1, r);
+const large = ((a1 - a0 + 360) % 360) > 180 ? 1 : 0;
+return `M0 0 L${x0.toFixed(1)} ${y0.toFixed(1)} A${r} ${r} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} Z`;
+};
+let ang = 0;
+const slices = [];
+const icons = [];
+const usedKeys = new Set();
+const defs = [];
+order.forEach(d => {
+const items = byDiff[d];
+const span = (items.length / n) * 360;
+slices.push(`<path class="pie-slice ${d}" d="${arcPath(ang, ang + span, R)}"/>`);
+items.forEach((x, i) => {
+const a0 = ang + (i / items.length) * span;
+const a1 = ang + ((i + 1) / items.length) * span;
+const mid = (a0 + a1) / 2;
+const [ix, iy] = polar(mid, Ri);
+const key = topicGlyphKey(x);
+if (!usedKeys.has(key)) {
+usedKeys.add(key);
+defs.push(`<g id="pie-ico-${key}">${TOPIC_GLYPHS[key] || TOPIC_GLYPHS.mixed}</g>`);
+}
+icons.push(`<use href="#pie-ico-${key}" transform="translate(${ix.toFixed(1)},${iy.toFixed(1)}) scale(1.15)"/>`);
+});
+ang += span;
+});
+const seen = new Set();
+const legendItems = [];
+set.forEach(x => {
+const label = topicShort(x);
+const key = topicGlyphKey(x);
+const id = key + '|' + label;
+if (seen.has(id)) return;
+seen.add(id);
+if (!usedKeys.has(key)) {
+usedKeys.add(key);
+defs.push(`<g id="pie-ico-${key}">${TOPIC_GLYPHS[key] || TOPIC_GLYPHS.mixed}</g>`);
+}
+legendItems.push({ key, label });
+});
+const topics = set.map(x => topicShort(x)).join(', ');
+const aria = `Today: ${counts.easy || 0} Easy, ${counts.medium || 0} Medium, ${counts.hard || 0} Hard. Topics: ${topics}.`;
+return `<svg class="diff-pie" viewBox="-130 -130 260 260" width="${size}" height="${size}" role="img" aria-label="${esc(aria)}">
+<defs>${defs.join('')}</defs>
+<circle r="120" class="pie-field"/>
+${slices.join('')}
+${icons.join('')}
+<circle r="${Rh}" class="pie-hub"/>
+<text y="1" text-anchor="middle" class="pie-c1">#${ep}</text>
+<text y="15" text-anchor="middle" class="pie-c2">ORBIT</text>
+</svg>`;
+}
 function lineupOrbit(set) {
-const len = { easy: 0.45, medium: 0.72, hard: 1 };
-const spokes = set.map((x, i) => ({
-frac: len[x.difficulty] || 0.6,
-cls: x.difficulty,
-icon: x.slot.icon,
-label: `Round ${i + 1}: ${x.slot.name} · ${E.DIFF[x.difficulty].label}`
-}));
 const ep = U.dayNumber(TODAY);
-return `<div class="wheel-wrap lineup-orbit" id="lineupOrbit">${wagonWheel(spokes, {
-id: 'lineupWagon', center: '#' + ep, sub: 'orbit', label: `Episode #${ep} orbit card: today's ${set.length} rounds`
-})}</div>
-<p class="ww-key orbit-diff-key"><span><i class="k-easy"></i>Easy</span><span><i class="k-medium"></i>Medium</span><span><i class="k-hard"></i>Hard</span></p>`;
+const counts = { easy: 0, medium: 0, hard: 0 };
+set.forEach(x => { counts[x.difficulty] = (counts[x.difficulty] || 0) + 1; });
+const chips = ['easy', 'medium', 'hard'].filter(d => counts[d]).map(d =>
+`<span class="diff-chip"><i class="k-${d}"></i>${E.DIFF[d].label} ×${counts[d]}</span>`).join('');
+const seen = new Set();
+const legs = [];
+set.forEach(x => {
+const label = topicShort(x);
+const key = topicGlyphKey(x);
+const id = key + '|' + label;
+if (seen.has(id)) return;
+seen.add(id);
+legs.push(`<span class="topic-leg"><svg viewBox="-8 -8 16 16" aria-hidden="true">${TOPIC_GLYPHS[key] || TOPIC_GLYPHS.mixed}</svg>${esc(label)}</span>`);
+});
+const max = E.episodeMax(set);
+const pe = E.DIFF.easy.pts, pm = E.DIFF.medium.pts, ph = E.DIFF.hard.pts;
+const strip = `E${pe} · M${pm} · H${ph} · 30–40s · max ${max}`;
+return `<div class="wheel-wrap lineup-orbit" id="lineupOrbit">${diffMixPie(set, { ep })}
+<div class="orbit-diff-key" aria-label="Difficulty mix">${chips}</div>
+<div class="orbit-topic-legend" aria-label="Topics">${legs.join('')}</div>
+<p class="orbit-score-strip">${strip}</p>
+</div>`;
 }
 function levelCard() {
 const s = S.get(); const P = s.points || { total: 0, byDate: {} }; const L = E.levelFor(P.total);
@@ -2757,10 +2918,7 @@ view(`
 <div class="ep-meta"><div class="ep-no">EPISODE #${U.dayNumber(TODAY)}</div><div class="muted small">${esc(U.prettyDate(TODAY))} · max ${max} pts${E.EDITION !== 'mixed' ? ` · <a id="editionTag" class="link" href="?edition=mixed#/home" title="Switch back to the mixed edition">🌐 ${E.EDITIONS[E.EDITION].label} edition</a>` : ''}</div></div>
 <div class="onair"><span></span>ON AIR</div>
 </div>
-<h3 class="lineup-title">Today's line-up</h3>
 ${lineupOrbit(set)}
-${lineupCard(set)}
-${mixLine(set)}
 ${cta}
 <div class="row-links"><a href="#/how" class="link">How to play &amp; scoring</a><a href="#/stats" class="link" id="homeStats">📊 Your stats</a></div>
 </section>
@@ -2825,8 +2983,6 @@ view(`
 <p class="kicker">Episode #${U.dayNumber(TODAY)} · ${esc(U.prettyDate(TODAY))}</p>
 <h1 class="page-title">Today's line-up</h1>
 ${lineupOrbit(set)}
-${lineupCard(set)}
-${mixLine(set)}
 <div class="cta-inline"><a class="btn btn-gold btn-big" href="#/play" id="startShow">Start</a></div>
 </section>
 `, 'home');
