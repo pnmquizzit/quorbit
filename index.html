@@ -1984,11 +1984,11 @@ checkBadges();
 next();
 }
 const ORBIT = {
-circle:     { acc: .48, ms: [7000, 11000], label: 'Circle',     blurb: 'Gentle loop. Orbit is warming up and often misses.', allow: ['easy'] },
-ellipse:    { acc: .60, ms: [5500, 9500],  label: 'Ellipse',    blurb: 'A stretched path. Orbit is steady, still human.', allow: ['easy', 'medium'] },
-parabola:   { acc: .72, ms: [4200, 8000],  label: 'Parabola',   blurb: 'A fair arc. Orbit is quick and usually right.', allow: ['easy', 'medium'] },
-hyperbola:  { acc: .84, ms: [2800, 5800],  label: 'Hyperbola',  blurb: 'Open curve. Orbit buzzes hard and rarely slips.', allow: ['medium', 'hard'] },
-radial:     { acc: .93, ms: [1800, 4200],  label: 'Radial',     blurb: 'Straight at the hub. Full power — almost never misses.', allow: ['hard', 'medium'] }
+circle:     { acc: .48, ms: [7000, 11000], mult: 1,    label: 'Circle',     blurb: 'Gentle loop. Orbit warms up · score ×1.', allow: ['easy'] },
+ellipse:    { acc: .60, ms: [5500, 9500],  mult: 1.1,  label: 'Ellipse',    blurb: 'A stretched path. Steady Orbit · score ×1.1.', allow: ['easy', 'medium'] },
+parabola:   { acc: .72, ms: [4200, 8000],  mult: 1.25, label: 'Parabola',   blurb: 'A fair arc. Quick Orbit · score ×1.25.', allow: ['easy', 'medium'] },
+hyperbola:  { acc: .84, ms: [2800, 5800],  mult: 1.4,  label: 'Hyperbola',  blurb: 'Open curve. Rarely slips · score ×1.4.', allow: ['medium', 'hard'] },
+radial:     { acc: .93, ms: [1800, 4200],  mult: 1.6,  label: 'Radial',     blurb: 'Straight at the hub. Full power · score ×1.6.', allow: ['hard', 'medium'] }
 };
 const ORBIT_ALIAS = { easy: 'circle', medium: 'parabola', hard: 'radial' }; // old share / deep links
 const resolveOrbit = d => ORBIT[d] ? d : (ORBIT_ALIAS[d] || 'ellipse');
@@ -2057,7 +2057,7 @@ view(`
 <section class="versus" id="versus" aria-label="You versus Orbit">
 <div class="vs-side me"><div class="av big">⭐</div><b>${esc(myName)}</b><small>${c ? `vs ${esc(c.from)}'s ${c.rounds}/5` : 'Challenger'}</small></div>
 <div class="vs-bolt" aria-hidden="true">VS</div>
-<div class="vs-side orbit"><div class="av big">🪐</div><b>Orbit</b><small>${ORBIT[diff].label} · house quizmaster</small></div>
+<div class="vs-side orbit"><div class="av big">🪐</div><b>Orbit</b><small>${ORBIT[diff].label} · ×${ORBIT[diff].mult} pts</small></div>
 </section>
 <p class="center kicker">${T.icon} ${esc(T.name)} · best of 5</p>
 <p class="orbit-says center" id="orbitSays">“${esc(U.pick(LINES.hello))}”</p>`, 'duel');
@@ -2096,8 +2096,9 @@ on('.opt', 'click', e => { if (st.mine !== null || st.over) return; st.mine = e.
 function resolve() {
 if (st.over) return; st.over = true;
 const myOk = st.mine === q.answer, opOk = st.botDone && bp.ok;
-const myPts = myOk ? E.duelPoints(true, (total - st.myMs) * (E.DUEL.seconds * 1000 / total)) : 0;
-const opPts = opOk ? E.duelPoints(true, (total - bp.ms) * (E.DUEL.seconds * 1000 / total)) : 0;
+const pathMult = (ORBIT[diff] && ORBIT[diff].mult) || 1;
+const myPts = myOk ? Math.round(E.duelPoints(true, (total - st.myMs) * (E.DUEL.seconds * 1000 / total)) * pathMult) : 0;
+const opPts = opOk ? Math.round(E.duelPoints(true, (total - bp.ms) * (E.DUEL.seconds * 1000 / total)) * pathMult) : 0;
 const winner = myOk && opOk ? (st.myMs <= bp.ms ? 'me' : 'op') : myOk ? 'me' : opOk ? 'op' : null;
 if (winner === 'me') D.myR++; else if (winner === 'op') D.opR++;
 D.me += myPts; D.op += opPts; D.log.push({ id: q.id, myOk, opOk, myPts, opPts, winner, ms: st.myMs });
