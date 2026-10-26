@@ -831,11 +831,6 @@ letter-spacing: -.01em; line-height: 1;
 .topic-leg .topic-ico .stroke { stroke: #d1d1d6; }
 .topic-leg .topic-ico circle[fill="#fff"],
 .topic-leg .topic-ico [fill="#fff"] { fill: #d1d1d6; }
-.orbit-score-strip {
-margin: 8px 0 2px; text-align: center;
-font-size: .6875rem; font-weight: 600; color: var(--muted);
-letter-spacing: .02em; font-variant-numeric: tabular-nums;
-}
 .lineup-orbit .ww-key { display: none; }
 .hero .lead { max-width: 36em; }
 .episode { box-shadow: none; }
@@ -2866,13 +2861,9 @@ if (seen.has(id)) return;
 seen.add(id);
 legs.push(`<span class="topic-leg"><svg viewBox="-8 -8 16 16" aria-hidden="true">${TOPIC_GLYPHS[key] || TOPIC_GLYPHS.mixed}</svg>${esc(label)}</span>`);
 });
-const max = E.episodeMax(set);
-const pe = E.DIFF.easy.pts, pm = E.DIFF.medium.pts, ph = E.DIFF.hard.pts;
-const strip = `E${pe} · M${pm} · H${ph} · 30–40s · max ${max}`;
 return `<div class="wheel-wrap lineup-orbit" id="lineupOrbit">${diffMixPie(set, { ep })}
 <div class="orbit-diff-key" aria-label="Difficulty mix">${chips}</div>
 <div class="orbit-topic-legend" aria-label="Topics">${legs.join('')}</div>
-<p class="orbit-score-strip">${strip}</p>
 </div>`;
 }
 function levelCard() {
