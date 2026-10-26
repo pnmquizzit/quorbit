@@ -2910,17 +2910,7 @@ b.parentElement.querySelectorAll('button').forEach(x => { x.disabled = true; if 
 if (!ok) b.classList.add('bad'); (ok ? sfx.correct : sfx.wrong)();
 });
 }
-function credits() {
-const list = Object.values(CREDITS).sort((a, b) => a.key.localeCompare(b.key));
-view(`
-<h1 class="page-title">Image credits</h1>
-<p class="lead">Every picture in Quorbit comes from Wikimedia Commons under a public-domain or free licence (CC0, CC BY, CC BY-SA). Images were resized for the app.</p>
-<ul class="credit-list">${list.map(c => `<li><img src="${imgSrc(c.key)}" alt="" loading="lazy" decoding="async"><div><b>${esc(c.file.replace(/^File:/, ''))}</b>
-<small>${esc(c.author.slice(0, 80))} · ${esc(c.license)}</small><a class="credit" href="${esc(c.source)}" target="_blank" rel="noopener">Source on Commons</a></div></li>`).join('')}</ul>
-`, 'me');
-}
-const SHARE_QUORBIT = '🪐 Quorbit — daily India quiz. Five rounds every midnight IST. Try a topic: ';
-function freeChip(snap) {
+function credits(){view(`<h1 class="page-title">Image credits</h1><p class="lead">Every picture is from Wikimedia Commons under a public-domain or free licence (CC0, CC BY, or CC BY-SA).</p><div class="card"><b>Shown after you answer</b><p class="small muted">Credit for that round’s picture appears under the reveal — not as a browsable gallery. That keeps picture rounds unspoiled.</p></div><p class="muted small">Images are resized for the app. Full file lists aren’t published in the client.</p><a class="btn btn-ghost" href="#/home">Back</a>`,'me');}function freeChip(snap) {
 if (snap.unlocked) return '<span class="free-chip unlocked">Unlocked</span>';
 const left = snap.left;
 if (left <= 0) return `<span class="free-chip locked-chip">🔒 0/${E.FREE_PER_TOPIC} free</span>`;
