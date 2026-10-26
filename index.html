@@ -2060,12 +2060,12 @@ view(`
 ${CH ? `<a class="card challenge-card" href="#/duel/c"><span class="s-ico">📨</span><div><b>${esc(CH.from)} challenged you!</b><small>${CH.rounds}/5 rounds · ${CH.pts} pts. Same 5 questions, can you beat it?</small></div></a>` : ''}
 <h2 class="section-title">Orbit's path</h2>
 <div class="orbit-paths">${K.segmented('odiff', Object.entries(ORBIT).map(([k, v]) => [k, orbitPathLabel(k, v), ` data-tier="${v.tier}"`]), lastDiff, "Orbit's path")}</div>
-<p class="muted small" id="diffBlurb">${ORBIT[lastDiff].blurb}</p>
+<p class="muted small" id="diffBlurb">Difficulty order · Circle → Radial (Easy → Hard)</p>
 <h2 class="section-title">Topic</h2>
 <div class="chip-wrap" id="topicChips" role="radiogroup" aria-label="Topic">${E.TOPICS.map(t => `<button type="button" class="chip-btn ${t.id === lastTopic ? 'on' : ''}" role="radio" aria-checked="${t.id === lastTopic}" data-topic="${t.id}">${t.icon} ${esc(t.name)}</button>`).join('')}</div>
 <div class="cta-inline"><a class="btn btn-gold btn-big" id="duelStart" href="#/duel/${lastTopic}/${lastDiff}">⚔️ Duel Orbit</a></div>
 `, 'duel');
-const upd = () => { const a = $app.querySelector('#duelStart'); a.href = `#/duel/${lastTopic}/${lastDiff}`; $app.querySelector('#diffBlurb').textContent = ORBIT[lastDiff].blurb; };
+const upd = () => { const a = $app.querySelector('#duelStart'); a.href = `#/duel/${lastTopic}/${lastDiff}`; };
 K.bindSegmented((name, v) => { if (name === 'odiff') { lastDiff = v; upd(); } });
 on('#topicChips .chip-btn', 'click', e => { lastTopic = e.currentTarget.dataset.topic; $app.querySelectorAll('#topicChips .chip-btn').forEach(b => { const on = b === e.currentTarget; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); }); upd(); });
 onShow(() => K.floatCta('#duelStart'));
