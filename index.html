@@ -874,6 +874,27 @@ line-height: 1.35;
 .orbit-paths .seg-btn {
 min-height: 40px; padding: 6px 10px; font-size: 0.8125rem; font-weight: 600;
 border-radius: 980px; flex: 1 1 auto; text-align: center;
+display: inline-flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px;
+}
+.orbit-paths .opath-ico { width: 16px; height: 16px; flex: none; display: block; }
+.orbit-paths .opath-name { line-height: 1.1; }
+.orbit-paths .seg-btn[data-tier="easy"] {
+border-color: rgba(48,209,88,.45); color: var(--green); background: rgba(48,209,88,.10);
+}
+.orbit-paths .seg-btn[data-tier="medium"] {
+border-color: rgba(10,132,255,.45); color: var(--blue); background: rgba(10,132,255,.10);
+}
+.orbit-paths .seg-btn[data-tier="hard"] {
+border-color: rgba(255,69,58,.45); color: var(--red); background: rgba(255,69,58,.10);
+}
+.orbit-paths .seg-btn.on[data-tier="easy"] {
+background: var(--green); border-color: var(--green); color: #04210f;
+}
+.orbit-paths .seg-btn.on[data-tier="medium"] {
+background: var(--blue); border-color: var(--blue); color: #fff;
+}
+.orbit-paths .seg-btn.on[data-tier="hard"] {
+background: var(--red); border-color: var(--red); color: #fff;
 }
 .orbit-paths .seg-field legend { font-size: 0; height: 0; overflow: hidden; margin: 0; }
 </style>
@@ -1984,12 +2005,20 @@ checkBadges();
 next();
 }
 const ORBIT = {
-circle:     { acc: .48, ms: [7000, 11000], mult: 1,    label: 'Circle',     blurb: 'Gentle loop. Orbit warms up · score ×1.', allow: ['easy'] },
-ellipse:    { acc: .60, ms: [5500, 9500],  mult: 1.1,  label: 'Ellipse',    blurb: 'A stretched path. Steady Orbit · score ×1.1.', allow: ['easy', 'medium'] },
-parabola:   { acc: .72, ms: [4200, 8000],  mult: 1.25, label: 'Parabola',   blurb: 'A fair arc. Quick Orbit · score ×1.25.', allow: ['easy', 'medium'] },
-hyperbola:  { acc: .84, ms: [2800, 5800],  mult: 1.4,  label: 'Hyperbola',  blurb: 'Open curve. Rarely slips · score ×1.4.', allow: ['medium', 'hard'] },
-radial:     { acc: .93, ms: [1800, 4200],  mult: 1.6,  label: 'Radial',     blurb: 'Straight at the hub. Full power · score ×1.6.', allow: ['hard', 'medium'] }
+circle:     { acc: .48, ms: [7000, 11000], mult: 1,    label: 'Circle',     tier: 'easy',   blurb: 'Gentle loop. Orbit warms up · score ×1.', allow: ['easy'] },
+ellipse:    { acc: .60, ms: [5500, 9500],  mult: 1.1,  label: 'Ellipse',    tier: 'easy',   blurb: 'A stretched path. Steady Orbit · score ×1.1.', allow: ['easy', 'medium'] },
+parabola:   { acc: .72, ms: [4200, 8000],  mult: 1.25, label: 'Parabola',   tier: 'medium', blurb: 'A fair arc. Quick Orbit · score ×1.25.', allow: ['easy', 'medium'] },
+hyperbola:  { acc: .84, ms: [2800, 5800],  mult: 1.4,  label: 'Hyperbola',  tier: 'hard',   blurb: 'Open curve. Rarely slips · score ×1.4.', allow: ['medium', 'hard'] },
+radial:     { acc: .93, ms: [1800, 4200],  mult: 1.6,  label: 'Radial',     tier: 'hard',   blurb: 'Straight at the hub. Full power · score ×1.6.', allow: ['hard', 'medium'] }
 };
+const ORBIT_GLYPH = {
+circle:    '<svg class="opath-ico" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="2.2" fill="currentColor" stroke="none"/><circle cx="16" cy="16" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+ellipse:   '<svg class="opath-ico" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="2.2" fill="currentColor" stroke="none"/><ellipse cx="16" cy="16" rx="12" ry="7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>',
+parabola:  '<svg class="opath-ico" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="14" r="2.2" fill="currentColor" stroke="none"/><path d="M6 26 Q16 2 26 26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+hyperbola: '<svg class="opath-ico" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="2.2" fill="currentColor" stroke="none"/><path d="M8 6 C14 12, 14 20, 8 26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M24 6 C18 12, 18 20, 24 26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+radial:    '<svg class="opath-ico" viewBox="0 0 32 32" aria-hidden="true"><circle cx="10" cy="22" r="2.2" fill="currentColor" stroke="none"/><line x1="12" y1="20" x2="24" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="24" cy="8" r="1.6" fill="currentColor" stroke="none"/></svg>'
+};
+const orbitPathLabel = (k, v) => `${ORBIT_GLYPH[k] || ''}<span class="opath-name">${v.label}</span>`;
 const ORBIT_ALIAS = { easy: 'circle', medium: 'parabola', hard: 'radial' }; // old share / deep links
 const resolveOrbit = d => ORBIT[d] ? d : (ORBIT_ALIAS[d] || 'ellipse');
 const LINES = {
@@ -2030,7 +2059,7 @@ view(`
 </section>
 ${CH ? `<a class="card challenge-card" href="#/duel/c"><span class="s-ico">📨</span><div><b>${esc(CH.from)} challenged you!</b><small>${CH.rounds}/5 rounds · ${CH.pts} pts. Same 5 questions, can you beat it?</small></div></a>` : ''}
 <h2 class="section-title">Orbit's path</h2>
-<div class="orbit-paths">${K.segmented('odiff', Object.entries(ORBIT).map(([k, v]) => [k, v.label]), lastDiff, "Orbit's path")}</div>
+<div class="orbit-paths">${K.segmented('odiff', Object.entries(ORBIT).map(([k, v]) => [k, orbitPathLabel(k, v), ` data-tier="${v.tier}"`]), lastDiff, "Orbit's path")}</div>
 <p class="muted small" id="diffBlurb">${ORBIT[lastDiff].blurb}</p>
 <h2 class="section-title">Topic</h2>
 <div class="chip-wrap" id="topicChips" role="radiogroup" aria-label="Topic">${E.TOPICS.map(t => `<button type="button" class="chip-btn ${t.id === lastTopic ? 'on' : ''}" role="radio" aria-checked="${t.id === lastTopic}" data-topic="${t.id}">${t.icon} ${esc(t.name)}</button>`).join('')}</div>
@@ -2463,7 +2492,7 @@ on('#largeTextToggle', 'click', e => { S.update(s => { s.settings.largeText = !s
 }
 function segmented(name, opts, val, label) {
 return `<fieldset class="seg-field"><legend>${label}</legend><input type="hidden" name="${name}" value="${esc(val)}">
-<div class="seg" role="radiogroup" aria-label="${esc(label)}">${opts.map(([v, l]) => `<button type="button" class="seg-btn ${v === val ? 'on' : ''}" role="radio" aria-checked="${v === val}" data-seg="${name}" data-val="${esc(v)}">${l}</button>`).join('')}</div></fieldset>`;
+<div class="seg" role="radiogroup" aria-label="${esc(label)}">${opts.map(([v, l, extra]) => `<button type="button" class="seg-btn ${v === val ? 'on' : ''}" role="radio" aria-checked="${v === val}" data-seg="${name}" data-val="${esc(v)}"${extra || ''}>${l}</button>`).join('')}</div></fieldset>`;
 }
 function bindSegmented(onChange) {
 on('.seg-btn', 'click', e => {
