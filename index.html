@@ -577,6 +577,9 @@ background: #ffffff; color: #120c4c; font-family: var(--mono); box-shadow: 0 0 0
 .ww-key { display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 8px; font-size: .9375rem; color: var(--ink); }
 .ww-key i, .t-name i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .k-full { background: #2fd27a; } .k-part { background: #ff9f43; } .k-wrong { background: #ff5f6f; } .k-time { background: #ff9a4d; }
+.k-easy { background: #2fd27a; } .k-medium { background: #5b9dff; } .k-hard { background: #c8203a; }
+.lineup-orbit { margin: 4px 0 8px; }
+.orbit-diff-key { margin-top: 0; }
 .share-wheel { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .share-wheel span { display: flex; flex-direction: column; font-weight: 800; } .share-wheel b { font-family: var(--mono); font-size: 1.5rem; color: var(--gold); }
 .topic-bars li { grid-template-columns: minmax(0,1fr) auto 3.5em; font-size: 1rem; }
@@ -2349,7 +2352,7 @@ check();
 }
 function wagonWheel(spokes, opts = {}) {
 const n = spokes.length || 1, R0 = 26, R1 = 84, size = opts.size || 260;
-const col = { full: '#2fd27a', part: '#ff9f43', wrong: '#ff5f6f', time: '#ff9a4d' };
+const col = { full: '#2fd27a', part: '#ff9f43', wrong: '#ff5f6f', time: '#ff9a4d', easy: '#2fd27a', medium: '#5b9dff', hard: '#c8203a' };
 const lines = spokes.map((sp, i) => {
 const a = (-90 + (360 / n) * i) * Math.PI / 180, f = Math.max(0, Math.min(1, sp.frac || 0));
 const L = R0 + (R1 - R0) * Math.max(0.08, f); const x0 = R0 * Math.cos(a), y0 = R0 * Math.sin(a), x1 = L * Math.cos(a), y1 = L * Math.sin(a);
@@ -2422,6 +2425,20 @@ function mixLine(set) {
 return `<div class="mixline" id="mixline">${['easy', 'medium', 'hard'].map(d => `<span class="mx">${DIFFBADGE(d)} ×${set.filter(x => x.difficulty === d).length}</span>`).join('')}
 <span class="muted small fast">max ${E.episodeMax(set)} pts with fast answers · 🔥 ×${E.COMBO.mult} from ${E.COMBO.after + 1} in a row</span></div>`;
 }
+function lineupOrbit(set) {
+const len = { easy: 0.45, medium: 0.72, hard: 1 };
+const spokes = set.map((x, i) => ({
+frac: len[x.difficulty] || 0.6,
+cls: x.difficulty,
+icon: x.slot.icon,
+label: `Round ${i + 1}: ${x.slot.name} · ${E.DIFF[x.difficulty].label}`
+}));
+const ep = U.dayNumber(TODAY);
+return `<div class="wheel-wrap lineup-orbit" id="lineupOrbit">${wagonWheel(spokes, {
+id: 'lineupWagon', center: '#' + ep, sub: 'orbit', label: `Episode #${ep} orbit card: today's ${set.length} rounds`
+})}</div>
+<p class="ww-key orbit-diff-key"><span><i class="k-easy"></i>Easy</span><span><i class="k-medium"></i>Medium</span><span><i class="k-hard"></i>Hard</span></p>`;
+}
 function levelCard() {
 const s = S.get(); const P = s.points || { total: 0, byDate: {} }; const L = E.levelFor(P.total);
 const best = Math.max(s.stats.best || 0, s.previewStats.best || 0);
@@ -2466,6 +2483,7 @@ view(`
 <div class="onair"><span></span>ON AIR</div>
 </div>
 <h3 class="lineup-title">Today's line-up</h3>
+${lineupOrbit(set)}
 ${lineupCard(set)}
 ${mixLine(set)}
 ${cta}
@@ -2532,6 +2550,7 @@ view(`
 <p class="kicker">Episode #${U.dayNumber(TODAY)} · ${esc(U.prettyDate(TODAY))}</p>
 <h1 class="page-title">Today's line-up</h1>
 <p class="host-line">"Good evening, quizzers! Here's tonight's line-up…"</p>
+${lineupOrbit(set)}
 ${lineupCard(set)}
 ${mixLine(set)}
 <div class="cta-inline"><a class="btn btn-gold btn-big" href="#/play" id="startShow">🎬 Lights, camera, quiz!</a></div>
