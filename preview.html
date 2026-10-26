@@ -134,7 +134,10 @@ background: var(--gold); color: #000; box-shadow: none; border-radius: 980px; }
 .rb-ico { font-size: 1.625rem; } .rb-name { font-family: var(--serif); font-size: 1.25rem; font-weight: 900; } .rb-cat { font-size: 0.875rem; font-weight: 700; }
 .qcard { padding: 18px 16px; margin-bottom: 12px; }
 .host-line { margin: 0 0 8px; color: var(--gold-2); font-style: italic; font-size: 0.875rem; }
-.question { font-size: 1.3125rem; line-height: 1.32; margin: 0; font-weight: 800; }
+.question { font-size: 1.3125rem; line-height: 1.35; margin: 0; font-weight: 700; color: var(--ink);
+padding: 12px 14px 12px 16px; border-radius: 12px;
+background: rgba(255, 255, 255, 0.06); border-left: 3px solid var(--gold);
+letter-spacing: -0.01em; }
 .clues { margin: 12px 0 0; padding-left: 0; list-style: none; display: grid; gap: 6px; counter-reset: c; }
 .clues li { counter-increment: c; padding: 9px 12px 9px 40px; position: relative; border-radius: 10px; background: rgba(0,0,0,.25); font-size: 0.9375rem; color: var(--muted); border: 1px dashed rgba(255,255,255,.15); }
 .clues li::before { content: counter(c); position: absolute; left: 10px; top: 8px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
@@ -526,10 +529,11 @@ bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 10px); pointer-ev
 .quit-btn { flex: none; min-height: 48px; min-width: 48px; padding: 0 12px; border-radius: 12px; border: 1px solid var(--line); background: rgba(255,255,255,.08); color: var(--ink); font-weight: 800; font-size: 1rem; }
 .round-banner { padding: 6px 12px; margin-bottom: 8px; box-shadow: 0 3px 0 #a8730d; }
 .rb-ico { font-size: 1.375rem; } .rb-name { font-size: 1.0625rem; } .rb-cat { font-size: .875rem; }
-.qmeta { font-size: .875rem; color: var(--muted); margin: 0 2px 6px; }
+.qmeta { font-size: .8125rem; color: var(--muted); font-weight: 600; margin: 0 2px 8px; opacity: .92; }
 .qhead { position: -webkit-sticky; position: sticky; top: calc(var(--top-h) + env(safe-area-inset-top, 0px)); z-index: 5; margin: 0 -16px 10px; padding: 8px 16px 10px;
-background: #140d52; border-bottom: 1px solid var(--line); box-shadow: 0 8px 16px rgba(0,0,0,.35); }
-.qhead .question { margin: 8px 0 0; font-size: 1.1875rem; line-height: 1.3; }
+background: rgba(12, 12, 14, 0.92); border-bottom: 1px solid var(--line);
+box-shadow: 0 8px 16px rgba(0,0,0,.35); backdrop-filter: saturate(180%) blur(16px); -webkit-backdrop-filter: saturate(180%) blur(16px); }
+.qhead .question { margin: 8px 0 0; font-size: 1.3125rem; line-height: 1.32; }
 .timer, .timer.danger, .timer.warn { position: static; display: flex; align-items: center; gap: 10px; height: auto; margin: 0; padding: 0; background: none; border: 0;
 overflow: visible; box-shadow: none; animation: none; }
 .t-pill { flex: none; display: inline-flex; align-items: baseline; justify-content: center; gap: 2px; min-width: 76px; height: 48px; padding: 0 12px; border-radius: 999px;
@@ -823,6 +827,39 @@ body { -webkit-font-smoothing: antialiased; background: var(--deep); }
 .ww-hub { stroke: rgba(255,214,10,.55); }
 .ww-c1 { fill: var(--gold); }
 .modal { background: #1c1c1e; border: 1px solid var(--line); box-shadow: 0 16px 48px rgba(0,0,0,.45); }
+.question, h2.question, #qtext {
+color: var(--ink);
+font-size: 1.3125rem;
+line-height: 1.35;
+font-weight: 700;
+letter-spacing: -0.01em;
+padding: 12px 14px 12px 16px;
+border-radius: 12px;
+background: rgba(255, 255, 255, 0.07);
+border-left: 3px solid var(--gold);
+box-shadow: none;
+text-shadow: none;
+}
+.qhead {
+background: rgba(0, 0, 0, 0.72);
+border-bottom: 1px solid var(--line);
+box-shadow: 0 6px 14px rgba(0,0,0,.4);
+backdrop-filter: saturate(180%) blur(20px);
+-webkit-backdrop-filter: saturate(180%) blur(20px);
+}
+.qhead .question, .qhead h2.question, .qhead #qtext {
+margin: 8px 0 0;
+font-size: 1.3125rem;
+line-height: 1.32;
+padding: 14px 14px 14px 16px;
+background: rgba(255, 255, 255, 0.08);
+border-left: 3px solid var(--gold);
+border-radius: 12px;
+color: #f5f5f7;
+}
+.qmeta { color: var(--muted); font-weight: 600; font-size: 0.8125rem; opacity: 0.9; }
+.host-line { color: var(--muted); font-weight: 500; }
+.opt { font-weight: 600; font-size: 1rem; color: var(--ink); opacity: 0.95; }
 </style>
 </head>
 <body>
@@ -2863,7 +2900,7 @@ ${levelCard()}
 <div><b>${st.best}</b><small>High score</small></div>
 </section>
 <div class="share-card" id="shareCard">
-<div class="share-head"><span>🪐 Share your orbit</span><small>Emoji grid · score · streak</small></div>
+<div class="share-head"><span>🪐 Share your orbit</span><small>Score grid · streak</small></div>
 <div class="share-wheel">${wagonWheel(roundSpokes(set, rec), { id: 'shareWheel', size: 120, label: 'Your wagon wheel' })}<span>Quorbit #${U.dayNumber(TODAY)}<b>${rec.score}/${rec.max}</b></span></div>
 <pre class="share-preview" id="sharePreview">${esc(share)}</pre>
 <div class="share-btns">
