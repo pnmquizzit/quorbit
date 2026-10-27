@@ -1626,6 +1626,8 @@ return k ? T[k] : T[q.answer] || 'gem'; // an alias of the rarest answer (e.g. a
 const TITLES = [[100, 'Quizmaster Supreme', '🏆'], [80, 'Studio Champion', '🥇'], [60, 'Grand Finalist', '🎖️'],
 [40, 'Semi-Finalist', '🎓'], [20, 'Brave Contestant', '🙋'], [0, 'Audience Favourite', '👏']];
 function titleFor(score, max) { const pct = Math.round((score / max) * 100); const t = TITLES.find(([m]) => pct >= m); return { title: t[1], emoji: t[2] }; }
+const scoreText = rec => (rec.score > rec.max ? `${rec.score} 🔥 (base max ${rec.max})` : `${rec.score}/${rec.max}`);
+const scoreShort = rec => (rec.score > rec.max ? `${rec.score} 🔥` : `${rec.score}/${rec.max}`);
 const MARK_EMOJI = { full: '🟩', part: '🟨', wrong: '🟥', time: '⬛' };
 function shareText(rec, date, stats) {
 const t = titleFor(rec.score, rec.max);
@@ -1634,7 +1636,7 @@ const path = (location.pathname || '/').replace(/\/index\.html$/i, '/').replace(
 const url = /^https?:/.test(location.protocol) ? '\n' + location.origin + path : '';
 const avg = rec.avgMs != null ? rec.avgMs : avgMs(rec.answers);
 const grid = cells.length > 5 ? cells.slice(0, 4).join('') + '\n' + cells.slice(4).join('') : cells.join('');
-return `Quorbit #${U.dayNumber(date)}: ${rec.score}/${rec.max}\n${grid}\n` +
+return `Quorbit #${U.dayNumber(date)}: ${scoreText(rec)}\n${grid}\n` +
 (avg != null ? `avg ${fmtSecs(avg)} per answer\n` : '') +
 `${t.title} · ${stats.streak}-day streak` + url;
 }
@@ -1776,7 +1778,7 @@ const n = snap.unlocked ? FREE_PER_TOPIC : snap.left;
 const bank = topicQuestions(topicId).filter(q => q.format === 'mcq');
 return pickHardSkewed(bank, n, new Set(snap.seen));
 }
-QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, half, stepDown,
+QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, half, stepDown,
 matchTyped, norm, titleFor, MARK_EMOJI, shareText, recordDaily, liveStreak, personalStats, whatsappUrl, TOPICS, topicQuestions, topicLevel, XP_PER_LEVEL,
 FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue,
 DUEL, duelPoints, buildDuel, botPlan, leaks };
@@ -2734,7 +2736,7 @@ return `<li class="${m}"><span class="ln">${i + 1}</span><span class="li-ico">${
 }
 function mixLine(set) {
 return `<div class="mixline" id="mixline">${['easy', 'medium', 'hard'].map(d => `<span class="mx">${DIFFBADGE(d)} ×${set.filter(x => x.difficulty === d).length}</span>`).join('')}
-<span class="muted small fast">max ${E.episodeMax(set)} · combo ×${E.COMBO.mult}</span></div>`;
+<span class="muted small fast">base max ${E.episodeMax(set)} · 🔥 combo can beat it</span></div>`;
 }
 function topicShort(x) {
 if (!x) return '';
@@ -2892,7 +2894,7 @@ const st = S.get(); const done = st.daily[TODAY];
 const prog = st.progress && st.progress.date === TODAY ? st.progress : null;
 const max = E.episodeMax(set);
 const cta = done
-? `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/result" id="resultBtn">See today's result · ${done.score}/${done.max}</a></div>
+? `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/result" id="resultBtn">See today's result · ${E.scoreShort(done)}</a></div>
 <p class="muted center">Next episode in <b class="countdown" data-cd>--:--:--</b></p>`
 : prog ? `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/play" id="playBtn">Resume · ${prog.idx + 1}/${set.length}</a></div>`
 : `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/lineup" id="playBtn">Play</a></div>`;
@@ -2906,7 +2908,7 @@ view(`
 <section class="card episode">
 <div class="ep-head">
 <div class="ep-ring">${ringSvg(U.dayNumber(TODAY))}</div>
-<div class="ep-meta"><div class="ep-no">EPISODE #${U.dayNumber(TODAY)}</div><div class="muted small">${esc(U.prettyDate(TODAY))} · max ${max} pts${E.EDITION !== 'mixed' ? ` · <a id="editionTag" class="link" href="?edition=mixed#/home" title="Switch back to the mixed edition">🌐 ${E.EDITIONS[E.EDITION].label} edition</a>` : ''}</div></div>
+<div class="ep-meta"><div class="ep-no">EPISODE #${U.dayNumber(TODAY)}</div><div class="muted small">${esc(U.prettyDate(TODAY))} · base max ${max} pts${E.EDITION !== 'mixed' ? ` · <a id="editionTag" class="link" href="?edition=mixed#/home" title="Switch back to the mixed edition">🌐 ${E.EDITIONS[E.EDITION].label} edition</a>` : ''}</div></div>
 <div class="onair"><span></span>ON AIR</div>
 </div>
 ${lineupOrbit(set)}
@@ -3248,9 +3250,9 @@ const news = newsState();
 view(`
 <section class="result spotlight">
 <p class="kicker">Episode #${U.dayNumber(TODAY)} · final score</p>
-<div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">/ ${rec.max}</span></div>
+<div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>${rec.score > rec.max ? `<p class="muted small center" id="overMax">🔥 combo · +${rec.score - rec.max} over base max ${rec.max}</p>` : ''}
 <div class="title-badge">${t.emoji} ${t.title}</div>
-<div class="wheel-wrap" id="resultWheel">${wagonWheel(roundSpokes(set, rec), { id: 'wagon', center: String(rec.score), sub: '/ ' + rec.max,
+<div class="wheel-wrap" id="resultWheel">${wagonWheel(roundSpokes(set, rec), { id: 'wagon', center: String(rec.score), sub: rec.score > rec.max ? '🔥 combo' : '/ ' + rec.max,
 label: `Wagon wheel of today's ${set.length} rounds: ` + set.map((x, i) => `${x.slot.name} ${rec.answers[i] ? rec.answers[i].points : 0} of ${x.base}`).join(', ') })}</div>
 ${WW_KEY}
 <div class="diff-split">${byDiff.map(b => `<div>${DIFFBADGE(b.d)}<b>${b.got}</b><small class="muted"> pts · ${b.n} q</small></div>`).join('')}</div>
@@ -3266,7 +3268,7 @@ ${levelCard()}
 </section>
 <div class="share-card" id="shareCard">
 <div class="share-head"><span>🪐 Share your orbit</span><small>Score grid · streak</small></div>
-<div class="share-wheel">${wagonWheel(roundSpokes(set, rec), { id: 'shareWheel', size: 120, label: 'Your wagon wheel' })}<span>Quorbit #${U.dayNumber(TODAY)}<b>${rec.score}/${rec.max}</b></span></div>
+<div class="share-wheel">${wagonWheel(roundSpokes(set, rec), { id: 'shareWheel', size: 120, label: 'Your wagon wheel' })}<span>Quorbit #${U.dayNumber(TODAY)}<b>${E.scoreShort(rec)}</b></span></div>
 <pre class="share-preview" id="sharePreview">${esc(share)}</pre>
 <div class="share-btns">
 <a class="btn btn-wa btn-big" id="waBtn" href="${esc(E.whatsappUrl(share))}" target="_blank" rel="noopener">🟢 Share on WhatsApp</a>
@@ -3699,7 +3701,7 @@ ${P.played ? `
 <p class="ww-key"><span><i class="k-full"></i>70%+</span><span><i class="k-part"></i>40–69%</span><span><i class="k-wrong"></i>under 40%</span></p>
 <ul class="topic-bars">${P.topics.map(bar).join('')}</ul>
 <h2 class="section-title">Recent episodes</h2>
-<ul class="recent">${P.recent.slice().reverse().map(r => `<li><span>#${U.dayNumber(r.date)} · ${esc(U.prettyDate(r.date))}</span><b>${r.score}/${r.max}</b></li>`).join('')}</ul>
+<ul class="recent">${P.recent.slice().reverse().map(r => `<li><span>#${U.dayNumber(r.date)} · ${esc(U.prettyDate(r.date))}</span><b>${E.scoreShort(r)}</b></li>`).join('')}</ul>
 <p class="muted small center">Average across all games: ${P.avgPct}% of the maximum.</p>`
 : `<div class="card center"><p class="lead">No episodes yet.</p><a class="btn btn-gold" href="#/lineup">▶ Play today's episode</a></div>`}
 `, 'me');
@@ -3774,7 +3776,7 @@ ${active ? '<p class="lead">Replay any past episode. Archive plays don\'t count 
 : '<div class="card locked"><b>🔒 The archive is part of the Champions Pass</b><small>Here is a preview of what\'s inside.</small><a class="btn btn-gold" href="#/pass">Unlock</a></div>'}
 <ol class="archive ${active ? '' : 'blur'}">${days.map(d => {
 const r = s.daily[d];
-return `<li><a ${active ? `href="?date=${d}#/play"` : ''}><b>#${U.dayNumber(d)}</b><span>${esc(U.prettyDate(d))}</span><em>${r ? r.score + '/' + r.max : 'Play ›'}</em></a></li>`;
+return `<li><a ${active ? `href="?date=${d}#/play"` : ''}><b>#${U.dayNumber(d)}</b><span>${esc(U.prettyDate(d))}</span><em>${r ? E.scoreShort(r) : 'Play ›'}</em></a></li>`;
 }).join('') || '<li class="muted">No past episodes yet.</li>'}</ol>
 `, 'me');
 }
