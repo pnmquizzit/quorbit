@@ -1252,6 +1252,11 @@ color: var(--ink); text-decoration: none; font-weight: 600; font-size: 0.975rem;
 }
 .menu-group a:active { background: rgba(245,197,66,.14); }
 body.menu-open { overflow: hidden; }
+.total-mini { display: inline-block; font-family: var(--mono); font-size: 0.6875rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; background: rgba(255,210,63,.18); color: var(--gold); border: 1px solid rgba(255,210,63,.45); vertical-align: middle; }
+.paid-later-chip { display: inline-block; margin: 8px 0 4px; font-family: var(--mono); font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
+.total-entry { position: relative; }
+.total-entry .total-mini { margin-left: auto; flex-shrink: 0; }
+.total-paywall .lock-badge { font-size: 1.5rem; }
 </style>
 </head>
 <body>
@@ -1949,9 +1954,21 @@ const n = snap.unlocked ? FREE_PER_TOPIC : snap.left;
 const bank = topicQuestions(topicId).filter(q => q.format === 'mcq' && Array.isArray(q.options) && q.options.length >= 2);
 return pickHardSkewed(bank, n, new Set(snap.seen));
 }
+const TOTAL_BATCH = 12;
+function topicMcqBank(topicId) {
+return topicQuestions(topicId).filter(q => q && q.format === 'mcq' && Array.isArray(q.options) && q.options.filter(Boolean).length >= 2);
+}
+function totalTopicQueue(topicId, exclude, n) {
+const want = Math.max(1, (n == null ? TOTAL_BATCH : n) | 0);
+const bank = topicMcqBank(topicId);
+const excl = exclude instanceof Set ? exclude : new Set(exclude || []);
+let qs = pickHardSkewed(bank, want, excl);
+if (!qs.length && excl.size) qs = pickHardSkewed(bank, want, new Set()); // reshuffle when session exhausted
+return qs;
+}
 QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, half, stepDown,
 matchTyped, norm, titleFor, MARK_EMOJI, shareText, recordDaily, liveStreak, personalStats, whatsappUrl, TOPICS, topicQuestions, topicLevel, XP_PER_LEVEL,
-FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue,
+FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue, TOTAL_BATCH, topicMcqBank, totalTopicQueue,
 DUEL, duelPoints, buildDuel, botPlan, leaks };
 })(window.QB);
 </script>
@@ -2253,6 +2270,7 @@ const shelf = (t, list, id) => `<section class="shelf" aria-labelledby="sh-${id}
 view(`
 <h1 class="page-title">Library</h1>
 <p class="lead">Quiz packs for any mood. ${done ? `<b>${done}</b> completed so far.` : 'Pick one and press play.'}</p>
+<a class="card contribute total-entry" href="#/total" id="totalEntryLib"><span class="s-ico">✨</span><div><b>Quorbit Total</b><small>Endless full topic banks · Champions Pass</small></div><span class="total-mini">Total</span></a>
 ${shelf(answers().length ? '✨ Made for you' : '✨ Start here', mfy, 'mfy')}
 ${SHELVES.map(sh => shelf(`${sh.icon} ${sh.title}`, PACKS.filter(p => p.shelf === sh.id), sh.id)).join('')}
 ${FUN ? shelf('🎉 Fun pack', PACKS.filter(p => p.shelf === 'fun'), 'fun')
@@ -2793,6 +2811,7 @@ view(`
 ${signInCardHTML('me')}
 ${friendsCardHTML()}
 ${!p || (a && (!p.city || p.name === a.displayName)) ? `<a class="card contribute join-boards" href="#/join" id="joinCard"><span class="s-ico">✍️</span><div><b>${p && p.city ? 'Edit board profile' : 'Name on the boards'}</b><small>Name, city and school for ranks →</small></div></a>` : ''}
+<a class="card contribute total-entry" href="#/total" id="totalEntryMe"><span class="s-ico">✨</span><div><b>Quorbit Total</b><small>${s.pass && s.pass.active ? 'Endless topic banks unlocked' : 'Endless topic banks · Pass required'}</small></div><span class="total-mini">Total</span></a>
 <section class="card recap" id="recapCard" aria-label="Your month in Orbit">
 <small class="recap-k">YOUR ${esc(R.monthName.toUpperCase())} IN ORBIT</small>
 <div class="recap-grid">
@@ -2824,8 +2843,8 @@ ${acc.length ? `<h2 class="section-title">Accuracy wagon wheel</h2>
 ${E.EDITION !== 'mixed' ? `<a href="?edition=mixed#/me" id="editionLine">🌐 ${E.EDITIONS[E.EDITION].label} edition · switch back to mixed</a>` : ''}
 <button id="resetBtn" class="danger-link">🗑️ Reset demo data</button>
 </div>
-${s.pass.active ? `<div class="card pass-mini"><b>🎟️ Champions Pass active</b><small>Demo activation · ${esc(s.pass.plan)} plan</small><a class="link" href="#/archive">Open the archive ›</a></div>`
-: `<a class="card contribute" href="#/pass"><span class="s-ico">🎟️</span><div><b>Get the Champions Pass</b><small>Prizes, archive and tournaments →</small></div></a>`}
+${s.pass.active ? `<div class="card pass-mini"><b>🎟️ Champions Pass active</b><small>Demo · ${esc(s.pass.plan)} · Total unlocked</small><a class="link" href="#/total">Quorbit Total ›</a> · <a class="link" href="#/archive">Archive ›</a></div>`
+: `<a class="card contribute" href="#/pass"><span class="s-ico">🎟️</span><div><b>Get the Champions Pass</b><small>Total, prizes, archive →</small></div></a>`}
 `, 'me');
 bindAuthCard(() => meProfile());
 K.bindSound(); K.bindDisplay();
@@ -2914,7 +2933,7 @@ let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remo
 }
 const ROOTS = { home: 1, topics: 1, leaderboard: 1, me: 1, '': 1 };
 const PARENT = { how: '#/home', lineup: '#/home', play: '#/home', result: '#/home', world: '#/home', credits: '#/me', topic: '#/topics',
-duel: '#/duel', pack: '#/topics', board: '#/leaderboard', stats: '#/me', pass: '#/me', archive: '#/me', submit: '#/me', join: '#/me',
+duel: '#/duel', pack: '#/topics', total: '#/topics', board: '#/leaderboard', stats: '#/me', pass: '#/me', archive: '#/me', submit: '#/me', join: '#/me',
 friends: '#/me', account: '#/me', settings: '#/me', faq: '#/me' };
 const curHash = () => location.hash || '#/home';
 const routeOf = h => (h || '#/home').slice(2).split('/');
@@ -2951,15 +2970,16 @@ return ok;
 }
 async function goBack() {
 if (!(await confirmLeave())) return;
-const h = curHash(); const [r] = routeOf(h); const parent = PARENT[r] || '#/home';
+const h = curHash(); const [r, arg] = routeOf(h);
+const parent = (r === 'total' && arg) ? '#/total' : (PARENT[r] || '#/home');
 if (navStack.length > 1 && navStack[navStack.length - 2] === parent) history.back();
 else location.hash = parent;
 }
 function setBack() {
 const b = document.getElementById('backBtn'); const sub = !isRoot(curHash());
 b.hidden = !sub; document.getElementById('topbar').classList.toggle('has-back', sub);
-const [r] = routeOf(curHash()); const p = PARENT[r] || '#/home';
-b.setAttribute('aria-label', 'Back to ' + ({ '#/home': 'Today', '#/topics': 'Topics', '#/duel': 'Duel topics', '#/me': 'Me' }[p] || 'previous screen'));
+const [r, arg] = routeOf(curHash()); const p = (r === 'total' && arg) ? '#/total' : (PARENT[r] || '#/home');
+b.setAttribute('aria-label', 'Back to ' + ({ '#/home': 'Today', '#/topics': 'Topics', '#/total': 'Quorbit Total', '#/duel': 'Duel topics', '#/me': 'Me' }[p] || 'previous screen'));
 }
 let floatOff = null;
 function floatCta(sel) {
@@ -3823,6 +3843,137 @@ if (!free.unlocked && free.left <= 0) bindTopicLock();
 }
 next();
 }
+function hasChampionsPass() { return !!(S.get().pass && S.get().pass.active); }
+function totalPaywallCard(opts = {}) {
+const topicLine = opts.topicName ? ` Open the full <b>${esc(opts.topicName)}</b> bank.` : ' Open any topic bank.';
+return `<div class="card lock-card total-paywall" id="totalPaywall">
+<span class="lock-badge" aria-hidden="true">✨</span>
+<b>Quorbit Total</b>
+<small>Endless Hard-skew practice from the full topic bank.${topicLine} Included with Champions Pass.</small>
+<span class="paid-later-chip" title="Payments not live yet">Paid later · soft share</span>
+<div class="row2 lock-ctas">
+<a class="btn btn-gold" href="#/pass">🎟️ Champions Pass</a>
+<button type="button" class="btn btn-ghost" id="notifyTotal">🔔 Notify me / Coming soon</button>
+</div>
+</div>`;
+}
+function bindTotalPaywall() {
+on('#notifyTotal', 'click', () => toast('Got it — Quorbit Total unlocks with Champions Pass (notify when live).'));
+}
+function totalTopicCard(t) {
+const n = E.topicMcqBank ? E.topicMcqBank(t.id).length : E.topicQuestions(t.id).filter(q => q.format === 'mcq').length;
+return `<a class="topic" href="#/total/${t.id}" style="--h:${t.hue}">
+<span class="t-ico">${t.icon}</span>
+<div class="t-body"><b>${t.name}${t.isNew ? ' <span class="new-pill">NEW</span>' : ''}</b>
+<small>${t.tag} · ${n} Qs · <span class="total-mini">Total</span></small></div></a>`;
+}
+function totalHub() {
+if (!hasChampionsPass()) {
+view(`
+<h1 class="page-title">Quorbit <span class="gold">Total</span></h1>
+<p class="lead whisper">Endless topics. Full banks. Hard-skew.</p>
+${totalPaywallCard()}
+<p class="muted small center">Free Daily + freemium Topics stay unchanged.</p>
+<a class="btn btn-ghost" href="#/topics">← Library</a>
+`, 'topics');
+bindTotalPaywall();
+return;
+}
+view(`
+<h1 class="page-title">Quorbit <span class="gold">Total</span> <span class="badge gold-b">TOTAL</span></h1>
+<p class="lead whisper">Pick a topic. Play the full bank — endless, Hard-skewed. No free-play cap.</p>
+<div class="topics">${E.TOPICS.map(totalTopicCard).join('')}</div>
+<p class="muted small center">Champions Pass · Total mode</p>
+`, 'topics');
+}
+function totalPlay(id) {
+const t = E.TOPICS.find(x => x.id === id); if (!t) return go('#/total');
+if (!hasChampionsPass()) {
+view(`
+<section class="topic-hero spotlight" style="--h:${t.hue}"><div class="t-ico xl">${t.icon}</div>
+<h1 class="page-title">${esc(t.name)}</h1><p class="muted">Quorbit Total</p></section>
+${totalPaywallCard({ topicName: t.name })}
+<a class="btn btn-ghost" href="#/total">← Total</a>`, 'topics');
+bindTotalPaywall();
+return;
+}
+const bankN = (E.topicMcqBank ? E.topicMcqBank(id) : E.topicQuestions(id).filter(q => q.format === 'mcq')).length;
+if (!bankN) { toast('No MCQ questions in this topic yet'); return go('#/total'); }
+const seen = new Set();
+let qs = E.totalTopicQueue(id, seen);
+if (!qs.length) { toast('No playable questions in this topic'); return go('#/total'); }
+const G = { i: 0, score: 0, rows: [], over: false, paused: 0, t0: 0, batch: 0 };
+const PTS = { easy: 15, medium: 20, hard: 25 };
+const DLABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+guard = { kind: 'total', hash: `#/total/${id}`, title: 'Leave Total?', body: 'This dive ends. Your points so far stay on this device.',
+active: () => !G.over, pause() { if (!G.paused) G.paused = performance.now(); }, resume() { if (!G.paused) return; G.t0 += performance.now() - G.paused; G.paused = 0; } };
+const next = () => {
+if (G.i < qs.length) return totalQ();
+qs.forEach(q => seen.add(q.id));
+qs = E.totalTopicQueue(id, seen);
+if (!qs.length) { seen.clear(); qs = E.totalTopicQueue(id, seen); }
+G.i = 0; G.batch++;
+if (!qs.length) return totalPlayEnd();
+totalQ();
+};
+function totalQ() {
+const q = qs[G.i]; const secs = 30; const total = secs * 1000;
+const typed = needsTypedUI(q);
+const absN = G.rows.length + 1;
+view(`
+<div class="pack-bar"><span class="pb-t">${t.icon} ${esc(t.name)} <span class="total-mini">Total</span></span><span class="pb-n">Q${absN}</span><span class="pb-s" id="packScore">${G.score} pts</span></div>
+<div class="qhead" id="qhead">
+<div class="timer" id="timer" role="timer" aria-label="Seconds left"><span class="t-pill"><b id="timerNum">${secs}</b><small>s</small></span><span class="t-bar"><span class="timer-fill" id="timerFill"></span></span>
+<span class="diff d-${q.difficulty}">${DLABEL[q.difficulty]} · ${PTS[q.difficulty]}</span></div>
+<h2 class="question" id="qtext">${esc(q.question)}</h2>
+</div>
+${q.clues && q.clues.length ? `<ol class="clues">${q.clues.map(c => `<li class="shown">${esc(c)}</li>`).join('')}</ol>` : ''}
+${answerAreaHTML(q, 'tt-' + q.id + '-' + absN)}
+<div id="reveal"></div>`, 'topics');
+G.t0 = performance.now(); let done = false;
+const finish = (choice) => {
+if (done) return; done = true; const ms = Math.round(performance.now() - G.t0);
+const ok = choice != null && (typed ? E.matchTyped(choice, q) : choice === q.answer);
+const speed = ms <= 4000 ? 1 : Math.max(.5, 1 - .5 * (ms - 4000) / (total - 4000));
+const pts = ok ? Math.round(PTS[q.difficulty] * speed) : 0; G.score += pts; G.rows.push({ id: q.id, ok, ms, pts });
+S.update(s => { E.addPoints(s, pts, 'topic'); });
+$app.querySelectorAll('.opt').forEach(b => { b.disabled = true; if (b.dataset.opt === q.answer) b.classList.add('correct'); else if (b.dataset.opt === choice) b.classList.add('wrong'); });
+const ti = $app.querySelector('#typedInput'); if (ti) { ti.disabled = true; ti.classList.add(ok ? 'correct' : 'wrong'); }
+(ok ? sfx.correct : choice == null ? sfx.timeup : sfx.wrong)();
+$app.querySelector('#packScore').textContent = G.score + ' pts';
+$app.querySelector('#reveal').innerHTML = `<section class="reveal ${ok ? 'ok' : 'bad'}" id="revealCard">
+<div class="host-say">${ok ? '✅ Correct!' : choice == null ? '⏰ Time\'s up!' : '❌ Not quite.'} <span class="pts-gain ${pts ? '' : 'zero'}">+${pts}</span></div>
+<div class="answer-line">Answer: <b>${esc(q.answer)}</b></div>
+<div class="dyk"><span class="dyk-tag">Did you know?</span> ${esc(q.fact)}</div>
+${sourceLine(q)}
+<button class="btn btn-gold btn-big" id="nextBtn">Next ▸</button>
+<button class="btn btn-ghost" id="endTotalBtn" type="button">End dive</button></section>`;
+on('#nextBtn', 'click', () => { G.i++; next(); });
+on('#endTotalBtn', 'click', () => totalPlayEnd());
+};
+on('.opt', 'click', e => finish(e.currentTarget.dataset.opt));
+on('#typedForm', 'submit', e => { e.preventDefault(); const v = ($app.querySelector('#typedInput') || {}).value; if (v && String(v).trim()) finish(String(v).trim()); });
+every(() => {
+if (done || G.paused) return; const left = Math.max(0, total - (performance.now() - G.t0));
+const f = $app.querySelector('#timerFill'); if (!f) return; f.style.transform = `scaleX(${left / total})`;
+$app.querySelector('#timerNum').textContent = Math.ceil(left / 1000); $app.querySelector('#timer').classList.toggle('danger', left < 5000);
+if (left <= 0) finish(null);
+}, 100);
+}
+function totalPlayEnd() {
+G.over = true; guard = null;
+const right = G.rows.filter(r => r.ok).length;
+view(`
+<section class="topic-hero small spotlight" style="--h:${t.hue}"><div class="t-ico">${t.icon}</div>
+<div><small>QUORBIT TOTAL</small><h1 class="page-title">${esc(t.name)}</h1>
+<p class="muted">${right}/${G.rows.length} right · ${G.score} pts · endless dive</p></div></section>
+<a class="btn btn-gold btn-big" href="#/total/${id}">▶ Dive again</a>
+<a class="btn btn-ghost" href="#/total">← All Total topics</a>
+<a class="btn btn-ghost" href="#/topics">Library</a>
+`, 'topics');
+}
+next();
+}
 function duelPicker() {
 view(`
 <h1 class="page-title">⚔️ Duel</h1>
@@ -4101,7 +4252,7 @@ on('#resetBtn', 'click', async () => { if (await confirmModal({ title: 'Reset de
 function faqPage() {
 view(`
 <h1 class="page-title">FAQ</h1>
-<div class="card faq-item"><b>Is Quorbit free?</b><p class="muted small">Yes. The daily episode is free. Champions Pass is a demo for prizes and archive — no payment is taken.</p></div>
+<div class="card faq-item"><b>Is Quorbit free?</b><p class="muted small">Yes. Daily is free. Topics have a small free practice window. Quorbit Total (endless full banks) is Champions Pass only — demo activate, no payment taken yet.</p></div>
 <div class="card faq-item"><b>Where is my progress saved?</b><p class="muted small">On this device today. Sign in (UI stub) will sync streaks and badges across devices when the backend ships.</p></div>
 <div class="card faq-item"><b>How do points work?</b><p class="muted small">Easy / Medium / Hard rounds with a speed clock and combo. Full detail on How to play.</p></div>
 <div class="card faq-item"><b>Can I play with friends?</b><p class="muted small">Friends compare is stubbed — sign in on the Friends page, then share your invite link.</p></div>
@@ -4123,6 +4274,7 @@ view(`
 <p class="lead">The daily episode is free, always. The Pass is a small registration fee for players who want to compete for real prizes.</p>
 </section>
 <ul class="perks">
+<li><span>✨</span><div><b>Quorbit Total</b><small>Endless Hard-skew practice from every full topic bank — no freemium cap.</small></div></li>
 <li><span>🎁</span><div><b>Leaderboard prizes</b><small>Top monthly finishers in India, each city and each school win Quorbit T-shirts, mugs and merch.</small></div></li>
 <li><span>📼</span><div><b>The full archive</b><small>Replay every past episode, including the ones you missed.</small></div></li>
 <li><span>🏟️</span><div><b>Tournaments</b><small>Weekend topic championships and inter-school and inter-company leagues.</small></div></li>
@@ -4133,7 +4285,7 @@ view(`
 <button class="plan on" data-plan="Individual"><span class="ribbon-tag">POPULAR</span><b>Individual</b><span class="price">₹99</span><small>per season (3 months)</small></button>
 <button class="plan" data-plan="School / Corporate"><b>Schools &amp; Companies</b><span class="price sm">Packs</span><small>custom quizzes and leagues</small></button>
 </div>
-${s.pass.active ? `<div class="card center"><b class="gold">✅ Pass active (demo): ${esc(s.pass.plan)}</b><br><a class="link" href="#/archive">Open the archive ›</a></div>`
+${s.pass.active ? `<div class="card center"><b class="gold">✅ Pass active (demo): ${esc(s.pass.plan)}</b><br><a class="link" href="#/total">Open Quorbit Total ›</a> · <a class="link" href="#/archive">Archive ›</a></div>`
 : `<button class="btn btn-gold btn-big" id="buyBtn">Activate pass (demo, no payment)</button>`}
 <p class="muted small center">In production, payments would go through a UPI-enabled gateway. Prizes are for skill-based ranking only, with no wagering. Final pricing and T&amp;Cs to be decided.</p>
 `, 'me');
@@ -4193,7 +4345,7 @@ routeSeq++; QB.audio.setIntensity(0); guard = null; floatCta(null);
 const h = (location.hash || '#/home').slice(2).split('/');
 const [r, arg, arg2] = h;
 const playing = r === 'play' || (r === 'topic' && arg2 === 'play') || (r === 'pack' && arg2 === 'play')
-|| (r === 'duel' && !!arg);
+|| (r === 'duel' && !!arg) || (r === 'total' && !!arg);
 document.body.classList.toggle('in-play', playing);
 setBack();
 if (opts.cache && fromCache(curHash())) return;
@@ -4208,6 +4360,7 @@ case 'topics': return SX.library();
 case 'pack': return arg2 === 'play' ? SX.packPlay(arg) : SX.packPage(arg);
 case 'board': return leaderboard();
 case 'topic': return arg2 === 'play' ? topicPlay(arg) : topicDetail(arg);
+case 'total': return arg ? totalPlay(arg) : totalHub();
 case 'duel': return !arg ? SX.duelHome() : arg === 'c' ? SX.duelPlay(null, null, true) : SX.duelPlay(arg, arg2 || 'ellipse');
 case 'leaderboard': return SX.leagues();
 case 'join': return join();
@@ -4241,7 +4394,7 @@ if (isPop || dir === 'tab') restoreScroll = h;
 { const ms = document.getElementById('menuSheet'); if (ms && !ms.hidden) { ms.hidden = true; document.body.classList.remove('menu-open'); const mb = document.getElementById('menuBtn'); mb && mb.setAttribute('aria-expanded', 'false'); } }
 duel.token = null; navigate(dir, () => route({ cache: dir === 'tab' || isPop }));
 });
-const TAB_OF = { topics: 'topics', topic: 'topics', library: 'topics', playlist: 'topics', pack: 'topics', duel: 'duel', leaderboard: 'leaderboard', league: 'leaderboard',
+const TAB_OF = { topics: 'topics', topic: 'topics', library: 'topics', playlist: 'topics', pack: 'topics', total: 'topics', duel: 'duel', leaderboard: 'leaderboard', league: 'leaderboard',
 me: 'me', stats: 'me', pass: 'me', archive: 'me', submit: 'me', join: 'me', credits: 'me', wrapped: 'me', badges: 'me',
 friends: 'me', account: 'me', settings: 'me', faq: 'me' };
 const tabOf = h => TAB_OF[routeOf(h)[0]] || 'home';
@@ -4283,6 +4436,7 @@ return `
 <a href="#/home" data-menu-nav>🪐 Today's episode</a>
 <a href="#/archive" data-menu-nav>📼 Episode archive</a>
 <a href="#/topics" data-menu-nav>🎯 Topics &amp; packs</a>
+<a href="#/total" data-menu-nav>✨ Quorbit Total</a>
 <a href="#/how" data-menu-nav>📖 How to play</a>
 </div>
 <div class="menu-group"><h3>Social</h3>
@@ -4322,6 +4476,12 @@ menuBtn && menuBtn.setAttribute('aria-expanded', 'false');
 menuBtn && menuBtn.addEventListener('click', () => { if (menuSheet.hidden) openMenu(); else closeMenu(); });
 menuSheet && menuSheet.addEventListener('click', e => { if (e.target.closest('[data-menu-close]')) closeMenu(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && menuSheet && !menuSheet.hidden) closeMenu(); });
+try {
+if (/[?&]championsDemo=1\b/.test(location.search) && !(S.get().pass && S.get().pass.active)) {
+S.update(s => { s.pass = { active: true, plan: 'Demo', activatedAt: Date.now() }; });
+toast('Champions Pass demo on — Quorbit Total unlocked');
+}
+} catch (e) {}
 applyDisplay();
 document.getElementById('muteBtn').addEventListener('click', () => {
 S.update(s => { s.settings.muted = !s.settings.muted; }); refreshChrome();
