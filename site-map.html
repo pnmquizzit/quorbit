@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Quorbit site map — layers &amp; access</title>
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "dark", securityLevel: "loose" });
+</script>
+<style>
+  :root { color-scheme: dark; --bg:#0b0b0c; --card:#161618; --ink:#f2f2f4; --muted:#a1a1aa; --line:#2a2a2e; --accent:#f5c451; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--ink); }
+  main { max-width:960px; margin:0 auto; padding:32px 20px 80px; }
+  h1 { font-size:1.75rem; letter-spacing:-.02em; margin:0 0 8px; }
+  h2 { font-size:1.25rem; margin:40px 0 12px; border-top:1px solid var(--line); padding-top:28px; }
+  h3 { font-size:1.05rem; margin:24px 0 8px; color:var(--accent); }
+  .sum { color:var(--muted); margin:0 0 24px; }
+  .note { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; margin:16px 0; }
+  .mermaid { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin:12px 0 24px; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:0.9rem; margin:12px 0 24px; }
+  th, td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  code { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:0.85em; background:#1c1c1f; padding:1px 5px; border-radius:4px; }
+  ul { padding-left:1.2em; color:var(--muted); }
+  ul strong { color:var(--ink); }
+  .meta { font-size:0.85rem; color:var(--muted); margin-top:48px; }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Quorbit site map — layers &amp; access</h1>
+  <p class="sum">How the whole GH Pages app is reached: shell chrome → primary tabs → ☰ sheet → screen flows → paywall / owner gates → local data &amp; banks. Hash routes as of Oct 2026 (v1.4).</p>
+  <div class="note"><strong>Five access layers.</strong> Quorbit is a single-page hash app. The reader never leaves <code>index.html</code>; every screen is <code>#/…</code>. Primary reach is the bottom tab bar; secondary reach is the ☰ sheet; deep links and query flags unlock demos and the owner desk.</div>
+
+  <h2>1. Full stack</h2>
+  <div class="mermaid">flowchart TB
+    pages["GitHub Pages<br/>index.html · preview.html"]
+    shell["App shell<br/>topbar · #app · tabbar · menu"]
+    router["Hash router<br/>location.hash → route()"]
+    tabs["5 primary tabs<br/>Today · Topics · Duel · Ranks · Me"]
+    menu["☰ secondary sheet<br/>Play · Social · Account · More"]
+    screens["Screen modules<br/>ui.js + sections.js"]
+    gates{"Gates<br/>freemium · Total · owner"}
+    store["Local store + banks<br/>localStorage · questions-data"]
+    pages --> shell --> router
+    router --> tabs --> screens
+    router --> menu --> screens
+    screens --> gates --> store
+  </div>
+
+  <h2>2. Chrome</h2>
+  <p class="sum">Tab bar hides during live questions (<code>body.in-play</code>); menu dims tab bar while open.</p>
+  <div class="mermaid">flowchart TB
+    top["Topbar<br/>Brand · streak/pts · ☰"]
+    app["#app view<br/>Active hash screen"]
+    tab["Tab bar (5)"]
+    sheet["☰ menu sheet"]
+    back["Back affordance"]
+    top --> app --> tab
+    top -->|☰| sheet -->|nav| app
+    back --> app
+  </div>
+  <ul>
+    <li><strong>Play:</strong> Today · Archive · Topics · Total · How to play</li>
+    <li><strong>Social:</strong> Friends · Ranks · Duel</li>
+    <li><strong>Account:</strong> My orbit · Sign in · Settings · FAQ · Terms · Privacy</li>
+    <li><strong>More:</strong> Pass · Submit · Question desk (owner) · Credits · Stats · Board profile</li>
+  </ul>
+
+  <h2>3. Daily</h2>
+  <div class="mermaid">flowchart TB
+    home["#/home Today"]
+    how["#/how"]
+    done{"Already played?"}
+    lineup["#/lineup"]
+    play["#/play · 7 rounds"]
+    result["#/result"]
+    world["#/world"]
+    stats["#/stats"]
+    home -.-> how
+    home --> done
+    done -->|no| lineup --> play --> result
+    done -->|yes| result
+    result -.-> world
+    result -.-> stats
+    home -.-> stats
+  </div>
+
+  <h2>4. Topics / Total</h2>
+  <div class="mermaid">flowchart TB
+    lib["#/topics Library"]
+    topic["#/topic/:id"]
+    lock{"Free window used?"}
+    tplay["#/topic/:id/play"]
+    pack["#/pack/:id"]
+    pplay["#/pack/:id/play"]
+    total["#/total"]
+    ent{"Has unlock?"}
+    tplay2["#/total/:topicId"]
+    pass["#/pass<br/>Full · Topic · Sub"]
+    lib --> topic --> lock
+    lock -->|free/unlocked| tplay
+    lock -->|locked| pass
+    lib --> pack --> pplay
+    lib --> total --> ent
+    ent -->|yes| tplay2
+    ent -->|no| pass
+    pass -->|demo activate| total
+  </div>
+
+  <h2>5. Social</h2>
+  <div class="mermaid">flowchart TB
+    duel["#/duel"]
+    dplay["#/duel/:topic/:diff"]
+    chal["#/duel/c challenge"]
+    ranks["#/leaderboard"]
+    board["#/board"]
+    friends["#/friends"]
+    join["#/join"]
+    duel --> dplay
+    duel -->|share link| chal
+    ranks -.-> board
+    friends -->|need profile| join
+    dplay -.->|share| friends
+  </div>
+
+  <h2>6. Account</h2>
+  <div class="mermaid">flowchart TB
+    me["#/me · #/account"]
+    set["#/settings"]
+    faq["#/faq"]
+    terms["#/terms"]
+    priv["#/privacy"]
+    sub["#/submit"]
+    own{"Owner?"}
+    rev["#/review desk"]
+    arch["#/archive"]
+    cred["#/credits"]
+    me --> set
+    me --> faq
+    me --> sub
+    me --> arch
+    faq --> terms
+    faq --> priv
+    sub --> own
+    own -->|yes| rev
+    set -.-> own
+    me -.-> cred
+  </div>
+
+  <h2>7. Gates</h2>
+  <div class="mermaid">flowchart TB
+    free["Always free<br/>Daily · How · FAQ · Submit · Duel"]
+    fwin{"Topics freemium"}
+    tier{"Total unlock tier"}
+    pass{"Champions / archive"}
+    fw["Contributor firewall"]
+    desk{"Owner desk"}
+    demo["?championsDemo=1 · ?owner=1"]
+    free --> fwin
+    fwin -->|want endless| tier
+    tier -->|archive| pass
+    fw -.-> fwin
+    demo --> tier
+    demo --> desk
+  </div>
+  <ul>
+    <li><strong>Full:</strong> all topics · indicative ₹99 / X days</li>
+    <li><strong>Topic:</strong> one topicId · indicative ₹49</li>
+    <li><strong>Sub:</strong> topic + slice · indicative ₹29</li>
+    <li><strong>Copy:</strong> “X more unlocked” — never total pool size</li>
+    <li><strong>Community:</strong> pending → owner approve → playable + (contributed by XYZ)</li>
+  </ul>
+
+  <h2>8. Data</h2>
+  <div class="mermaid">flowchart TB
+    build["Build pipeline<br/>research JSON → merge → HTML"]
+    qd["questions-data<br/>~1745 live · ~1020 Hard"]
+    eng["engine.js"]
+    api["api.js stubs"]
+    store["store.js"]
+    ls["localStorage"]
+    build --> qd --> eng --> api --> store --> ls
+  </div>
+
+  <h2>9. Full route catalogue</h2>
+  <table>
+    <thead><tr><th>Route</th><th>Screen</th><th>Entry</th><th>Parent</th></tr></thead>
+    <tbody>
+      <tr><td><code>#/home</code></td><td>Today / Orbit Card</td><td>Tab Today</td><td>—</td></tr>
+      <tr><td><code>#/how</code></td><td>How to play</td><td>Home · ☰</td><td>#/home</td></tr>
+      <tr><td><code>#/lineup</code></td><td>Episode lineup</td><td>Home CTA</td><td>#/home</td></tr>
+      <tr><td><code>#/play</code></td><td>Daily play</td><td>Lineup</td><td>#/home</td></tr>
+      <tr><td><code>#/result</code></td><td>Daily result</td><td>After play</td><td>#/home</td></tr>
+      <tr><td><code>#/world</code></td><td>World This Week</td><td>Home · result</td><td>#/home</td></tr>
+      <tr><td><code>#/topics</code></td><td>Library</td><td>Tab Topics</td><td>—</td></tr>
+      <tr><td><code>#/topic/:id</code></td><td>Topic detail</td><td>Library</td><td>#/topics</td></tr>
+      <tr><td><code>#/topic/:id/play</code></td><td>Topic practice</td><td>Topic</td><td>#/topics</td></tr>
+      <tr><td><code>#/pack/:id</code></td><td>Pack detail</td><td>Library</td><td>#/topics</td></tr>
+      <tr><td><code>#/pack/:id/play</code></td><td>Pack play</td><td>Pack</td><td>#/topics</td></tr>
+      <tr><td><code>#/total</code></td><td>Quorbit Total hub</td><td>Library · Me · ☰</td><td>#/topics</td></tr>
+      <tr><td><code>#/total/:topicId</code></td><td>Total endless play</td><td>Total hub</td><td>#/total</td></tr>
+      <tr><td><code>#/duel</code></td><td>Duel home</td><td>Tab Duel</td><td>—</td></tr>
+      <tr><td><code>#/duel/:t/:d</code></td><td>Duel play</td><td>Duel home</td><td>#/duel</td></tr>
+      <tr><td><code>#/duel/c</code></td><td>Challenge duel</td><td>Share link</td><td>#/duel</td></tr>
+      <tr><td><code>#/leaderboard</code></td><td>Ranks / leagues</td><td>Tab Ranks</td><td>—</td></tr>
+      <tr><td><code>#/board</code></td><td>City/school boards</td><td>Ranks</td><td>#/leaderboard</td></tr>
+      <tr><td><code>#/me</code></td><td>My orbit</td><td>Tab Me</td><td>—</td></tr>
+      <tr><td><code>#/account</code></td><td>Sign-in stub</td><td>Me · ☰</td><td>#/me</td></tr>
+      <tr><td><code>#/friends</code></td><td>Friends</td><td>Me · ☰</td><td>#/me</td></tr>
+      <tr><td><code>#/join</code></td><td>Board profile</td><td>Me · ranks</td><td>#/me</td></tr>
+      <tr><td><code>#/stats</code></td><td>Stats</td><td>Chips · Me</td><td>#/me</td></tr>
+      <tr><td><code>#/pass</code></td><td>Unlock tiers</td><td>Me · Total lock</td><td>#/me</td></tr>
+      <tr><td><code>#/archive</code></td><td>Episode archive</td><td>☰ · Pass</td><td>#/me</td></tr>
+      <tr><td><code>#/submit</code></td><td>Contribute Q</td><td>☰ · Me</td><td>#/me</td></tr>
+      <tr><td><code>#/review</code></td><td>Question desk</td><td>Owner only</td><td>#/me</td></tr>
+      <tr><td><code>#/settings</code></td><td>Settings</td><td>☰</td><td>#/me</td></tr>
+      <tr><td><code>#/faq</code></td><td>FAQ</td><td>☰</td><td>#/me</td></tr>
+      <tr><td><code>#/terms</code></td><td>Terms</td><td>FAQ · ☰</td><td>#/me</td></tr>
+      <tr><td><code>#/privacy</code></td><td>Privacy</td><td>FAQ · ☰</td><td>#/me</td></tr>
+      <tr><td><code>#/credits</code></td><td>Image credits</td><td>Footer · ☰</td><td>#/me</td></tr>
+    </tbody>
+  </table>
+
+  <h2>10. Content &amp; bank layer</h2>
+  <ul>
+    <li><strong>Daily</strong> — curated 7-round mix (Rapid + Cricket slots, Hard skew).</li>
+    <li><strong>Topics / packs</strong> — freemium window; packs gated by topic free left.</li>
+    <li><strong>Quorbit Total</strong> — endless Hard-skew; scoped by unlock tier.</li>
+    <li><strong>Community</strong> — submit → pending → desk → approved + credit + firewall.</li>
+    <li><strong>Visual</strong> — Commons pic MCQs + Hard CONNECT (Lapu-Lapu style).</li>
+    <li><strong>Taxonomy</strong> — Topic → subtopic → leaf (<code>quorbit_subtopic_tree_v1.md</code>).</li>
+  </ul>
+
+  <p class="meta">Exported Oct 2026 from Quorbit v1.4 IA. Interactive Page: keep the in-app link; this file is the offline download with Mermaid flowcharts.</p>
+</main>
+</body>
+</html>
