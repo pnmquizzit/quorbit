@@ -1755,18 +1755,28 @@ const slotsFor = date => (isLegacy(date) ? SLOTS13 : SLOTS);
 const EPISODE_MAX = DIFF_MIX.reduce((s, d) => s + DIFF[d].pts, 0); // 109
 function poolFor(slot, category, piconnectDay, date) {
 const L = liveBank(date);
+const skip = DAILY_SKIP[date];
+const applySkip = list => (skip ? list.filter(q => !skip.has(q.id)) : list);
 switch (slot.pool) {
-case 'visual': return edPool(L.filter(q => q.round === 'visual'));
-case 'connect': return edPool(L.filter(q => q.round === (piconnectDay ? 'piconnect' : 'clue')));
-case 'cricket': return edPool(L.filter(q => q.category === 'Cricket' && (q.format === 'mcq' || q.tiers) && q.round !== 'clue'));
-default: return edPool(L.filter(q => catOn(q, date) === category && q.round === slot.pool));
+case 'visual': return applySkip(edPool(L.filter(q => q.round === 'visual')));
+case 'connect': return applySkip(edPool(L.filter(q => q.round === (piconnectDay ? 'piconnect' : 'clue'))));
+case 'cricket': return applySkip(edPool(L.filter(q => q.category === 'Cricket' && (q.format === 'mcq' || q.tiers) && q.round !== 'clue')));
+default: return applySkip(edPool(L.filter(q => catOn(q, date) === category && q.round === slot.pool)));
 }
 }
 const words = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const visibleText = q => words([q.question, ...(q.clues || []), ...(q.options || [])].join(' | '));
+function entityKey(q) {
+return words(q && q.answer);
+}
 function leaks(a, b) {
+if (!a || !b) return false;
+if (a.id && b.id && a.id === b.id) return true;
 const hit = (x, y) => { const ans = words(x.answer); return ans.length >= 4 && /[a-z]/.test(ans) && visibleText(y).includes(ans); };
-return hit(a, b) || hit(b, a) || words(a.answer) === words(b.answer);
+if (entityKey(a) && entityKey(a) === entityKey(b)) return true;
+const aliases = q => (q.aliases || []).map(words).filter(s => s.length >= 4);
+if (aliases(a).some(s => s === entityKey(b)) || aliases(b).some(s => s === entityKey(a))) return true;
+return hit(a, b) || hit(b, a);
 }
 function assignDifficulties(avail, rand, mix, SL) {
 const order = U.shuffle(SL.map((_, i) => i), rand);
@@ -1782,6 +1792,13 @@ return false;
 })(0);
 return solved ? res : null;
 }
+const DAILY_SKIP = {
+'2026-10-28': new Set(['VIS13', 'Q2-MIX-008']),
+};
+const EPISODE_REV = 'r2';
+function episodeFingerprint(set) {
+return (set || []).map(x => x.q.id).slice().sort().join('|');
+}
 const cache = {}; const lastUsed = {}; let simDate = null;
 function planDay(date) {
 const rand = U.rng('quorbit-episode-' + date);
@@ -1791,19 +1808,20 @@ const order13 = U.shuffle(legacy ? ROTATING_V13 : ROTATING, rand);
 const cats = order13.slice(0, SLOTS.filter(s => s.rotating).length);
 let ci = 0; const piconnectDay = day % 2 === 0;
 let slotCats = SLOTS.map(s => (s.rotating ? cats[ci++] : null));
+const neverAired = q => lastUsed[q.id] === undefined;
 if (!legacy) {
-const isFresh = q => lastUsed[q.id] === undefined || day - lastUsed[q.id] >= FRESH_DAYS; const used = new Set();
+const used = new Set();
 slotCats = SLOTS.map(s => { if (!s.rotating) return null;
-const c = order13.find(c => !used.has(c) && poolFor(s, c, piconnectDay, date).some(isFresh)) || order13.find(c => !used.has(c));
+const c = order13.find(c => !used.has(c) && poolFor(s, c, piconnectDay, date).some(neverAired)) || order13.find(c => !used.has(c));
 used.add(c); return c; });
 }
 const pools = SLOTS.map((s, i) => poolFor(s, slotCats[i], piconnectDay, date));
 const lru = q => (lastUsed[q.id] ?? -1e9) * 1e6 + (U.hashString(date + q.id) % 1e6);
 const fresh = pools.map((p, i) => {
-if (SLOTS[i].key === 'connect' && piconnectDay) return [p.slice().sort((a, b) => lru(a) - lru(b))[0]];
-const f = p.filter(q => lastUsed[q.id] === undefined || day - lastUsed[q.id] >= FRESH_DAYS);
-if (f.length) return f;
-const sorted = p.slice().sort((a, b) => lru(a) - lru(b)); // small pool: take the 3 longest-rested, whatever their difficulty
+if (SLOTS[i].key === 'connect' && piconnectDay) return [p.slice().sort((a, b) => lru(a) - lru(b))[0]].filter(Boolean);
+const never = p.filter(neverAired);
+if (never.length) return never;
+const sorted = p.slice().sort((a, b) => lru(a) - lru(b));
 return sorted.slice(0, 3);
 });
 let diffs = null;
@@ -1818,15 +1836,14 @@ const order = SLOTS.map((_, i) => i);
 if (piconnectDay && !isLegacy(date)) { const c = SLOTS.findIndex(s => s.key === 'connect'); order.splice(order.indexOf(c), 1); order.unshift(c); }
 order.forEach(i => {
 const score = lru;
-const ok = q => !picked.some(p => p && leaks(p, q));
-const isFresh = q => lastUsed[q.id] === undefined || day - lastUsed[q.id] >= FRESH_DAYS;
+const ok = q => !picked.some(p => p && (p.id === q.id || leaks(p, q)));
 const tiers = legacy ? [fresh[i].filter(q => q.difficulty === diffs[i] && ok(q)), pools[i].filter(q => q.difficulty === diffs[i] && ok(q)), pools[i].filter(ok), pools[i]]
-: [fresh[i].filter(q => q.difficulty === diffs[i] && ok(q)), pools[i].filter(q => isFresh(q) && ok(q)), pools[i].filter(q => q.difficulty === diffs[i] && ok(q)), pools[i].filter(ok), pools[i]];
+: [fresh[i].filter(q => q.difficulty === diffs[i] && ok(q)), pools[i].filter(q => neverAired(q) && ok(q)), pools[i].filter(q => q.difficulty === diffs[i] && ok(q)), pools[i].filter(ok), pools[i]];
 const cand = tiers.find(t => t.length);
 picked[i] = cand.slice().sort((a, b) => score(a) - score(b))[0];
-if (!legacy && SLOTS[i].rotating && !isFresh(picked[i])) {
+if (!legacy && SLOTS[i].rotating && picked[i] && !neverAired(picked[i])) {
 for (const c of order13) { if (slotCats.includes(c)) continue;
-const alt = poolFor(SLOTS[i], c, piconnectDay, date).filter(q => isFresh(q) && ok(q));
+const alt = poolFor(SLOTS[i], c, piconnectDay, date).filter(q => neverAired(q) && ok(q));
 if (alt.length) { const same = alt.filter(q => q.difficulty === diffs[i]); picked[i] = (same.length ? same : alt).sort((a, b) => score(a) - score(b))[0]; slotCats[i] = c; break; } }
 }
 });
@@ -2187,7 +2204,7 @@ mock: true,
 _seedIds: bankHintIds
 };
 }
-QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, half, stepDown,
+QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, episodeFingerprint, EPISODE_REV, DAILY_SKIP, half, stepDown,
 matchTyped, norm, titleFor, MARK_EMOJI, shareText, recordDaily, liveStreak, personalStats, whatsappUrl, TOPICS, topicQuestions, topicLevel, XP_PER_LEVEL,
 FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue, TOTAL_BATCH, topicMcqBank, totalTopicQueue, globalMcqBank, PRACTICE_N, practiceQueue, TOTAL_PRICE_FULL_INR, TOTAL_PRICE_TOPIC_INR, TOTAL_PRICE_SUB_INR, TOTAL_FULL_DAYS, TOTAL_TOPIC_DAYS, TOTAL_SUB_DAYS, TOTAL_NEW_HINT_CAP, TOTAL_PRICES, TOTAL_DAYS, listUnlocks, hasFullTotal, hasTopicTotal, canPlayTotalTopic, moreUnlockedHint, rememberTotalSeen, makeUnlock, unlockFresh,
 DUEL, duelPoints, buildDuel, botPlan, leaks, contributorKey, isOwnContribution, communityBank, liveBank, firewallQs };
@@ -3200,6 +3217,23 @@ const paramDate = params.get('date');
 const PREVIEW = !!(paramDate && !isNaN(U.parseDate(paramDate)));
 const TODAY = PREVIEW ? paramDate : U.istDateString();
 if (PREVIEW && params.get('reset') === '1') S.update(s => { delete s.daily[TODAY]; if (s.progress && s.progress.date === TODAY) s.progress = null; });
+(function clearStaleDailyEpisode() {
+try {
+const set = E.dailySet(TODAY);
+const fp = E.episodeFingerprint(set);
+const rev = E.EPISODE_REV;
+const s0 = S.get();
+const done = s0.daily && s0.daily[TODAY];
+const prog = s0.progress && s0.progress.date === TODAY ? s0.progress : null;
+const stale = rec => !!rec && (rec.episodeRev !== rev || (rec.fingerprint && rec.fingerprint !== fp));
+if (stale(done) || stale(prog)) {
+S.update(s => {
+if (s.daily && s.daily[TODAY]) delete s.daily[TODAY];
+if (s.progress && s.progress.date === TODAY) s.progress = null;
+});
+}
+} catch (e) { /* bank not ready */ }
+})();
 if (params.get('owner') === '1') { try { localStorage.setItem('qb_owner', '1'); } catch (e) {} }
 function isOwner() { try { return localStorage.getItem('qb_owner') === '1'; } catch (e) { return false; } }
 function setOwner(on) { try { if (on) localStorage.setItem('qb_owner', '1'); else localStorage.removeItem('qb_owner'); } catch (e) {} }
@@ -3731,7 +3765,7 @@ const p = S.get().progress;
 game = p && p.date === TODAY ? { date: TODAY, set, idx: p.idx, results: p.results, score: p.score } : { date: TODAY, set, idx: 0, results: [], score: 0 };
 renderQuestion();
 }
-function saveProgress() { S.update(s => { s.progress = { date: game.date, idx: game.idx, results: game.results, score: game.score, qIdx: game.qIdx, qStart: game.qStart, qHints: game.qHints || 0 }; }); }
+function saveProgress() { S.update(s => { s.progress = { date: game.date, idx: game.idx, results: game.results, score: game.score, qIdx: game.qIdx, qStart: game.qStart, qHints: game.qHints || 0, fingerprint: E.episodeFingerprint(game.set), episodeRev: E.EPISODE_REV }; }); }
 function comboStreak() { let n = 0; for (let i = game.results.length - 1; i >= 0 && game.results[i].points > 0; i--) n++; return n; }
 function renderQuestion() {
 const N = game.set.length;
@@ -3938,7 +3972,8 @@ tickClock(); // a resumed question whose clock already ran out times out at once
 async function endGame() {
 const rec = { score: game.score, max: E.episodeMax(game.set), marks: game.results.map(r => r.mark),
 icons: game.set.map(x => x.slot.icon), diffs: game.set.map(x => x.difficulty), answers: game.results,
-avgMs: E.avgMs(game.results), fastMs: Math.min(...game.results.filter(r => r.points > 0).map(r => r.ms), Infinity) };
+avgMs: E.avgMs(game.results), fastMs: Math.min(...game.results.filter(r => r.points > 0).map(r => r.ms), Infinity),
+fingerprint: E.episodeFingerprint(game.set), episodeRev: E.EPISODE_REV };
 if (!isFinite(rec.fastMs)) rec.fastMs = null;
 await A.submitDailyResult(TODAY, rec, PREVIEW);
 try { sessionStorage.setItem('qb:justFinishedDaily', TODAY); } catch (e) {}
