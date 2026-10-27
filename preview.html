@@ -1316,6 +1316,14 @@ letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
 .more-orbit-modal h2 { font-size: 1.25rem; line-height: 1.25; margin: 4px 0 8px; }
 .more-orbit-modal .more-orbit-x { position: absolute; top: 10px; right: 10px; }
 .more-orbit-sheet .modal { max-width: 400px; }
+.streak-sheet-list { margin: 8px 0 14px; padding: 0 0 0 1.15em; color: var(--muted); font-size: 0.9375rem; line-height: 1.45; }
+.streak-sheet-list li { margin: 5px 0; }
+.practice-mode { margin: 12px 0 10px; padding: 14px 16px; text-align: left;
+background: linear-gradient(135deg, rgba(47,160,255,.10), rgba(255,210,63,.06));
+border: 1px solid rgba(47,160,255,.22); }
+.practice-mode b { display: block; font-size: 1.0625rem; margin: 2px 0 4px; }
+.practice-mode .btn { margin-top: 10px; min-height: 48px; }
+.practice-mode .practice-lock { justify-content: center; gap: 8px; opacity: .92; }
 </style>
 </head>
 <body>
@@ -2075,6 +2083,14 @@ let qs = pickHardSkewed(bank, want, excl);
 if (!qs.length && excl.size) qs = pickHardSkewed(bank, want, new Set()); // reshuffle when session exhausted
 return qs;
 }
+function globalMcqBank() {
+return liveBank(null).filter(q => q && q.format === 'mcq' && Array.isArray(q.options) && q.options.filter(Boolean).length >= 2
+&& q.round !== 'visual' && q.round !== 'piconnect');
+}
+const PRACTICE_N = 10;
+function practiceQueue(n) {
+return pickHardSkewed(globalMcqBank(), Math.max(1, (n == null ? PRACTICE_N : n) | 0), new Set());
+}
 const TOTAL_PRICE_FULL_INR = 99;
 const TOTAL_PRICE_TOPIC_INR = 49;
 const TOTAL_PRICE_SUB_INR = 29;
@@ -2173,7 +2189,7 @@ _seedIds: bankHintIds
 }
 QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, half, stepDown,
 matchTyped, norm, titleFor, MARK_EMOJI, shareText, recordDaily, liveStreak, personalStats, whatsappUrl, TOPICS, topicQuestions, topicLevel, XP_PER_LEVEL,
-FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue, TOTAL_BATCH, topicMcqBank, totalTopicQueue, TOTAL_PRICE_FULL_INR, TOTAL_PRICE_TOPIC_INR, TOTAL_PRICE_SUB_INR, TOTAL_FULL_DAYS, TOTAL_TOPIC_DAYS, TOTAL_SUB_DAYS, TOTAL_NEW_HINT_CAP, TOTAL_PRICES, TOTAL_DAYS, listUnlocks, hasFullTotal, hasTopicTotal, canPlayTotalTopic, moreUnlockedHint, rememberTotalSeen, makeUnlock, unlockFresh,
+FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue, TOTAL_BATCH, topicMcqBank, totalTopicQueue, globalMcqBank, PRACTICE_N, practiceQueue, TOTAL_PRICE_FULL_INR, TOTAL_PRICE_TOPIC_INR, TOTAL_PRICE_SUB_INR, TOTAL_FULL_DAYS, TOTAL_TOPIC_DAYS, TOTAL_SUB_DAYS, TOTAL_NEW_HINT_CAP, TOTAL_PRICES, TOTAL_DAYS, listUnlocks, hasFullTotal, hasTopicTotal, canPlayTotalTopic, moreUnlockedHint, rememberTotalSeen, makeUnlock, unlockFresh,
 DUEL, duelPoints, buildDuel, botPlan, leaks, contributorKey, isOwnContribution, communityBank, liveBank, firewallQs };
 })(window.QB);
 </script>
@@ -3255,7 +3271,7 @@ let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remo
 }
 }
 const ROOTS = { home: 1, topics: 1, leaderboard: 1, me: 1, '': 1 };
-const PARENT = { how: '#/home', lineup: '#/home', play: '#/home', result: '#/home', world: '#/home', credits: '#/me', topic: '#/topics',
+const PARENT = { how: '#/home', lineup: '#/home', play: '#/home', result: '#/home', world: '#/home', practice: '#/home', credits: '#/me', topic: '#/topics',
 duel: '#/duel', pack: '#/topics', total: '#/topics', board: '#/leaderboard', stats: '#/me', pass: '#/me', archive: '#/me', submit: '#/me', join: '#/me',
 friends: '#/me', account: '#/me', settings: '#/me', faq: '#/me', terms: '#/me', privacy: '#/me', legal: '#/me', review: '#/me', desk: '#/me' };
 const curHash = () => location.hash || '#/home';
@@ -3611,6 +3627,7 @@ ${lineupOrbit(set)}
 ${cta}
 <div class="row-links"><a href="#/how" class="link">How to play &amp; scoring</a><a href="#/stats" class="link" id="homeStats">📊 Your stats</a></div>
 </section>
+${practiceModeCard()}
 ${a2hsCard()}
 <details class="card htp" id="howCard">
 <summary>🪐 How to play in 30 seconds</summary>
@@ -3999,13 +4016,67 @@ on('#nativeShareBtn', 'click', async () => {
 try { await navigator.share({ text: share }); } catch (e) { if (e && e.name !== 'AbortError') { const ok = await copyText(share); toast(ok ? 'Result copied' : 'Share failed'); } }
 });
 on('#shareBtn', 'click', async () => { const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
-later(() => maybeMoreOrbitSheet(), 700);
+later(() => afterDailySheets(), 700);
 }
-function maybeMoreOrbitSheet() {
+function isAuthSignedIn() {
+const a = S.get().auth;
+return !!(a && a.provider);
+}
+function afterDailySheets() {
 let just = '';
 try { just = sessionStorage.getItem('qb:justFinishedDaily') || ''; } catch (e) {}
 if (just !== TODAY) return;
 try { sessionStorage.removeItem('qb:justFinishedDaily'); } catch (e) {}
+if (!isAuthSignedIn()) {
+const st = S.get().settings || {};
+if (!st.streakPromptDismissed && st.streakPromptShownDate !== TODAY) {
+openStreakSheet(() => maybeMoreOrbitSheet(true));
+return;
+}
+}
+maybeMoreOrbitSheet(true);
+}
+function openStreakSheet(onDone) {
+const root = document.getElementById('modalRoot'); if (!root) { onDone && onDone(); return; }
+root.innerHTML = `<div class="modal-back more-orbit-sheet streak-sheet" id="streakSheet" role="dialog" aria-modal="true" aria-labelledby="streakTitle">
+<div class="modal more-orbit-modal">
+<button type="button" class="a2hs-x more-orbit-x" id="streakClose" aria-label="Dismiss">✕</button>
+<p class="more-orbit-kicker">Daily streak</p>
+<h2 id="streakTitle">Track your streak</h2>
+<p id="streakBody">Create a free account to:</p>
+<ul class="streak-sheet-list">
+<li>Save streak across devices</li>
+<li>Compare with friends</li>
+<li>Climb leaderboards</li>
+<li>Keep Topics and Total progress</li>
+</ul>
+<div class="more-orbit-btns col">
+<a class="btn btn-gold btn-big" href="#/account" id="streakSignInBtn">Sign in / Create account</a>
+<button type="button" class="btn btn-ghost" id="streakLater">Maybe later</button>
+</div>
+</div></div>`;
+document.body.classList.add('modal-open');
+S.update(s => { s.settings.streakPromptShownDate = TODAY; });
+const close = (dismissed) => {
+if (dismissed) S.update(s => { s.settings.streakPromptDismissed = true; });
+root.innerHTML = ''; document.body.classList.remove('modal-open');
+onDone && onDone();
+};
+root.querySelector('#streakClose').addEventListener('click', () => close(true));
+root.querySelector('#streakLater').addEventListener('click', () => close(true));
+root.querySelector('#streakSheet').addEventListener('click', e => { if (e.target.id === 'streakSheet') close(false); });
+root.querySelector('#streakSignInBtn').addEventListener('click', () => {
+root.innerHTML = ''; document.body.classList.remove('modal-open');
+});
+setTimeout(() => { const b = root.querySelector('#streakSignInBtn'); b && b.focus({ preventScroll: true }); }, 40);
+}
+function maybeMoreOrbitSheet(consumed) {
+if (!consumed) {
+let just = '';
+try { just = sessionStorage.getItem('qb:justFinishedDaily') || ''; } catch (e) {}
+if (just !== TODAY) return;
+try { sessionStorage.removeItem('qb:justFinishedDaily'); } catch (e) {}
+}
 const st = S.get().settings || {};
 if (st.moreOrbitDismissed || st.moreOrbitShownDate === TODAY) return;
 const root = document.getElementById('modalRoot'); if (!root) return;
@@ -4221,6 +4292,91 @@ if (!free.unlocked && free.left <= 0) bindTopicLock();
 next();
 }
 function hasChampionsPass() { return E.hasFullTotal ? E.hasFullTotal(S.get()) : !!(S.get().pass && S.get().pass.active); }
+function practiceModeCard() {
+const open = hasChampionsPass();
+return `<section class="card practice-mode" id="practiceMode" aria-label="Practice Mode">
+<p class="more-orbit-kicker">Practice Mode</p>
+<b>Random Challenge</b>
+<p class="small muted">10 questions from the archive</p>
+${open
+? `<a class="btn btn-gold" href="#/practice" id="practiceStartBtn">▶ Random Challenge</a>`
+: `<a class="btn btn-ghost practice-lock" href="#/total" id="practiceLockBtn"><span aria-hidden="true">🔒</span> Random Challenge <span class="total-mini">Total</span></a>`}
+</section>`;
+}
+function practicePlay() {
+if (!hasChampionsPass()) {
+toast('Unlock Quorbit Total for Practice Mode');
+return go('#/total');
+}
+const qs = E.practiceQueue ? E.practiceQueue(E.PRACTICE_N || 10) : E.pickHardSkewed(
+(E.globalMcqBank ? E.globalMcqBank() : (E.liveBank ? E.liveBank(null) : E.BANK || []).filter(q => q && q.format === 'mcq' && Array.isArray(q.options) && q.options.filter(Boolean).length >= 2)),
+10, new Set());
+if (!qs.length) { toast('No practice questions available yet'); return go('#/home'); }
+const G = { i: 0, score: 0, rows: [], over: false, paused: 0, t0: 0 };
+const PTS = { easy: 15, medium: 20, hard: 25 };
+const DLABEL = { easy: 'Easy', medium: 'Medium', hard: 'Hard' };
+guard = { kind: 'practice', hash: '#/practice', title: 'Leave Practice?', body: 'This practice run ends. It does not affect your Daily streak.',
+active: () => !G.over, pause() { if (!G.paused) G.paused = performance.now(); }, resume() { if (!G.paused) return; G.t0 += performance.now() - G.paused; G.paused = 0; } };
+const next = () => { if (G.i < qs.length) practiceQ(); else practiceEnd(); };
+function practiceQ() {
+const q = qs[G.i]; const secs = 30; const total = secs * 1000;
+const typed = needsTypedUI(q);
+view(`
+<div class="pack-bar"><span class="pb-t">🎲 Practice</span><span class="pb-n">Q${G.i + 1}/${qs.length}</span><span class="pb-s" id="packScore">${G.score} pts</span></div>
+<p class="practice-flag">Practice · does not count toward Daily streak</p>
+<div class="qhead" id="qhead">
+<div class="timer" id="timer" role="timer" aria-label="Seconds left"><span class="t-pill"><b id="timerNum">${secs}</b><small>s</small></span><span class="t-bar"><span class="timer-fill" id="timerFill"></span></span>
+<span class="diff d-${q.difficulty}">${DLABEL[q.difficulty]} · ${PTS[q.difficulty]}</span></div>
+<h2 class="question" id="qtext">${esc(q.question)}</h2>
+${contribLine(q)}
+</div>
+${q.clues && q.clues.length ? `<ol class="clues">${q.clues.map(c => `<li class="shown">${esc(c)}</li>`).join('')}</ol>` : ''}
+${answerAreaHTML(q, 'pr-' + q.id + '-' + G.i)}
+<div id="reveal"></div>`, 'home');
+G.t0 = performance.now(); let done = false;
+const finish = (choice) => {
+if (done) return; done = true; const ms = Math.round(performance.now() - G.t0);
+const ok = choice != null && (typed ? E.matchTyped(choice, q) : choice === q.answer);
+const speed = ms <= 4000 ? 1 : Math.max(.5, 1 - .5 * (ms - 4000) / (total - 4000));
+const pts = ok ? Math.round(PTS[q.difficulty] * speed) : 0; G.score += pts; G.rows.push({ id: q.id, ok, ms, pts });
+S.update(s => { E.addPoints(s, pts, 'topic'); }); // lifetime pts only — never Daily / streak
+$app.querySelectorAll('.opt').forEach(b => { b.disabled = true; if (b.dataset.opt === q.answer) b.classList.add('correct'); else if (b.dataset.opt === choice) b.classList.add('wrong'); });
+const ti = $app.querySelector('#typedInput'); if (ti) { ti.disabled = true; ti.classList.add(ok ? 'correct' : 'wrong'); }
+(ok ? sfx.correct : choice == null ? sfx.timeup : sfx.wrong)();
+const last = G.i + 1 >= qs.length;
+$app.querySelector('#packScore').textContent = G.score + ' pts';
+$app.querySelector('#reveal').innerHTML = `<section class="reveal ${ok ? 'ok' : 'bad'}" id="revealCard">
+<div class="host-say">${ok ? '✅ Correct!' : choice == null ? '⏰ Time\'s up!' : '❌ Not quite.'} <span class="pts-gain ${pts ? '' : 'zero'}">+${pts}</span></div>
+<div class="answer-line">Answer: <b>${esc(q.answer)}</b></div>
+<div class="dyk"><span class="dyk-tag">Did you know?</span> ${esc(q.fact)}</div>
+${sourceLine(q)}
+<button class="btn btn-gold btn-big" id="nextBtn">${last ? '🏁 Finish' : 'Next ▸'}</button></section>`;
+on('#nextBtn', 'click', () => { G.i++; next(); });
+};
+on('.opt', 'click', e => finish(e.currentTarget.dataset.opt));
+on('#typedForm', 'submit', e => { e.preventDefault(); const v = ($app.querySelector('#typedInput') || {}).value; if (v && String(v).trim()) finish(String(v).trim()); });
+every(() => {
+if (done || G.paused) return; const left = Math.max(0, total - (performance.now() - G.t0));
+const f = $app.querySelector('#timerFill'); if (!f) return; f.style.transform = `scaleX(${left / total})`;
+$app.querySelector('#timerNum').textContent = Math.ceil(left / 1000); $app.querySelector('#timer').classList.toggle('danger', left < 5000);
+if (left <= 0) finish(null);
+}, 100);
+}
+function practiceEnd() {
+G.over = true; guard = null;
+const right = G.rows.filter(r => r.ok).length;
+view(`
+<section class="topic-hero small spotlight" style="--h:210"><div class="t-ico">🎲</div>
+<div><small>PRACTICE</small><h1 class="page-title">Random Challenge</h1>
+<p class="muted">${right}/${qs.length} right · ${G.score} pts</p>
+<p class="practice-flag">Practice · Daily streak unchanged</p></div></section>
+<a class="btn btn-gold btn-big" href="#/practice">▶ Play again</a>
+<a class="btn btn-ghost" href="#/home">← Today</a>
+<a class="btn btn-ghost" href="#/total">✨ Quorbit Total</a>
+`, 'home');
+}
+next();
+}
 function hasAnyTotalUnlock() {
 if (hasChampionsPass()) return true;
 return E.listUnlocks ? E.listUnlocks(S.get()).length > 0 : false;
@@ -4994,7 +5150,7 @@ function route(opts = {}) {
 routeSeq++; QB.audio.setIntensity(0); guard = null; floatCta(null);
 const h = (location.hash || '#/home').slice(2).split('/');
 const [r, arg, arg2] = h;
-const playing = r === 'play' || (r === 'topic' && arg2 === 'play') || (r === 'pack' && arg2 === 'play')
+const playing = r === 'play' || r === 'practice' || (r === 'topic' && arg2 === 'play') || (r === 'pack' && arg2 === 'play')
 || (r === 'duel' && !!arg) || (r === 'total' && !!arg);
 document.body.classList.toggle('in-play', playing);
 setBack();
@@ -5005,6 +5161,7 @@ case 'lineup': return lineup();
 case 'world': return world();
 case 'credits': return credits();
 case 'play': return play();
+case 'practice': return practicePlay();
 case 'result': return result();
 case 'topics': return SX.library();
 case 'pack': return arg2 === 'play' ? SX.packPlay(arg) : SX.packPage(arg);
