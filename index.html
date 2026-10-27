@@ -1186,6 +1186,7 @@ border-radius: 2px; background: var(--ink);
 .auth-card .btn-ghost { margin: 0; }
 .auth-fine { margin: 2px 0 0; line-height: 1.4; }
 .auth-phone, .auth-otp { display: grid; gap: 10px; margin-top: 4px; }
+.auth-phone[hidden], .auth-otp[hidden] { display: none; }
 .auth-phone-label { display: grid; gap: 6px; font-weight: 700; font-size: 0.875rem; }
 .auth-otp-input { letter-spacing: 0.35em; text-align: center; font-weight: 700; font-size: 1.25rem; }
 .btn-tiny { min-height: 40px; padding: 8px 12px; font-size: 0.875rem; font-weight: 600; }
@@ -2654,7 +2655,7 @@ return `🪐 My ${R.monthName} in Orbit on Quorbit\n⭐ ${R.total} points · ${R
 function authOf() { return st().auth || null; }
 function isSignedIn() { return !!(authOf() && authOf().provider); }
 function authFinePrint() {
-return "We'll ask before merging this device's history. Skip that and you'll see only what's on your account. New plays while signed in sync automatically.";
+return "Free. We ask before merging this device's history.";
 }
 function stubSignIn(provider, extra = {}) {
 const displayName = extra.displayName || (provider === 'google' ? 'Google quizzer' : (extra.phone ? '+91 ' + extra.phone : 'Signed-in quizzer'));
@@ -2689,13 +2690,13 @@ return `<section class="card auth-card" id="authCard" data-mode="${mode}">
 }
 const head = mode === 'friends' ? 'Bring your friends along.' : 'Keep your orbit together.';
 const body = mode === 'friends'
-? 'Sign in to add friends and compare daily scores. Your board is just you and your friends.'
-: 'Sign in to save streaks, points and badges across devices. Free.';
+? 'Sign in to compare daily scores with friends.'
+: 'Save streaks and badges across devices.';
 return `<section class="card auth-card" id="authCard" data-mode="${mode}" data-phone-step="idle">
 <b>${head}</b>
 <p class="muted small">${body}</p>
 <button type="button" class="btn btn-gold btn-big" id="authGoogle">Continue with Google</button>
-<button type="button" class="btn btn-ghost" id="authPhoneToggle">Continue with phone</button>
+<button type="button" class="btn btn-ghost" id="authPhoneToggle" aria-expanded="false" aria-controls="authPhonePanel">Continue with phone</button>
 <div class="auth-phone" id="authPhonePanel" hidden>
 <label class="auth-phone-label">Mobile number
 <div class="phone"><span>+91</span><input class="input" id="authPhoneInput" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" placeholder="98xxxxxxxx" autocomplete="tel-national"></div>
@@ -2720,7 +2721,14 @@ const showPhone = () => {
 if (phonePanel) phonePanel.hidden = false;
 if (otpPanel) otpPanel.hidden = true;
 card.dataset.phoneStep = 'phone';
-const tog = $app.querySelector('#authPhoneToggle'); if (tog) tog.hidden = true;
+const tog = $app.querySelector('#authPhoneToggle'); if (tog) tog.setAttribute('aria-expanded', 'true');
+const pi = $app.querySelector('#authPhoneInput'); if (pi) setTimeout(() => pi.focus(), 50);
+};
+const hidePhone = () => {
+if (phonePanel) phonePanel.hidden = true;
+if (otpPanel) otpPanel.hidden = true;
+card.dataset.phoneStep = 'idle';
+const tog = $app.querySelector('#authPhoneToggle'); if (tog) tog.setAttribute('aria-expanded', 'false');
 };
 const showOtp = () => {
 if (phonePanel) phonePanel.hidden = true;
@@ -2729,7 +2737,7 @@ card.dataset.phoneStep = 'otp';
 };
 on('#authGoogle', 'click', () => { stubSignIn('google'); refresh(); });
 on('#authSignOut', 'click', () => { stubSignOut(); refresh(); });
-on('#authPhoneToggle', 'click', showPhone);
+on('#authPhoneToggle', 'click', () => (card.dataset.phoneStep === 'idle' ? showPhone() : hidePhone()));
 on('#authSendOtp', 'click', () => {
 const inp = $app.querySelector('#authPhoneInput');
 const phone = (inp && inp.value || '').trim();
