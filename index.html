@@ -59,7 +59,7 @@ text-align: center; padding: 6px; border-radius: 10px; margin-bottom: 8px; lette
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .tabbar { position: fixed; z-index: 6; left: 50%; translate: -50% 0; bottom: 0; width: 100%; max-width: 520px; display: grid; grid-template-columns: repeat(5, 1fr);
-padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); background: rgba(0,0,0,.78); border-top: 1px solid var(--line); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
+padding: 6px 6px calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba(0,0,0,.78); border-top: 1px solid var(--line); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
 .tabbar a { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.875rem; color: var(--muted); padding: 6px 0; border-radius: 12px; font-weight: 700; }
 .tabbar a span { font-size: 1.25rem; filter: grayscale(.6); }
 .tabbar a.active { color: var(--ink); background: rgba(255,255,255,.08); }
@@ -1208,6 +1208,11 @@ font-size: 0.8125rem; word-break: break-all; color: var(--gold-2);
 .menu-sheet {
 position: fixed; inset: 0; z-index: 40;
 display: flex; align-items: flex-end; justify-content: center;
+height: 100%;
+height: 100dvh;
+max-height: 100dvh;
+padding-bottom: 0;
+box-sizing: border-box;
 }
 .menu-sheet[hidden] { display: none !important; }
 .menu-sheet-back {
@@ -1216,10 +1221,15 @@ position: absolute; inset: 0; background: rgba(0,0,0,.55);
 }
 .menu-sheet-panel {
 position: relative; z-index: 1; width: min(520px, 100%);
-max-height: min(86vh, 720px); overflow: auto;
+max-height: min(86vh, 720px);
+max-height: min(86dvh, 720px);
+max-height: min(calc(100dvh - 8px), 720px);
+display: flex;
+flex-direction: column;
+overflow: hidden;
 background: #141416; border: 1px solid var(--line);
 border-radius: 20px 20px 0 0;
-padding: 8px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+padding: 8px 16px 0;
 box-shadow: 0 -12px 40px rgba(0,0,0,.45);
 animation: menuUp .22s ease-out;
 }
@@ -1232,14 +1242,27 @@ to { transform: none; opacity: 1; }
 }
 .menu-sheet-head {
 display: flex; align-items: center; justify-content: space-between;
-padding: 8px 2px 12px; position: sticky; top: 0; background: #141416; z-index: 1;
+flex-shrink: 0;
+padding: 8px 2px 12px;
+position: sticky; top: 0;
+background: #141416; z-index: 2;
 }
 .menu-sheet-head h2 { margin: 0; font-size: 1.125rem; letter-spacing: -0.02em; }
 .menu-sheet-x {
 min-width: 44px; min-height: 44px; border: 0; border-radius: 12px;
 background: rgba(255,255,255,.08); color: var(--ink); font-size: 1.125rem; cursor: pointer;
 }
+.menu-sheet-body {
+flex: 1 1 auto;
+min-height: 0;
+overflow-x: hidden;
+overflow-y: auto;
+-webkit-overflow-scrolling: touch;
+overscroll-behavior: contain;
+padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px) + 24px);
+}
 .menu-group { margin: 0 0 14px; }
+.menu-group:last-child { margin-bottom: 0; }
 .menu-group h3 {
 margin: 0 0 6px; padding: 0 4px;
 font-size: 0.75rem; font-weight: 700; letter-spacing: .06em;
@@ -1253,6 +1276,7 @@ color: var(--ink); text-decoration: none; font-weight: 600; font-size: 0.975rem;
 }
 .menu-group a:active { background: rgba(245,197,66,.14); }
 body.menu-open { overflow: hidden; }
+body.menu-open .tabbar { opacity: 0; pointer-events: none; }
 .total-mini { display: inline-block; font-family: var(--mono); font-size: 0.6875rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; background: rgba(255,210,63,.18); color: var(--gold); border: 1px solid rgba(255,210,63,.45); vertical-align: middle; }
 .paid-later-chip { display: inline-block; margin: 8px 0 4px; font-family: var(--mono); font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
 .total-entry { position: relative; }
