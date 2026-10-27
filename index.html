@@ -1303,6 +1303,19 @@ label.declaration input { margin-top: 3px; flex-shrink: 0; }
 .menu.quiet-legal a { font-size: 0.9375rem; }
 .menu-group a.menu-quiet { opacity: .72; font-size: 0.875rem; font-weight: 500; padding-top: 6px; padding-bottom: 6px; }
 label.declaration a { color: var(--gold-2); text-decoration: underline; text-underline-offset: 2px; }
+.more-orbit { margin: 14px 0 10px; padding: 14px 16px; text-align: left;
+background: linear-gradient(135deg, rgba(255,210,63,.12), rgba(47,160,255,.08));
+border: 1px solid rgba(255,210,63,.28); }
+.more-orbit b { display: block; font-size: 1.0625rem; margin: 2px 0 4px; }
+.more-orbit-kicker { margin: 0 0 2px; font-family: var(--mono); font-size: 0.6875rem; font-weight: 700;
+letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+.more-orbit-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.more-orbit-btns .btn { min-height: 48px; margin: 0; }
+.more-orbit-btns.col { grid-template-columns: 1fr; }
+.more-orbit-modal { position: relative; text-align: left; padding-top: 28px; }
+.more-orbit-modal h2 { font-size: 1.25rem; line-height: 1.25; margin: 4px 0 8px; }
+.more-orbit-modal .more-orbit-x { position: absolute; top: 10px; right: 10px; }
+.more-orbit-sheet .modal { max-width: 400px; }
 </style>
 </head>
 <body>
@@ -3911,6 +3924,7 @@ icons: game.set.map(x => x.slot.icon), diffs: game.set.map(x => x.difficulty), a
 avgMs: E.avgMs(game.results), fastMs: Math.min(...game.results.filter(r => r.points > 0).map(r => r.ms), Infinity) };
 if (!isFinite(rec.fastMs)) rec.fastMs = null;
 await A.submitDailyResult(TODAY, rec, PREVIEW);
+try { sessionStorage.setItem('qb:justFinishedDaily', TODAY); } catch (e) {}
 sfx.fanfare(); guard = null; location.replace('#/result');
 if (rec.score >= rec.max) SX.confetti(70);
 setTimeout(() => SX.igniteFlame(), 500); SX.checkBadges();
@@ -3960,6 +3974,15 @@ ${navigator.share ? '<button class="btn btn-gold" id="nativeShareBtn">📤 Share
 <button class="btn btn-ghost" id="shareBtn">📋 Copy</button>
 </div>
 </div>
+<section class="card more-orbit" id="moreOrbit" aria-label="More after Daily">
+<p class="more-orbit-kicker">There’s more than Daily</p>
+<b>Keep playing</b>
+<p class="small muted">Topics stay free in small bites. Quorbit Total opens endless Hard banks when you want a longer dive.</p>
+<div class="more-orbit-btns">
+<a class="btn btn-ghost" href="#/topics" id="moreTopicsBtn">🎯 Topics</a>
+<a class="btn btn-gold" href="#/total" id="moreTotalBtn">✨ Quorbit Total</a>
+</div>
+</section>
 <a class="card news-teaser" href="#/stats" id="statsLink"><span class="s-ico">📊</span><div><b>Your stats</b><small>Games played, average score and your best topic</small></div><span class="chev">›</span></a>
 <div class="card center"><div class="muted small">NEXT EPISODE IN</div><div class="countdown-big" data-cd>--:--:--</div></div>
 ${news ? `<a class="card news-teaser" href="#/world"><span class="s-ico">🌍</span><div><b>Bonus: World This Week</b><small>${news.stale ? 'From the archive' : 'Fresh'} · ${esc(news.label)}</small></div><span class="chev">›</span></a>` : ''}
@@ -3976,6 +3999,40 @@ on('#nativeShareBtn', 'click', async () => {
 try { await navigator.share({ text: share }); } catch (e) { if (e && e.name !== 'AbortError') { const ok = await copyText(share); toast(ok ? 'Result copied' : 'Share failed'); } }
 });
 on('#shareBtn', 'click', async () => { const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
+later(() => maybeMoreOrbitSheet(), 700);
+}
+function maybeMoreOrbitSheet() {
+let just = '';
+try { just = sessionStorage.getItem('qb:justFinishedDaily') || ''; } catch (e) {}
+if (just !== TODAY) return;
+try { sessionStorage.removeItem('qb:justFinishedDaily'); } catch (e) {}
+const st = S.get().settings || {};
+if (st.moreOrbitDismissed || st.moreOrbitShownDate === TODAY) return;
+const root = document.getElementById('modalRoot'); if (!root) return;
+root.innerHTML = `<div class="modal-back more-orbit-sheet" id="moreOrbitSheet" role="dialog" aria-modal="true" aria-labelledby="moreOrbitTitle">
+<div class="modal more-orbit-modal">
+<button type="button" class="a2hs-x more-orbit-x" id="moreOrbitClose" aria-label="Dismiss">✕</button>
+<p class="more-orbit-kicker">After Daily</p>
+<h2 id="moreOrbitTitle">There’s a whole library past today’s episode</h2>
+<p id="moreOrbitBody">Topics for quick free rounds, or Quorbit Total for endless Hard dives. Same app — not buried only in the menu.</p>
+<div class="more-orbit-btns col">
+<a class="btn btn-gold btn-big" href="#/total" id="sheetTotalBtn">✨ Open Quorbit Total</a>
+<a class="btn btn-ghost" href="#/topics" id="sheetTopicsBtn">🎯 Browse Topics</a>
+<button type="button" class="btn btn-ghost" id="moreOrbitLater">Not now</button>
+</div>
+</div></div>`;
+document.body.classList.add('modal-open');
+S.update(s => { s.settings.moreOrbitShownDate = TODAY; });
+const close = () => {
+root.innerHTML = ''; document.body.classList.remove('modal-open');
+};
+const dismiss = () => { S.update(s => { s.settings.moreOrbitDismissed = true; }); close(); };
+root.querySelector('#moreOrbitClose').addEventListener('click', dismiss);
+root.querySelector('#moreOrbitLater').addEventListener('click', close);
+root.querySelector('#moreOrbitSheet').addEventListener('click', e => { if (e.target.id === 'moreOrbitSheet') close(); });
+root.querySelector('#sheetTotalBtn').addEventListener('click', () => { close(); });
+root.querySelector('#sheetTopicsBtn').addEventListener('click', () => { close(); });
+setTimeout(() => { const b = root.querySelector('#sheetTotalBtn'); b && b.focus({ preventScroll: true }); }, 40);
 }
 function world() {
 const n = newsState();
