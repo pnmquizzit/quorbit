@@ -472,7 +472,7 @@ background: rgba(0,0,0,.22); border: 1px solid var(--line); text-align: left; }
 .src-line a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
 .credit-mini { font-size: 0.875rem; color: var(--muted); text-align: center; margin-top: 4px; }
 .new-pill { display: inline-block; vertical-align: middle; font-size: 0.8125rem; font-weight: 900; letter-spacing: .8px; padding: 1px 6px; border-radius: 99px; background: var(--gold); color: #1a1030; margin-left: 4px; }
-:root { --top-h: 60px; --nav-h: 66px; --muted: #a1a1a6; --ink-2: #ebebf5; --head-bg: #000000; }
+:root { --top-h: 52px; --nav-h: 66px; --muted: #a1a1a6; --ink-2: #ebebf5; --head-bg: #000000; }
 @supports (font: -apple-system-body) { html { font: -apple-system-body; } body { font-family: var(--display); line-height: 1.45; } }
 html.lg-text { font-size: 118.75%; }
 html { scroll-padding-top: calc(var(--top-h) + env(safe-area-inset-top, 0px) + 10px); }
@@ -486,18 +486,19 @@ gap: 8px; background: rgba(0,0,0,.72); backdrop-filter: saturate(180%) blur(20px
 isolation: isolate; }
 .topbar::before { content: ''; position: absolute; z-index: -1; top: 0; bottom: 0; left: -100vmax; right: -100vmax; background: rgba(0,0,0,.85);
 border-bottom: 1px solid var(--line); box-shadow: 0 4px 12px rgba(0,0,0,.35); }
-.brand { margin-right: auto; min-height: 48px; min-width: 48px; }
-.brand-text { font-size: 23px; }
+.brand { margin-right: auto; min-height: 44px; min-width: 0; flex: 1 1 auto; overflow: hidden; gap: 6px; }
+.logo { width: 28px; height: 28px; flex: none; }
+.brand-text { font-size: 18px; letter-spacing: -0.45px; white-space: nowrap; overflow: hidden; line-height: 1.1; }
 .topbar.has-back .brand-text { display: none; }
-.back-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; min-width: 48px; min-height: 48px; padding: 0 12px 0 10px; border-radius: 12px;
-border: 1px solid var(--line); background: rgba(255,255,255,.1); color: var(--ink); font-weight: 800; font-size: 16px; }
+.back-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 10px 0 8px; border-radius: 12px;
+border: 1px solid var(--line); background: rgba(255,255,255,.1); color: var(--ink); font-weight: 800; font-size: 15px; }
 .back-btn[hidden] { display: none; }
-.back-btn span:first-child { font-size: 22px; line-height: 1; }
-.topbar-right { gap: 6px; }
-.hchip { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; padding: 2px 9px;
-border-radius: 12px; background: rgba(255,255,255,.08); border: 1px solid var(--line); line-height: 1.12; color: var(--ink); }
-.hchip .hc-v { font-size: 15px; font-weight: 800; white-space: nowrap; }
-.hchip .hc-l { font-size: 13px; font-weight: 800; color: var(--gold-2); letter-spacing: .3px; }
+.back-btn span:first-child { font-size: 20px; line-height: 1; }
+.topbar-right { flex: none; gap: 4px; }
+.hchip { display: inline-flex; flex-direction: row; align-items: center; justify-content: center; min-width: 40px; min-height: 36px; padding: 4px 8px;
+border-radius: 980px; background: rgba(255,255,255,.08); border: 1px solid var(--line); line-height: 1; color: var(--ink); }
+.hchip .hc-v { font-size: 14px; font-weight: 800; white-space: nowrap; }
+.hchip .hc-l { display: none; }
 #pointsChip .hc-v { color: var(--gold-2); }
 body.in-play #previewRibbon { display: none; }
 .ribbon { padding: 4px 8px; margin: 6px 0; font-size: 14px; border-radius: 8px; }
@@ -518,7 +519,7 @@ bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 10px); pointer-ev
 .hero .lead { margin: 2px 0 8px; }
 .ep-ring { width: 44px; height: 44px; }
 .onair { font-size: 13px; padding: 3px 7px; } .onair span { animation: none; }
-#muteBtn.hchip { min-width: 48px; min-height: 48px; width: auto; height: auto; }
+#muteBtn.hchip { min-width: 36px; min-height: 36px; width: auto; height: auto; padding: 4px 8px; }
 .news-teaser, .contribute { padding: 10px 14px; }
 .lineup li { grid-template-columns: 22px 24px minmax(0,1fr) auto; align-items: center; min-height: 48px; padding: 7px 10px; font-size: 1rem; line-height: 1.3; }
 .li-main .li-cat { white-space: normal; overflow: visible; text-overflow: clip; flex-wrap: wrap; column-gap: 6px; font-size: .9375rem; color: var(--muted); }
@@ -1352,9 +1353,9 @@ border: 1px solid rgba(47,160,255,.22); }
           <circle r="2.4" fill="#ff6b78"><animateMotion dur="7s" repeatCount="indefinite" rotate="0"><mpath href="#wmPath"/></animateMotion></circle></svg></span>rbit</b></span>
       </a>
       <div class="topbar-right">
-        <a id="streakChip" class="hchip" href="#/stats" title="Daily streak: open your stats"><span class="hc-v">🔥 0</span><span class="hc-l">streak</span></a>
-        <a id="pointsChip" class="hchip" href="#/stats" title="Lifetime points: open your stats" aria-label="Lifetime points: open your stats"><span class="hc-v">🌱 0</span><span class="hc-l">pts</span></a>
-        <button id="muteBtn" class="hchip" type="button" aria-label="Mute or unmute music and sound" aria-pressed="false"><span class="hc-v">🔊</span><span class="hc-l">sound</span></button>
+        <a id="streakChip" class="hchip" href="#/stats" title="Daily streak" aria-label="0-day streak: open your stats"><span class="hc-v">🔥 0</span></a>
+        <a id="pointsChip" class="hchip" href="#/stats" title="Lifetime points" aria-label="Lifetime points: open your stats"><span class="hc-v">🌱 0</span></a>
+        <button id="muteBtn" class="hchip" type="button" title="Sound on" aria-label="Mute music and sound" aria-pressed="false"><span class="hc-v">🔊</span></button>
       </div>
     </header>
     <div id="previewRibbon" class="ribbon" hidden></div>
@@ -2617,7 +2618,7 @@ ${shelf(answers().length ? '✨ Made for you' : '✨ Start here', mfy, 'mfy')}
 ${SHELVES.map(sh => shelf(`${sh.icon} ${sh.title}`, PACKS.filter(p => p.shelf === sh.id), sh.id)).join('')}
 ${FUN ? shelf('🎉 Fun pack', PACKS.filter(p => p.shelf === 'fun'), 'fun')
 : `<section class="shelf soon" aria-labelledby="sh-soon"><h2 class="shelf-title" id="sh-soon">🚧 Coming soon</h2>
-<div class="shelf-row">${[['💞', 'Jodi Jam', 'Match the on-screen pairs', 330], ['🎵', 'Title Track', 'Guess the film from its song', 280], ['😀', 'Emoji Poster', 'Read the film from emojis', 40]]
+<div class="shelf-row">${[['💞', 'Jodi Jam', 'Match the on-screen pairs', 330], ['🎵', 'Title Track', 'Guess the film from its song', 280], ['😀', 'Emoji Poster', 'Read the film from emojis', 40], ['🗺️', 'Country Outline', 'Guess the country from its silhouette', 160], ['🧭', 'Neighbour Map', 'Name the cities around the centre', 200], ['🥇', 'Firsts & Lasts', 'First or last: Nobel, posts, records', 15], ['🏳️', 'Flag Fragments', 'Name the flag from a scrap', 355], ['📸', 'Odd Angle', 'Spot the landmark from a tricky shot', 250], ['⏳', 'Chronology', 'Put the events in the right order', 120]]
 .map(([i, t, d, h]) => `<div class="pl-card locked" style="--h1:${h};--h2:${(h + 40) % 360}"><div class="pl-cover"><span class="pl-ico">${i}</span><span class="pl-done soon-tag">SOON</span></div><div class="pl-text"><b>${t}</b><small>${d}</small></div></div>`).join('')}</div></section>`}
 <section class="shelf"><h2 class="shelf-title">🗂️ Browse by topic</h2>
 <div class="chip-wrap">${E.TOPICS.map(t => `<a class="chip-btn" href="#/topic/${t.id}">${t.icon} ${esc(t.name)}</a>`).join('')}</div></section>
@@ -3262,13 +3263,16 @@ function refreshChrome(tab) {
 if (tab) lastTab = tab; else tab = lastTab;
 const st = stats();
 const sk = E.liveStreak(st, TODAY);
-document.getElementById('streakChip').innerHTML = `<span class="hc-v">🔥 ${sk}</span><span class="hc-l">streak</span>`;
+document.getElementById('streakChip').innerHTML = `<span class="hc-v">🔥 ${sk}</span>`;
 document.getElementById('streakChip').setAttribute('aria-label', `${sk}-day streak: open your stats`);
+document.getElementById('streakChip').title = `${sk}-day streak`;
 const mb = document.getElementById('muteBtn'); const muted = !!S.get().settings.muted;
-mb.innerHTML = `<span class="hc-v">${muted ? '🔇' : '🔊'}</span><span class="hc-l">${muted ? 'muted' : 'sound'}</span>`; mb.setAttribute('aria-pressed', String(muted));
+mb.innerHTML = `<span class="hc-v">${muted ? '🔇' : '🔊'}</span>`; mb.setAttribute('aria-pressed', String(muted));
+mb.setAttribute('aria-label', muted ? 'Unmute music and sound' : 'Mute music and sound');
+mb.title = muted ? 'Muted' : 'Sound on';
 const pc = document.getElementById('pointsChip'); if (pc) { const tot = (S.get().points || {}).total || 0; const L = E.levelFor(tot);
-pc.innerHTML = `<span class="hc-v">${L.icon} ${tot.toLocaleString('en-IN')}</span><span class="hc-l">pts</span>`;
-pc.title = `${tot} lifetime points · ${L.name}. Tap for your stats`; pc.setAttribute('aria-label', `${tot} lifetime points, level ${L.name}: open your stats`); }
+pc.innerHTML = `<span class="hc-v">${L.icon} ${tot.toLocaleString('en-IN')}</span>`;
+pc.title = `${tot} lifetime points · ${L.name}`; pc.setAttribute('aria-label', `${tot} lifetime points, level ${L.name}: open your stats`); }
 document.querySelectorAll('#tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
 const rib = document.getElementById('previewRibbon');
 rib.hidden = !PREVIEW;
