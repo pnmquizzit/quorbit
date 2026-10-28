@@ -250,8 +250,9 @@ background: repeating-linear-gradient(45deg, var(--gold) 0 14px, var(--amber) 14
 .form label { display: grid; gap: 6px; font-weight: 700; font-size: 0.875rem; }
 .form label .input + .input { margin-top: 6px; }
 .phone { display: flex; gap: 6px; align-items: center; } .phone span { padding: 14px 10px; border-radius: 12px; background: rgba(255,255,255,.08); font-weight: 800; }
-.check { display: flex !important; grid-template-columns: none; align-items: center; gap: 10px; font-weight: 500 !important; }
-.check input { width: 20px; height: 20px; accent-color: var(--gold); }
+.check { display: flex !important; grid-template-columns: none !important; flex-wrap: nowrap; align-items: flex-start; gap: 10px; font-weight: 500 !important; }
+.check input { width: 20px; height: 20px; flex: none; accent-color: var(--gold); }
+.check > span { flex: 1 1 auto; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
 .err { color: #ffb3bb; margin: 0; min-height: 1em; font-size: 0.875rem; }
 select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%), linear-gradient(135deg, var(--gold) 50%, transparent 50%);
 background-position: calc(100% - 18px) 55%, calc(100% - 12px) 55%; background-size: 6px 6px; background-repeat: no-repeat; }
@@ -364,8 +365,8 @@ background: var(--gold); color: #000; font-weight: 700; padding: 12px 18px; bord
 .ribbon a { display: inline-block; padding: 14px 8px; margin: -14px -8px; }
 .foot .link, .prize-banner a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 6px; }
 .credit { padding: 15px 0; margin: -11px 0 -15px; position: relative; }
-.check { display: flex; gap: 12px; align-items: center; min-height: 44px; }
-.check input[type=checkbox] { width: 24px; height: 24px; flex: none; }
+.check { display: flex; flex-wrap: nowrap; gap: 12px; align-items: flex-start; min-height: 44px; }
+.check input[type=checkbox] { width: 24px; height: 24px; flex: none; margin-top: 2px; }
 .input, input, textarea, select { font-size: max(16px, 1em); }
 body.typing .tabbar { display: none; }
 body.typing .shell { padding-bottom: 16px; }
@@ -1286,8 +1287,34 @@ body.menu-open .tabbar { opacity: 0; pointer-events: none; }
 .contrib-by { margin: 4px 0 0; font-size: 0.8125rem; opacity: 0.85; font-weight: 500; }
 fieldset.img-hint { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 12px 0; }
 fieldset.img-hint legend { padding: 0 6px; font-weight: 700; font-size: 0.9375rem; }
-label.declaration { display: flex; gap: 10px; align-items: flex-start; margin: 14px 0; line-height: 1.4; }
-label.declaration input { margin-top: 3px; flex-shrink: 0; }
+label.declaration {
+display: flex !important;
+grid-template-columns: none !important;
+flex-direction: row;
+flex-wrap: nowrap;
+align-items: flex-start;
+gap: 10px;
+margin: 14px 0 6px;
+line-height: 1.4;
+font-weight: 500 !important;
+min-height: 44px;
+}
+label.declaration input { margin-top: 3px; flex: none; width: 22px; height: 22px; }
+label.declaration .declaration-text {
+flex: 1 1 auto;
+min-width: 0;
+display: block;
+white-space: normal;
+overflow-wrap: anywhere;
+font-weight: 500;
+}
+.declaration-fine {
+margin: 0 0 12px;
+padding-left: 32px;
+line-height: 1.45;
+overflow-wrap: anywhere;
+}
+.declaration-fine a { color: var(--gold-2); text-decoration: underline; text-underline-offset: 2px; }
 .desk-list .desk-row { display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .desk-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .desk-actions .desk-note { flex: 1 1 140px; min-width: 120px; }
@@ -4914,7 +4941,7 @@ ${segmented('orgType', ['School', 'College', 'Company', 'None'].map(o => [o, o])
 <label>School / college / company <span class="muted">(optional)</span><input class="input" name="school" maxlength="60" value="${esc(p.school || '')}" placeholder="e.g. Banyan Tree Public School"></label>
 <label>Mobile number <span class="muted">(optional, for prize delivery)</span>
 <div class="phone"><span>+91</span><input class="input" name="mobile" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" value="${esc(p.mobile || '')}" placeholder="98xxxxxxxx"></div></label>
-<label class="check"><input type="checkbox" name="consent" ${p.name ? 'checked' : ''}> I agree to the <a href="#/terms">Terms</a> and <a href="#/privacy">Privacy</a> policy (demo).</label>
+<label class="check"><input type="checkbox" name="consent" ${p.name ? 'checked' : ''}><span>I agree to the <a href="#/terms">Terms</a> and <a href="#/privacy">Privacy</a> policy (demo).</span></label>
 <p class="err" id="joinErr"></p>
 <button class="btn btn-gold btn-big" type="submit">${S.get().profile ? 'Save' : 'Join for free'}</button>
 </form>
@@ -5015,34 +5042,32 @@ bindSound(); bindDisplay();
 on('#ownerDeskToggle', 'change', e => { setOwner(!!e.currentTarget.checked); toast(e.currentTarget.checked ? 'Question desk unlocked' : 'Question desk locked'); settingsPage(); });
 on('#resetBtn', 'click', async () => { if (await confirmModal({ title: 'Reset demo data?', body: 'This clears all Quorbit data in this browser: scores, streaks and your profile.', stay: 'Keep my data', leave: 'Reset' })) { S.reset(); applyDisplay(); toast('Demo data cleared'); go('#/home'); } });
 }
-function termsPage() {
+function termsPage(section) {
 view(`
 <h1 class="page-title">Terms of use</h1>
 <p class="lead whisper">Calm summary for this demo. Full legal text will replace this before paid launch.</p>
-<div class="card legal-block">
+<div class="card legal-block" id="terms-show">
 <b>1. The show</b>
 <p class="muted small">Quorbit is a skill-based trivia product. Daily play is free. Optional unlocks (Total tiers, archive, prizes chrome) may be paid later. Demo activates take no payment.</p>
 </div>
-<div class="card legal-block">
-<b>2. Contributing questions</b>
-<p class="muted small">If you submit a question or image, you must tick the declaration. By doing so you warrant that the material is your original work or that you have clear rights to share it; that it does not infringe copyright or other IP; and that any factual claims you assert are made in good faith.</p>
-<p class="muted small">You grant Quorbit a worldwide, royalty-free licence to edit, credit, store, and use the submission in Quorbit (including Daily, Topics, Total, and marketing snippets).</p>
+<div class="card legal-block" id="contributed">
+<b>2. Contributed questions</b>
+<p class="muted small">If you submit a question or image, you must tick the rights declaration on the submit form. By ticking it you <b>warrant</b> that the material is your original work or that you have clear rights to share it; that it does not infringe copyright or other IP; and that any factual claims you assert are made in good faith.</p>
+<p class="muted small"><b>Licence grant.</b> You grant Quorbit a worldwide, royalty-free licence to edit, credit, store, and use the submission in Quorbit (including Daily, Topics, Total, and marketing snippets).</p>
+<p class="muted small"><b>Sole responsibility.</b> You take sole responsibility for accuracy, originality, and IP. If anyone challenges a contributed item, that challenge is yours to handle — not Quorbit’s.</p>
+<p class="muted small"><b>No mediation.</b> Quorbit does not mediate third-party disputes over contributed content. Claimants must pursue the named contributor (the person who ticked the declaration).</p>
+<p class="muted small"><b>Non-disputable against Quorbit.</b> Community and sourced contributed questions are <b>non-disputable against Quorbit</b>. After owner sign-off, items may appear with a credit such as “(contributed by XYZ)”. Quorbit may edit for clarity, length, or fairness. Editorial approval is quality control, not a legal clearance of your warranties.</p>
 </div>
-<div class="card legal-block">
-<b>3. Non-disputable contributed content</b>
-<p class="muted small"><b>Community and sourced contributed questions are non-disputable against Quorbit.</b> After owner sign-off, items may appear with a credit such as “(contributed by XYZ)”. Quorbit may edit for clarity, length, or fairness.</p>
-<p class="muted small">If anyone disputes accuracy, originality, copyright, or other rights in a contributed item, <b>responsibility sits with the contributor who ticked the declaration</b>, not with Quorbit. Quorbit does not mediate third-party disputes over contributed content. Claimants must pursue the named contributor. By ticking the declaration you accept that Quorbit may credit your display name and direct disputes to you, and that you accept sole responsibility if challenged.</p>
+<div class="card legal-block" id="terms-images">
+<b>3. Images</b>
+<p class="muted small">Optional images follow the same warranty and licence: you must have rights to share them. Quorbit may refuse or remove images without notice.</p>
 </div>
-<div class="card legal-block">
-<b>4. Images</b>
-<p class="muted small">Optional images follow the same warranty: you must have rights to share them. Quorbit may refuse or remove images without notice.</p>
+<div class="card legal-block" id="terms-review">
+<b>4. Owner review</b>
+<p class="muted small">Submissions stay pending until the Quorbit desk approves them. Rejection or later removal does not waive the warranties and responsibility above.</p>
 </div>
-<div class="card legal-block">
-<b>5. Owner review</b>
-<p class="muted small">Submissions stay pending until the Quorbit desk approves them. Approval is editorial quality control, not a legal clearance of your warranties. Rejection or later removal does not waive those warranties.</p>
-</div>
-<div class="card legal-block">
-<b>6. Contact</b>
+<div class="card legal-block" id="terms-contact">
+<b>5. Contact</b>
 <p class="muted small">Product questions: use in-app FAQ or the owner desk when enabled. This page is a product stub, not legal advice.</p>
 </div>
 <div class="menu quiet-legal">
@@ -5052,28 +5077,31 @@ view(`
 <a href="#/me">👤 My orbit</a>
 </div>
 `, 'me');
+const map = { contributed: 'contributed', questions: 'contributed', images: 'terms-images', review: 'terms-review' };
+const id = map[section] || null;
+if (id) requestAnimationFrame(() => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 }
-function privacyPage() {
+function privacyPage(section) {
 view(`
 <h1 class="page-title">Privacy</h1>
 <p class="lead whisper">What we store in this demo, and how contributions are shown.</p>
-<div class="card legal-block">
+<div class="card legal-block" id="privacy-device">
 <b>On this device</b>
 <p class="muted small">Scores, streaks, profile name/city, unlocks, and submissions are saved in this browser (localStorage) until a backend ships. Reset demo data clears them.</p>
 </div>
-<div class="card legal-block">
+<div class="card legal-block" id="credits">
 <b>Credits on contributed questions</b>
-<p class="muted small">If your question is approved, your display name may appear as “(contributed by …)”. That credit is intentional so players and claimants know who submitted the item.</p>
+<p class="muted small">If your question is approved, your <b>display name</b> (board name or sign-in name) may appear under the stem as “(contributed by …)”. We collect that name only so we can credit you and so players or claimants know who submitted the item — the same name already on your profile for play.</p>
 </div>
-<div class="card legal-block">
+<div class="card legal-block" id="privacy-disputes">
 <b>Disputes and your name</b>
-<p class="muted small">Because contributed content is non-disputable against Quorbit (see <a href="#/terms">Terms</a>), we may share the contributor name on the item and point complainants to that person. Do not submit if you are unwilling to be named or contacted about the material.</p>
+<p class="muted small">Because contributed content is non-disputable against Quorbit (see <a href="#/terms/contributed">Terms · Contributed questions</a>), we may show the contributor name on the item and point complainants to that person. Do not submit if you are unwilling to be named or contacted about the material.</p>
 </div>
-<div class="card legal-block">
+<div class="card legal-block" id="privacy-images">
 <b>Images</b>
 <p class="muted small">Image URLs or local stubs you attach stay with the submission. Do not upload images you cannot clear for rights.</p>
 </div>
-<div class="card legal-block">
+<div class="card legal-block" id="privacy-sale">
 <b>No sale of personal data</b>
 <p class="muted small">This demo does not sell your profile. Future analytics or cloud sync will be described here before launch.</p>
 </div>
@@ -5083,6 +5111,9 @@ view(`
 <a href="#/me">👤 My orbit</a>
 </div>
 `, 'me');
+const map = { credits: 'credits', contributed: 'credits', disputes: 'privacy-disputes' };
+const id = map[section] || null;
+if (id) requestAnimationFrame(() => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
 }
 function faqPage() {
 view(`
@@ -5238,7 +5269,8 @@ ${segmented('format', [['mcq', 'Multiple choice'], ['typed', 'Typed answer']], '
 <label>Caption <span class="muted">(optional)</span><input class="input" name="imageCaption" maxlength="120" placeholder="Short credit or description"></label>
 </fieldset>
 <label class="check declaration"><input type="checkbox" name="declaration" required>
-I confirm this question (and any image) is my original work or I have clear rights to share it; it does not infringe copyright. I grant Quorbit a licence to edit, credit, and use it. I accept <b>sole responsibility</b> if anyone challenges accuracy, originality, or IP — Quorbit will not mediate; disputes are directed to me as the named contributor. Contributed items are <b>non-disputable against Quorbit</b>. See <a href="#/terms">Terms</a>.</label>
+<span class="declaration-text">I confirm I have the rights to share this, and I grant Quorbit a licence to use and credit it.</span></label>
+<p class="muted small declaration-fine">You take sole responsibility for accuracy, originality, and IP. Quorbit won’t mediate disputes — they go to you as the named contributor. Contributed items are non-disputable against Quorbit. <a href="#/terms/contributed">Terms apply</a> · <a href="#/privacy/credits">Privacy</a></p>
 <p class="err" id="subErr"></p>
 <button class="btn btn-gold btn-big" type="submit">Send to the question desk</button>
 </form>
@@ -5390,9 +5422,9 @@ case 'account': return SX.meProfile();
 case 'friends': return SX.friendsPage();
 case 'settings': return settingsPage();
 case 'faq': return faqPage();
-case 'terms': return termsPage();
-case 'privacy': return privacyPage();
-case 'legal': return termsPage();
+case 'terms': return termsPage(arg);
+case 'privacy': return privacyPage(arg);
+case 'legal': return termsPage(arg);
 case 'stats': return statsPage();
 case 'pass': return pass();
 case 'archive': return archive();
