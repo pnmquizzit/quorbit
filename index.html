@@ -313,9 +313,9 @@ background: var(--gold); color: #000; font-weight: 700; padding: 12px 18px; bord
 .pic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
 .pic { margin: 0; border-radius: 12px; overflow: hidden; background: rgba(0,0,0,.35); border: 1.5px dashed rgba(255,255,255,.2); display: flex; flex-direction: column; }
 .pic.shown { border: 1.5px solid var(--line); }
-.pic img { width: 100%; height: 120px; object-fit: cover; display: block; background: #111; }
+.pic img { width: 100%; display: block; background: #111; }
 .pic img[hidden] { display: none; }
-.pic-q { height: 120px; display: grid; place-items: center; font-family: var(--serif); font-size: 2.875rem; color: var(--gold); background: repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 10px, transparent 10px 20px); }
+.pic-q { display: grid; place-items: center; font-family: var(--serif); font-size: 2.875rem; color: var(--gold); background: repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 10px, transparent 10px 20px); }
 .pic-q[hidden] { display: none; }
 img.img-missing { filter: none !important; object-fit: contain; background: #1b1b22; }
 .pic figcaption { font-size: 0.875rem; line-height: 1.3; padding: 6px 8px; color: var(--ink); min-height: 40px; }
@@ -336,7 +336,7 @@ img.img-missing { filter: none !important; object-fit: contain; background: #1b1
 .chip-btn.bad { background: rgba(255,77,94,.3); border-color: var(--red); }
 .credit-list { list-style: none; padding: 0; display: grid; gap: 8px; }
 .credit-list li { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; background: var(--card); border: 1px solid var(--line); }
-.credit-list img { width: 56px; height: 56px; object-fit: cover; border-radius: 8px; flex: none; }
+.credit-list img { width: 56px; height: 56px; object-fit: contain; background: #15151b; border-radius: 8px; flex: none; }
 .credit-list div { min-width: 0; } .credit-list b { display: block; font-size: 0.875rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .credit-list small { display: block; color: var(--muted); font-size: 0.875rem; }
 .share-card { background: linear-gradient(160deg, rgba(245,197,66,.10), rgba(255,255,255,.03)); border: 1px solid rgba(245,197,66,.35); border-radius: 18px; padding: 14px; margin: 14px 0; }
@@ -548,8 +548,6 @@ background: #ffffff; color: #120c4c; font-family: var(--mono); box-shadow: 0 0 0
 .t-bar { position: relative; flex: 1; height: 12px; border-radius: 99px; background: rgba(255,255,255,.16); overflow: hidden; }
 .mult-chip { flex: none; display: inline-flex; align-items: baseline; gap: 5px; padding: 7px 11px; border-radius: 999px; background: rgba(245,197,66,.16); border: 1px solid var(--gold); }
 .mult-chip small { font-size: .8125rem; font-weight: 800; color: var(--ink); } .mult-chip b { font-family: var(--mono); font-size: 1.0625rem; color: var(--gold-2); }
-.vis-img { max-height: 30vh; max-height: 30svh; }
-.pic img, .pic-q { height: 96px; }
 .reveal { scroll-margin-top: 220px; }
 .reveal #nextBtn { position: -webkit-sticky; position: sticky; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 3; margin-bottom: 0; }
 #typedForm { scroll-margin-top: 230px; }
@@ -1356,6 +1354,21 @@ border: 1px solid rgba(47,160,255,.22); }
 .practice-mode b { display: block; font-size: 1.0625rem; margin: 2px 0 4px; }
 .practice-mode .btn { margin-top: 10px; min-height: 48px; }
 .practice-mode .practice-lock { justify-content: center; gap: 8px; opacity: .92; }
+:root { --pic-tile-bg: #15151b; --pic-chrome: 330px; }
+.pic-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; width: 100%; margin: 10px auto 0;
+max-width: clamp(292px, calc(100vh - var(--pic-chrome)), 520px); max-width: clamp(292px, calc(100svh - var(--pic-chrome)), 520px); }
+.qcard .pic-grid { --pic-chrome: 470px; }
+.pic { min-width: 0; }
+.pic img, .pic-q { width: 100%; height: auto; aspect-ratio: 1 / 1; object-fit: contain; background: var(--pic-tile-bg); }
+.pic img { cursor: zoom-in; }
+.pic img.img-missing { cursor: default; }
+.pic figcaption { min-height: 0; font-size: 0.8125rem; padding: 5px 7px; }
+.vis-img { width: 100%; height: clamp(190px, 32vh, 300px); height: clamp(190px, 32svh, 300px); max-height: none; object-fit: contain; background: var(--pic-tile-bg); }
+.vis-img.b3, .vis-img:not(.b0):not(.b1):not(.b2) { cursor: zoom-in; }
+@media (min-width: 700px) { .vis-img { height: clamp(240px, 45vh, 380px); height: clamp(240px, 45svh, 380px); } }
+.img-zoom { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+background: rgba(0,0,0,.88); cursor: zoom-out; animation: pop .2s ease; }
+.img-zoom img { width: 100%; height: 100%; max-width: 900px; object-fit: contain; }
 </style>
 </head>
 <body>
@@ -3032,7 +3045,7 @@ view(`
 ${typeof contribLine === 'function' ? contribLine(q) : (q.contributorName ? `<p class="contrib-by muted small">(contributed by ${esc(q.contributorName)})</p>` : '')}
 </div>
 ${q.round === 'visual' ? `<div class="vis-wrap"><img decoding="async" class="vis-img" id="visImg" src="${imgSrc(q.image)}" alt="Picture clue"></div>` : ''}
-${q.round === 'piconnect' ? `<div class="pics">${q.images.map((k, i) => `<figure class="pic"><img decoding="async" src="${imgSrc(k)}" alt="Picture clue ${i + 1}"></figure>`).join('')}</div>` : ''}
+${q.round === 'piconnect' ? `<div class="pic-grid" id="picGrid">${q.images.map((k, i) => `<figure class="pic shown"><img decoding="async" src="${imgSrc(k)}" alt="Picture clue ${i + 1}"></figure>`).join('')}</div>` : ''}
 ${q.clues && q.clues.length && q.round !== 'piconnect' ? `<ol class="clues">${q.clues.map(c => `<li class="shown">${esc(c)}</li>`).join('')}</ol>` : ''}
 ${typeof answerAreaHTML === 'function' ? answerAreaHTML(q, 'po-' + q.id)
 : (typed ? `<form class="typed" id="typedForm" autocomplete="off"><input class="input" id="typedInput" maxlength="60" placeholder="Type your answer" aria-label="Your answer" enterkeyhint="go"><button class="btn btn-gold" id="buzzBtn" type="submit">Buzz</button></form>`
@@ -3825,6 +3838,21 @@ if (!img.dataset.imgRetry) { img.dataset.imgRetry = '1'; img.src = cur + (cur.in
 img.dataset.imgFallback = 'done'; img.classList.add('img-missing'); img.src = IMG_MISSING;
 try { console.warn('Quorbit: picture failed to load', cur); } catch (_) { /* ignore */ }
 }, true);
+}
+if (!window.__qbImgZoom) {
+window.__qbImgZoom = true;
+const closeZoom = () => { const z = document.querySelector('.img-zoom'); if (z) z.remove(); };
+document.addEventListener('click', (e) => {
+const z = e.target.closest && e.target.closest('.img-zoom'); if (z) { closeZoom(); return; }
+const img = e.target.closest && e.target.closest('.pic img, .vis-img');
+if (!img || img.hidden || img.classList.contains('img-missing') || /\bb[012]\b/.test(img.className)) return;
+closeZoom();
+const ov = document.createElement('div'); ov.className = 'img-zoom'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-label', 'Enlarged picture, tap to close');
+const big = document.createElement('img'); big.src = img.currentSrc || img.src; big.alt = img.alt || 'Picture'; ov.appendChild(big);
+document.body.appendChild(ov);
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeZoom(); });
+window.addEventListener('hashchange', closeZoom);
 }
 function creditLine(k) {
 const c = CREDITS[k]; if (!c) return '';
