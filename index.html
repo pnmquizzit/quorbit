@@ -1369,6 +1369,14 @@ max-width: clamp(292px, calc(100vh - var(--pic-chrome)), 520px); max-width: clam
 .img-zoom { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
 background: rgba(0,0,0,.88); cursor: zoom-out; animation: pop .2s ease; }
 .img-zoom img { width: 100%; height: 100%; max-width: 900px; object-fit: contain; }
+.preroll { min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
+.pr-ring { width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center;
+border: 3px solid rgba(245, 197, 66, .85); box-shadow: 0 0 0 8px rgba(245, 197, 66, .08); }
+.pr-num { font: 800 56px/1 -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif; color: #f5c542; font-variant-numeric: tabular-nums; animation: prPop .9s ease-out; }
+.pr-sub { margin: 0; font-size: 15px; opacity: .75; letter-spacing: .01em; }
+.pr-skip { font-size: 14px; opacity: .6; }
+@keyframes prPop { from { transform: scale(1.18); opacity: .4; } to { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .pr-num { animation: none !important; } }
 </style>
 </head>
 <body>
@@ -4139,7 +4147,7 @@ const cta = done
 ? `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/result" id="resultBtn">See today's result · ${E.scoreShort(done)}</a></div>
 <p class="muted center">Next episode in <b class="countdown" data-cd>--:--:--</b></p>`
 : prog ? `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/play" id="playBtn">Resume · ${prog.idx + 1}/${set.length}</a></div>`
-: `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/lineup" id="playBtn">Play</a></div>`;
+: `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/play" id="playBtn">Play</a></div>`;
 const news = newsState();
 view(`
 <section class="hero">
@@ -4211,19 +4219,7 @@ function startCountdown() {
 const tick = () => document.querySelectorAll('[data-cd]').forEach(el => (el.textContent = U.fmtCountdown(U.msToNextIstMidnight())));
 tick(); every(tick, 1000);
 }
-async function lineup() {
-if (S.get().daily[TODAY]) return location.replace('#/home');
-const seq = routeSeq; const set = await A.getDaily(TODAY); if (seq !== routeSeq) return;
-view(`
-<section class="lineup-show spotlight">
-<p class="kicker">Episode #${U.dayNumber(TODAY)} · ${esc(U.prettyDate(TODAY))}</p>
-<h1 class="page-title">Today's line-up</h1>
-${lineupOrbit(set)}
-<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/play" id="startShow">Start</a></div>
-</section>
-`, 'home');
-floatCta('#startShow');
-}
+function lineup() { location.replace(S.get().daily[TODAY] ? '#/home' : '#/play'); }
 function how() {
 view(`
 <h1 class="page-title">How to play</h1>
@@ -4249,7 +4245,7 @@ ${E.SLOTS.map(s => `<li><span class="r-ico">${s.icon}</span><div><b>${s.name}</b
 <div class="card"><p><b>⚔️ Duels</b>: 7 questions against an opponent, 10 seconds each. A right answer scores 10, plus up to 10 more for speed. <b>The final question counts double.</b></p></div>
 <div class="card"><p><b>🎲 Mixed Bag</b>: a duel topic that deals a fresh daily shuffle of every topic and level, with no repeats in a session.</p>
 <p><b>⭐ Lifetime points</b>: every episode and duel adds to your total. Levels: ${E.LEVELS.map(l => `${l[2]} ${l[1]} ${l[0]}`).join(' · ')}.</p></div>
-<a class="btn btn-gold btn-big" href="#/lineup">Let's play!</a>
+<a class="btn btn-gold btn-big" href="#/play">Let's play!</a>
 `, 'home');
 }
 let game = null;
@@ -4259,7 +4255,27 @@ const seq = routeSeq; const set = await A.getDaily(TODAY);
 if (seq !== routeSeq) return;
 const p = S.get().progress;
 game = p && p.date === TODAY ? { date: TODAY, set, idx: p.idx, results: p.results, score: p.score } : { date: TODAY, set, idx: 0, results: [], score: 0 };
-renderQuestion();
+const midQ = p && p.date === TODAY && p.qIdx === game.idx && p.qStart;
+if (midQ) return renderQuestion();
+preRoll(`Episode #${U.dayNumber(TODAY)} · ${game.idx ? `Round ${game.idx + 1} of ${set.length}` : `${set.length} rounds`}`, renderQuestion);
+}
+function preRoll(sub, done, secs = 5) {
+const seq = routeSeq; let n = secs;
+view(`<section class="preroll" id="preroll" role="timer" aria-live="assertive" aria-label="Starting in ${n}">
+<div class="pr-ring"><span class="pr-num" id="prNum">${n}</span></div>
+<p class="pr-sub">${esc(sub)}</p>
+<button class="link pr-skip" id="prSkip" type="button">Skip</button>
+</section>`, 'home');
+let t = null;
+const fire = () => { clearInterval(t); if (seq === routeSeq) done(); };
+t = setInterval(() => {
+if (seq !== routeSeq) return clearInterval(t);
+n -= 1; if (n <= 0) return fire();
+const el = document.getElementById('prNum'); if (!el) return clearInterval(t);
+el.textContent = n; el.parentNode.setAttribute('data-n', n); el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+document.getElementById('preroll').setAttribute('aria-label', `Starting in ${n}`);
+}, 1000);
+const sk = document.getElementById('prSkip'); if (sk) sk.addEventListener('click', fire);
 }
 function saveProgress() { S.update(s => { s.progress = { date: game.date, idx: game.idx, results: game.results, score: game.score, qIdx: game.qIdx, qStart: game.qStart, qHints: game.qHints || 0, fingerprint: E.episodeFingerprint(game.set), episodeRev: E.EPISODE_REV }; }); }
 function comboStreak() { let n = 0; for (let i = game.results.length - 1; i >= 0 && game.results[i].points > 0; i--) n++; return n; }
@@ -4846,7 +4862,7 @@ view(`
 <a class="btn btn-ghost" href="#/total">✨ Quorbit Total</a>
 `, 'home');
 }
-next();
+preRoll(`Random Challenge · ${qs.length} questions`, next);
 }
 function hasAnyTotalUnlock() {
 if (hasChampionsPass()) return true;
@@ -5217,7 +5233,7 @@ ${P.played ? `
 <h2 class="section-title">Recent episodes</h2>
 <ul class="recent">${P.recent.slice().reverse().map(r => `<li><span>#${U.dayNumber(r.date)} · ${esc(U.prettyDate(r.date))}</span><b>${E.scoreShort(r)}</b></li>`).join('')}</ul>
 <p class="muted small center">Average across all games: ${P.avgPct}% of the maximum.</p>`
-: `<div class="card center"><p class="lead">No episodes yet.</p><a class="btn btn-gold" href="#/lineup">▶ Play today's episode</a></div>`}
+: `<div class="card center"><p class="lead">No episodes yet.</p><a class="btn btn-gold" href="#/play">▶ Play today's episode</a></div>`}
 `, 'me');
 }
 function me() {
