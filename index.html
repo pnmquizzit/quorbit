@@ -1392,6 +1392,7 @@ background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08)
 @media (max-height: 700px) { .preroll { min-height: 0; padding-top: 24px; gap: 10px; } .pr-ring { width: 96px; height: 96px; } .pr-num { font-size: 48px; } }
 .pr-bank { display: flex; flex-direction: column; gap: 2px; }
 .pr-stat + .pr-stat::before { content: " · "; opacity: .6; }
+.pr-aired { margin-top: 2px; font-size: 12px; opacity: .85; }
 </style>
 </head>
 <body>
@@ -1887,6 +1888,11 @@ Object.assign({}, by('final'), { blurb: 'No options: type your answer. Spelling 
 Object.assign({}, by('connect'), { name: 'Connect Finale', blurb: 'On alternate days: four pictures linked by one word (type it), or a set of text clues. Two clues are free; each extra one costs 5 points.' })
 ];
 const slotsFor = date => (isLegacy(date) ? SLOTS13 : SLOTS);
+const AIRED_COUNT_FROM = '2026-10-01';
+function airedCount(date = U.istDateString()) {
+let n = 0; for (let d = AIRED_COUNT_FROM; d <= date; d = U.addDays(d, 1)) n += slotsFor(d).length;
+return n;
+}
 const EPISODE_MAX = DIFF_MIX.reduce((s, d) => s + DIFF[d].pts, 0); // 109
 function poolFor(slot, category, piconnectDay, date) {
 const L = liveBank(date);
@@ -2467,7 +2473,7 @@ mock: true,
 _seedIds: bankHintIds
 };
 }
-QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, episodeFingerprint, EPISODE_REV, DAILY_SKIP, minGapDays: (n) => { n = Math.max(n || 0, 1); return n <= 40 ? Math.max(2 * n, 21) : Math.max(n, 21); }, half, stepDown,
+QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, AIRED_COUNT_FROM, airedCount, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, episodeFingerprint, EPISODE_REV, DAILY_SKIP, minGapDays: (n) => { n = Math.max(n || 0, 1); return n <= 40 ? Math.max(2 * n, 21) : Math.max(n, 21); }, half, stepDown,
 matchTyped, norm, titleFor, MARK_EMOJI, shareText, recordDaily, liveStreak, personalStats, whatsappUrl, TOPICS, topicQuestions, topicLevel, XP_PER_LEVEL,
 FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue, TOTAL_BATCH, topicMcqBank, totalTopicQueue, globalMcqBank, PRACTICE_N, practiceQueue, TOTAL_PRICE_FULL_INR, TOTAL_PRICE_TOPIC_INR, TOTAL_PRICE_SUB_INR, TOTAL_FULL_DAYS, TOTAL_TOPIC_DAYS, TOTAL_SUB_DAYS, TOTAL_NEW_HINT_CAP, TOTAL_PRICES, TOTAL_DAYS, listUnlocks, hasFullTotal, hasTopicTotal, canPlayTotalTopic, moreUnlockedHint, rememberTotalSeen, makeUnlock, unlockFresh,
 DUEL, duelPoints, buildDuel, botPlan, leaks, contributorKey, isOwnContribution, communityBank, liveBank, firewallQs };
@@ -4289,7 +4295,8 @@ const plus = n => { const k = n >= 1000 ? 50 : n >= 100 ? 10 : n >= 25 ? 5 : 1; 
 const chip = (key, n, label, fmt) => n > 0 ? `<span class="pr-stat" data-k="${key}" data-n="${n}"><b>${fmt ? plus(n) : n}</b> ${label}</span>` : '';
 const bank = st && st.live > 0 ? `<div class="pr-bank" id="prBank">
 <div>${chip('live', st.live, 'questions', true)}${chip('topics', st.topics, 'topics')}</div>
-<div>${chip('packs', st.packs, 'quiz packs')}${st.subtopics >= 25 ? chip('subtopics', st.subtopics, 'subtopics', true) : ''}</div></div>` : '';
+<div>${chip('packs', st.packs, 'quiz packs')}${st.subtopics >= 25 ? chip('subtopics', st.subtopics, 'subtopics', true) : ''}</div>
+${(n => n > 0 ? `<div class="pr-aired"><span class="pr-stat" data-k="aired" data-n="${n}"><b>${n.toLocaleString('en-IN')}</b> aired in the Daily so far</span></div>` : '')(E.airedCount(TODAY))}</div>` : '';
 return `<div class="pr-panel" id="prPanel">
 ${bank}
 <div class="pr-tips" id="prTips" aria-label="How to ace the Daily">
