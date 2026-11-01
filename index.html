@@ -1393,6 +1393,8 @@ background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08)
 .pr-bank { display: flex; flex-direction: column; gap: 2px; }
 .pr-stat + .pr-stat::before { content: " · "; opacity: .6; }
 .pr-aired { margin-top: 2px; font-size: 12px; opacity: .85; }
+.pr-signup { font-size: 14px; color: #f5c542; text-decoration: none; padding: 6px 10px; border-radius: 10px; }
+.pr-signup:active { background: rgba(245, 197, 66, .1); }
 </style>
 </head>
 <body>
@@ -4312,6 +4314,7 @@ view(`<section class="preroll" id="preroll" role="timer" aria-live="assertive" a
 <div class="pr-ring"><span class="pr-num" id="prNum">${n}</span></div>
 <p class="pr-sub">${esc(sub)}</p>
 ${preRollPanel()}
+${!isAuthSignedIn() && !signupSnoozed() ? `<a class="pr-signup" id="prSignup" href="#/account">Register to save your streak <span aria-hidden="true">›</span></a>` : ''}
 <button class="link pr-skip" id="prSkip" type="button">Skip</button>
 </section>`, 'home');
 let t = null;
@@ -4324,6 +4327,8 @@ el.textContent = n; el.parentNode.setAttribute('data-n', n); el.style.animation 
 document.getElementById('preroll').setAttribute('aria-label', `Starting in ${n}`);
 }, 1000);
 const sk = document.getElementById('prSkip'); if (sk) sk.addEventListener('click', fire);
+const su = document.getElementById('prSignup');
+if (su) su.addEventListener('click', e => { e.preventDefault(); clearInterval(t); guard = null; go('#/account'); });
 }
 function saveProgress() { S.update(s => { s.progress = { date: game.date, idx: game.idx, results: game.results, score: game.score, qIdx: game.qIdx, qStart: game.qStart, qHints: game.qHints || 0, fingerprint: E.episodeFingerprint(game.set), episodeRev: E.EPISODE_REV }; }); }
 function comboStreak() { let n = 0; for (let i = game.results.length - 1; i >= 0 && game.results[i].points > 0; i--) n++; return n; }
