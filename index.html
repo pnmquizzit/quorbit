@@ -1892,7 +1892,7 @@ Object.assign({}, by('connect'), { name: 'Connect Finale', blurb: 'On alternate 
 const slotsFor = date => (isLegacy(date) ? SLOTS13 : SLOTS);
 const AIRED_COUNT_FROM = '2026-10-01';
 function airedCount(date = U.istDateString()) {
-let n = 0; for (let d = AIRED_COUNT_FROM; d <= date; d = U.addDays(d, 1)) n += slotsFor(d).length;
+let n = 0; for (let d = AIRED_COUNT_FROM; d <= date; d = U.addDays(d, 1)) n += (d >= STRICT_FROM ? dailySet(d).length : slotsFor(d).length);
 return n;
 }
 const EPISODE_MAX = DIFF_MIX.reduce((s, d) => s + DIFF[d].pts, 0); // 109
@@ -1901,7 +1901,7 @@ const L = liveBank(date);
 const skip = DAILY_SKIP[date];
 const conceptOk = q => date < CONCEPT_FROM || !conceptUsed(q);
 const applySkip = list => { const l = list.filter(q => !(skip && skip.has(q.id)) && !(date >= SKIP_BURN_FROM && burnedBefore(q.id, date)));
-const c = l.filter(conceptOk); return c.length ? c : l; }; // an empty concept-clean pool falls through to the thin-pool path (assert fails it)
+const c = l.filter(conceptOk); return (c.length || date >= STRICT_FROM) ? c : l; }; // an empty concept-clean pool falls through to the thin-pool path (assert fails it)
 switch (slot.pool) {
 case 'visual': return applySkip(edPool(L.filter(q => q.round === 'visual')));
 case 'connect': return applySkip(edPool(L.filter(q => q.round === (piconnectDay ? 'piconnect' : 'clue'))));
@@ -1960,6 +1960,8 @@ const DAILY_PIN = {
 const EPISODE_REV = 'r5';
 const SKIP_BURN_FROM = '2026-11-02';
 const CONCEPT_FROM = '2026-11-03';
+const STRICT_FROM = '2026-11-03';
+const BORROW = { mixed: () => false, india: q => q.theme === false, global: () => false };
 const burnedBefore = (id, date) => Object.keys(DAILY_SKIP).some(d => d < date && DAILY_SKIP[d].has(id));
 const srcKey = q => { const u = String((q && q.source) || ''); const m = u.match(/wikipedia\.org\/wiki\/([^?#]+)/); if (!m) return null;
 let t; try { t = decodeURIComponent(m[1]); } catch (e) { t = m[1]; } return t.toLowerCase().replace(/_/g, ' ').trim(); };
@@ -1990,7 +1992,7 @@ const cats = order13.slice(0, SLOTS.filter(s => s.rotating).length);
 let ci = 0; const piconnectDay = day % 2 === 0;
 let slotCats = SLOTS.map(s => (s.rotating ? cats[ci++] : null));
 const neverAired = q => lastUsed[q.id] === undefined;
-const emergencyIds = new Set();
+const emergencyIds = new Set(); const borrowedIds = new Set();
 if (!legacy) {
 const used = new Set();
 slotCats = SLOTS.map(s => { if (!s.rotating) return null;
@@ -2026,7 +2028,7 @@ const avail = set.map(p => new Set(p.map(q => q.difficulty)));
 for (const mix of (legacy ? MIXES : MIXES14)) { diffs = assignDifficulties(avail, U.rng('mix-' + date), mix, SLOTS); if (diffs) break; }
 if (diffs) break;
 }
-diffs = diffs || SLOTS.map((_, i) => pools[i][0].difficulty);
+diffs = diffs || SLOTS.map((_, i) => (pools[i][0] && pools[i][0].difficulty) || 'medium');
 const picked = [];
 const order = SLOTS.map((_, i) => i);
 if (piconnectDay && !isLegacy(date)) { const c = SLOTS.findIndex(s => s.key === 'connect'); order.splice(order.indexOf(c), 1); order.unshift(c); }
@@ -2034,6 +2036,7 @@ order.forEach(i => {
 const pin = !legacy && DAILY_PIN[date] && BY_ID[DAILY_PIN[date][SLOTS[i].key]];
 if (pin) { picked[i] = pin; return; }
 const score = lru;
+const okAt = q => { const keep = picked[i]; picked[i] = undefined; const r = ok(q); picked[i] = keep; return r; };
 const ok = q => !picked.some(p => p && (p.id === q.id || leaks(p, q)
 || (date >= CONCEPT_FROM && conceptKeys(p).marks.some(m => conceptKeys(q).probes.includes(m)))));
 if (legacy) {
@@ -2072,11 +2075,12 @@ const alt = pickFrom(altPool);
 if (alt) { picked[i] = alt; pools[i] = altPool; }
 }
 const ansNever = q => { const k = ansKey(q); return !k || lastUsed[k] === undefined; };
+if (!legacy && date >= STRICT_FROM && picked[i] && !(lastUsed[picked[i].id] === undefined && ansNever(picked[i]) && !conceptUsed(picked[i]) && okAt(picked[i]))) picked[i] = null;
 if (!picked[i]) {
 const sweep = SLOTS[i].rotating ? order13 : [null];
 for (const c of sweep) {
 const altPool = c == null ? pools[i] : poolFor(SLOTS[i], c, piconnectDay, date);
-const neverOk = altPool.filter(q => lastUsed[q.id] === undefined && ansNever(q) && ok(q))
+const neverOk = altPool.filter(q => lastUsed[q.id] === undefined && ansNever(q) && ok(q) && !(date >= STRICT_FROM && conceptUsed(q)))
 .slice().sort((a, b) => lru(a) - lru(b));
 if (neverOk.length) {
 picked[i] = neverOk[0];
@@ -2085,6 +2089,22 @@ break;
 }
 }
 }
+const strict = !legacy && date >= STRICT_FROM;
+const freshOk = q => lastUsed[q.id] === undefined && ansNever(q) && !conceptUsed(q) && okAt(q);
+if (strict && picked[i] && !freshOk(picked[i])) picked[i] = null;
+if (strict && !picked[i] && EDITION !== 'mixed') {
+const L = liveBank(date), skip = DAILY_SKIP[date], fits = BORROW[EDITION];
+const slotOk = q => SLOTS[i].pool === 'visual' ? q.round === 'visual'
+: SLOTS[i].pool === 'connect' ? q.round === (piconnectDay ? 'piconnect' : 'clue')
+: SLOTS[i].pool === 'cricket' ? (q.category === 'Cricket' && (q.format === 'mcq' || q.tiers) && q.round !== 'clue')
+: SLOTS[i].pool === 'typed' ? (q.round === 'typed' || (q.round === 'standard' && q.difficulty === 'hard' && q.format === 'mcq'))
+: SLOTS[i].pool === 'rapid' ? (q.round === 'rapid' || (q.round === 'standard' && q.difficulty === 'easy' && q.format === 'mcq'))
+: q.round === SLOTS[i].pool;
+const b = L.filter(q => !inEdition(q) && fits(q) && slotOk(q) && !(skip && skip.has(q.id)) && !burnedBefore(q.id, date)
+&& !(SLOTS[i].noHard && q.difficulty === 'hard') && freshOk(q)).sort((a, c) => lru(a) - lru(c));
+if (b.length) { picked[i] = b.find(q => q.difficulty === diffs[i]) || b[0]; borrowedIds.add(picked[i].id); }
+}
+if (strict) return; // dropped slot when still empty (no re-air ever)
 if (!picked[i]) {
 const sweep = SLOTS[i].rotating ? order13 : [null];
 for (const c of sweep) {
@@ -2164,13 +2184,15 @@ conceptKeys(q).marks.forEach(m => { lastUsed[m] = day; });
 (DAILY_SKIP[date] || []).forEach(id => { const q = BY_ID[id]; if (q) conceptKeys(q).marks.forEach(m => { lastUsed[m] = day; }); });
 return SLOTS.map((slot, i) => {
 const q = picked[i];
+if (!q && !legacy && date >= STRICT_FROM) return null;
 const forceTyped = slot.pool === 'typed';
 const opts = (!forceTyped && q && q.format === 'mcq') ? U.shuffle(q.options, U.rng('opts-' + date + q.id)) : [];
 return { slot, q, category: q ? catOn(q, date) : null, difficulty: q && q.difficulty, base: q ? ptsFor(date, q.difficulty) : 0, options: opts,
 poolSize: pools[i] ? pools[i].length : 0,
 emergencyReuse: !!(q && emergencyIds.has(q.id)),
+borrowed: !!(q && borrowedIds.has(q.id)),
 variant: slot.key === 'connect' ? (q && q.round === 'piconnect' ? 'picture' : 'clue') : null };
-});
+}).filter(Boolean);
 }
 function dailySet(date) {
 if (cache[date]) return cache[date];
@@ -2505,7 +2527,7 @@ mock: true,
 _seedIds: bankHintIds
 };
 }
-QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, AIRED_COUNT_FROM, airedCount, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, episodeFingerprint, EPISODE_REV, DAILY_SKIP, DAILY_PIN, SKIP_BURN_FROM, CONCEPT_FROM, conceptKeys, minGapDays: (n) => { n = Math.max(n || 0, 1); return n <= 40 ? Math.max(2 * n, 21) : Math.max(n, 21); }, half, stepDown,
+QB.engine = { V14_START, EDITION, EDITIONS, inEdition, HINT, hintFactor, withHints, TIER_MULT, TIER_LABEL, typedTier, matchedCandidate, TIMER, CLOCK, COMBO, clockFor, secondsFor, speedMult, comboMult, speedPoints, episodeCeiling, scoreText, scoreShort, LEVELS, levelFor, addPoints, mixedBagOrder, mixedSession, fmtSecs, avgMs, BANK, BY_ID, SLOTS, SLOTS13, slotsFor, AIRED_COUNT_FROM, airedCount, isLegacy, ptsFor, DIFF13, ROTATING, ROTATING_V13, CAT_ICON, DIFF, DIFF_MIX, EPISODE_MAX, STEP, dailySet, episodeMax, lineupText, episodeFingerprint, EPISODE_REV, DAILY_SKIP, DAILY_PIN, SKIP_BURN_FROM, CONCEPT_FROM, STRICT_FROM, BORROW, conceptKeys, minGapDays: (n) => { n = Math.max(n || 0, 1); return n <= 40 ? Math.max(2 * n, 21) : Math.max(n, 21); }, half, stepDown,
 matchTyped, norm, titleFor, MARK_EMOJI, shareText, recordDaily, liveStreak, personalStats, whatsappUrl, TOPICS, topicQuestions, topicLevel, XP_PER_LEVEL,
 FREE_PER_TOPIC, CAT_TO_TOPIC, topicIdForCategory, topicFreeOf, markTopicFreeSeen, pickHardSkewed, freeTopicQueue, TOTAL_BATCH, topicMcqBank, totalTopicQueue, globalMcqBank, PRACTICE_N, practiceQueue, TOTAL_PRICE_FULL_INR, TOTAL_PRICE_TOPIC_INR, TOTAL_PRICE_SUB_INR, TOTAL_FULL_DAYS, TOTAL_TOPIC_DAYS, TOTAL_SUB_DAYS, TOTAL_NEW_HINT_CAP, TOTAL_PRICES, TOTAL_DAYS, listUnlocks, hasFullTotal, hasTopicTotal, canPlayTotalTopic, moreUnlockedHint, rememberTotalSeen, makeUnlock, unlockFresh,
 DUEL, duelPoints, buildDuel, botPlan, leaks, contributorKey, isOwnContribution, communityBank, liveBank, firewallQs };
