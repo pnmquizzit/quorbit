@@ -2865,6 +2865,7 @@ lead: 'Short version: we collect as little as we can, use no ad cookies, and nev
 blocks: [
 ['On your device', 'Scores, streaks, settings, your board name and city, are saved in your browser’s local storage. They stay on this device. “Reset data” in Settings clears them.'],
 ['Submitted questions', 'Submitted questions and the contact details you add are stored securely by Quorbit for review.'],
+['Emails', 'If you create an account, we may send you a welcome email and a one-time note after your first Daily; every email has a one-click unsubscribe.'],
 ['Analytics (cookie-free)', 'We use Cloudflare Web Analytics and GoatCounter to count anonymous page views and simple game events (for example, Daily started, finished or shared). Both are cookie-free and do not build a profile of you.'],
 ['Sign-in', 'Optional sign-in uses Firebase Authentication (Google or email and password). We store only your email and name to save your progress (streak, best score, games played); your password is handled by Firebase and never seen by us.'],
 ['Contributed questions', 'If a question you submit is approved, your display name may appear with it as “(contributed by …)”, so players and claimants know who submitted it. Do not submit if you are unwilling to be named.'],
@@ -2969,6 +2970,18 @@ if (map[c]) return map[c];
 if (!c) return 'Could not reach sign-in. Check your connection and retry.';
 return 'Sign-in failed. Please try again.';
 }
+const MAIL_URL = 'https://submit.iquorbit.com/api/email';
+function mail(event, extra) {
+try {
+const a = QB.auth.current(); if (!a || !a.uid || !a.email) return;
+const k = 'qb:mailed:' + event + ':' + a.uid; if (localStorage.getItem(k)) return;
+loadFirebase().then(({ auth }) => (auth.authStateReady ? auth.authStateReady() : Promise.resolve()).then(() => auth)).then(auth => auth.currentUser && auth.currentUser.uid === a.uid ? auth.currentUser.getIdToken() : null).then(idToken => {
+if (!idToken) return;
+return fetch(MAIL_URL, { method: 'POST', mode: 'cors', keepalive: true, headers: { 'content-type': 'text/plain' }, body: JSON.stringify(Object.assign({ event, idToken }, extra || {})) })
+.then(r => { if (r.ok) { try { localStorage.setItem(k, String(Date.now())); } catch (e) {} } });
+}).catch(() => {});
+} catch (e) {}
+}
 const fail = e => { const err = new Error(friendly(e)); err.code = e && e.code; throw err; };
 const isMobile = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
 function done(cred, m, method) {
@@ -2976,6 +2989,7 @@ let isNew = false; try { isNew = !!(m.getAdditionalUserInfo(cred) || {}).isNewUs
 syncUser(cred.user);
 track(isNew ? 'signup-success-' + method : 'signin-success');
 if (isNew) track('signup-success');
+mail('welcome'); // new users, and existing users never mailed (server dedupes)
 return QB.auth.current();
 }
 QB.auth = {
@@ -2986,6 +3000,7 @@ preload: () => loadFirebase().catch(() => null),
 current: () => (QB.store && QB.store.get().auth) || null,
 isSignedIn: () => !!(QB.auth.current() && QB.auth.current().provider),
 friendly,
+mail,
 async signIn(kind, extra = {}) {
 const { auth, m } = await loadFirebase();
 try {
@@ -3007,7 +3022,7 @@ const { auth, m } = await loadFirebase();
 try {
 const cred = await m.createUserWithEmailAndPassword(auth, String(email || '').trim(), password || '');
 if (displayName) { try { await m.updateProfile(cred.user, { displayName }); } catch (e) {} }
-syncUser(cred.user); track('signup-success-email'); track('signup-success');
+syncUser(cred.user); track('signup-success-email'); track('signup-success'); mail('welcome');
 return QB.auth.current();
 } catch (e) { fail(e); }
 },
@@ -4993,6 +5008,8 @@ try { window.open(E.whatsappUrl(share), '_blank', 'noopener'); QB.track('share-d
 const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Share failed');
 });
 try { const k = 'qb:gcFinish'; if (localStorage.getItem(k) !== TODAY) { localStorage.setItem(k, TODAY); QB.track('daily-finish'); } } catch (e) {}
+try { if (!PREVIEW && QB.auth && QB.auth.mail) { const c = rec.marks.filter(m => m === 'full' || m === 'part').length;
+QB.auth.mail('first-daily', { score: c, title: E.shareTitle ? E.shareTitle(c).title : '', episode: U.dayNumber(TODAY) }); } } catch (e) {}
 on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 wirePostGame();
 }
