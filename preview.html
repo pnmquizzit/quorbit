@@ -594,7 +594,7 @@ background: #ffffff; color: #120c4c; font-family: var(--mono); box-shadow: 0 0 0
 .share-wheel { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .share-wheel span { display: flex; flex-direction: column; font-weight: 800; } .share-wheel b { font-family: var(--mono); font-size: 1.5rem; color: var(--gold); }
 .orbit-card-img { display: block; width: 100%; max-width: 360px; height: auto; aspect-ratio: 1; margin: 0 auto 12px; border-radius: 16px; border: 1px solid var(--line); }
-.orbit-card-img[hidden], #saveCardBtn[hidden] { display: none; }
+.orbit-card-img[hidden] { display: none; }
 .topic-bars li { grid-template-columns: minmax(0,1fr) auto 3.5em; font-size: 1rem; }
 .t-n { color: var(--muted); font-size: .9375rem; }
 .stats, .stats.three { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
@@ -2623,6 +2623,19 @@ QB.mock = { players, scoreFor, randomBot, CITIES, SCHOOLS };
 (function (QB) {
 const U = QB.util, S = QB.store, E = QB.engine;
 const delay = (v, ms = 120) => new Promise(r => setTimeout(() => r(v), ms));
+const SUBMIT_URL = 'https://submit.iquorbit.com/api/submit';
+const PAGE_VERSION = 'v1.4';
+const IMG_MAX = 600 * 1024;
+const track = n => { try { QB.track && QB.track(n); } catch (e) {} };
+const authNow = () => { try { return (QB.auth && QB.auth.current && QB.auth.current()) || null; } catch (e) { return null; } };
+function uploadSubmission(row) {
+const a = authNow();
+const body = Object.assign({}, row, { uid: (a && a.uid) || '', email: (a && a.email) || '', pageVersion: PAGE_VERSION, website: '' });
+if (body.imageData && body.imageData.length > IMG_MAX) { body.imageData = ''; body.imageTooBig = true; }
+return fetch(SUBMIT_URL, { method: 'POST', mode: 'cors', keepalive: !body.imageData, headers: { 'content-type': 'text/plain' }, body: JSON.stringify(body) })
+.then(r => r.ok).catch(() => false);
+}
+function setSubStatus(id, status) { S.update(s => { const r = (s.submissions || []).find(x => x.id === id); if (r) r.status = status; }); }
 const api = {
 getDaily(date) { return delay(E.dailySet(date), 0); },
 submitDailyResult(date, rec, preview) { E.recordDaily(date, rec, preview); return delay({ ok: true }, 0); },
@@ -2713,7 +2726,32 @@ note: '',
 at: Date.now()
 };
 S.update(s => { s.submissions = s.submissions || []; s.submissions.unshift(row); });
-return delay({ ok: true, id: row.id });
+track('question-submit');
+return uploadSubmission(row).then(ok => {
+if (!ok) setSubStatus(row.id, 'pending-upload');
+return { ok: true, id: row.id, queued: !ok };
+});
+},
+retryPendingUploads() {
+const rows = (S.get().submissions || []).filter(x => x.status === 'pending-upload');
+return Promise.all(rows.map(r => uploadSubmission(Object.assign({}, r, { status: 'pending' })).then(ok => { if (ok) setSubStatus(r.id, 'pending'); })));
+},
+refCode() {
+const a = authNow();
+const fromUid = a && a.uid ? String(a.uid).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 8) : '';
+if (fromUid.length >= 4) return fromUid;
+let c = S.get().refCode;
+if (!c) { const abc = 'abcdefghijklmnopqrstuvwxyz0123456789'; const b = new Uint8Array(8); (window.crypto || {}).getRandomValues ? crypto.getRandomValues(b) : b.forEach((_, i) => { b[i] = Math.random() * 256; });
+c = Array.from(b, x => abc[x % abc.length]).join(''); S.update(s => { s.refCode = c; }); }
+return c;
+},
+captureRef() {
+let ref = '';
+try { ref = new URLSearchParams(location.search).get('ref') || ((location.hash || '').match(/[?&]ref=([a-z0-9]+)/i) || [])[1] || ''; } catch (e) {}
+ref = String(ref).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 16);
+if (!ref) return;
+track('ref-arrive');
+if (!S.get().referredBy && ref !== S.get().refCode) S.update(s => { s.referredBy = ref; s.referredAt = Date.now(); });
 },
 approveSubmission(id, note) {
 let out = null;
@@ -2771,6 +2809,9 @@ if (period === 'weekly') return real.filter(([d]) => d > U.addDays(today, -7) &&
 return real.reduce((s, [, r]) => s + r.score, 0) + Object.values(st.topics).reduce((s, t) => s + t.xp, 0);
 }
 api.myScore = myScore;
+api.SUBMIT_URL = SUBMIT_URL;
+try { api.captureRef(); } catch (e) {}
+setTimeout(() => { try { api.retryPendingUploads(); } catch (e) {} }, 3000);
 QB.api = api;
 })(window.QB);
 </script>
@@ -2820,7 +2861,8 @@ blocks: [
 privacy: { title: 'Privacy policy · Quorbit', nav: 'Privacy', desc: 'How Quorbit handles data: cookie-free analytics, streaks stored on your device, no selling of personal data.',
 lead: 'Short version: we collect as little as we can, use no ad cookies, and never sell your data.',
 blocks: [
-['On your device', 'Scores, streaks, settings, your board name and city, and any submissions are saved in your browser’s local storage. They stay on this device. “Reset data” in Settings clears them.'],
+['On your device', 'Scores, streaks, settings, your board name and city, are saved in your browser’s local storage. They stay on this device. “Reset data” in Settings clears them.'],
+['Submitted questions', 'Submitted questions and the contact details you add are stored securely by Quorbit for review.'],
 ['Analytics (cookie-free)', 'We use Cloudflare Web Analytics and GoatCounter to count anonymous page views and simple game events (for example, Daily started, finished or shared). Both are cookie-free and do not build a profile of you.'],
 ['Sign-in', 'Optional sign-in uses Firebase Authentication (Google or email and password). We store only your email and name to save your progress (streak, best score, games played); your password is handled by Firebase and never seen by us.'],
 ['Contributed questions', 'If a question you submit is approved, your display name may appear with it as “(contributed by …)”, so players and claimants know who submitted it. Do not submit if you are unwilling to be named.'],
@@ -3746,7 +3788,7 @@ ${L.last ? `<div class="card league-news">${L.last.result === 'up' ? `🎉 Promo
 <div><b>${best.streak}</b><small>Longest streak</small></div><div><b>${best.fast != null ? E.fmtSecs(best.fast) : '–'}</b><small>Fastest right answer</small></div>
 <div><b>${best.duel}</b><small>Best Orbit duel</small></div><div><b>${TIERS[best.tier].icon}</b><small>Highest league</small></div>
 </section>
-<p class="muted small center">Rivals in practice leagues are simulated players, so you can feel the race before real leagues launch. <a class="link" href="#/board">Demo city &amp; school boards ›</a></p>
+<p class="muted small center">Rivals in practice leagues are simulated players, so you can feel the race before real leagues launch. <a class="link" href="#/board">Sample city &amp; school boards ›</a></p>
 `, 'leaderboard');
 }
 function monthRecap() {
@@ -3845,9 +3887,7 @@ return `<a class="card auth-friends" href="#/friends" id="friendsCard">
 }
 function friendsPage() {
 const a = authOf();
-const invite = location.origin && location.origin !== 'null'
-? `${location.origin}${location.pathname}#/friends?ref=demo`
-: 'quorbit.app/#/friends?ref=demo';
+const invite = `https://iquorbit.com/?ref=${encodeURIComponent(QB.api.refCode())}#/friends`;
 view(`
 <h1 class="page-title">Friends</h1>
 <p class="lead whisper">Better with company.</p>
@@ -3855,9 +3895,10 @@ ${signInCardHTML('friends')}
 ${a ? `
 <section class="card auth-invite">
 <b>Your invite link</b>
-<p class="muted small">Share this so friends can find you (stub).</p>
+<p class="muted small">Share this link. When friends join, you can compare daily scores.</p>
 <code class="invite-code" id="inviteCode">${esc(invite)}</code>
 <button type="button" class="btn btn-gold" id="copyInvite">Copy link</button>
+${navigator.share ? '<button type="button" class="btn btn-ghost" id="shareInvite">📤 Share</button>' : ''}
 </section>
 <section class="card">
 <b>Friends</b>
@@ -3873,6 +3914,10 @@ bindAuthCard(() => friendsPage());
 on('#copyInvite', 'click', async () => {
 const ok = await K.copyText(invite);
 toast(ok ? 'Invite link copied' : 'Could not copy — select the link');
+});
+on('#shareInvite', 'click', async () => {
+try { await navigator.share({ title: 'Quorbit', text: 'Play the daily Quorbit quiz with me', url: invite }); QB.track && QB.track('invite-share'); }
+catch (e) { if (!e || e.name !== 'AbortError') { const ok = await K.copyText(invite); toast(ok ? 'Invite link copied' : 'Could not copy — select the link'); } }
 });
 }
 function meProfile() {
@@ -3932,15 +3977,15 @@ ${acc.length ? `<h2 class="section-title">Accuracy wagon wheel</h2>
 ${(() => { try { return localStorage.getItem('qb_owner') === '1' ? '<a href="#/review">🗂️ Question desk</a>' : ''; } catch (e) { return ''; } })()}
 <a href="#/join">✏️ ${p ? 'Edit profile' : 'Join'}</a><a href="#/how">📖 How to play</a><a href="#/credits">🖼️ Image credits</a>
 ${E.EDITION !== 'mixed' ? `<a href="?edition=mixed#/me" id="editionLine">🌐 ${E.EDITIONS[E.EDITION].label} edition · switch back to mixed</a>` : ''}
-<button id="resetBtn" class="danger-link">🗑️ Reset demo data</button>
+<button id="resetBtn" class="danger-link">🗑️ Reset all data</button>
 </div>
-${(E.hasFullTotal ? E.hasFullTotal(s) : s.pass.active) ? `<div class="card pass-mini"><b>🎟️ Total unlock active</b><small>Demo · ${esc((s.pass && s.pass.plan) || 'Full')} · <a class="link" href="#/total">Quorbit Total ›</a>${s.pass && s.pass.active ? ' · <a class="link" href="#/archive">Archive ›</a>' : ''}</small></div>`
-: (E.listUnlocks && E.listUnlocks(s).length ? `<div class="card pass-mini"><b>🎟️ Scoped Total unlock</b><small>Demo · ${esc((E.listUnlocks(s)[0] || {}).label || 'topic')} · <a class="link" href="#/total">Play ›</a> · <a class="link" href="#/pass">Manage</a></small></div>`
+${(E.hasFullTotal ? E.hasFullTotal(s) : s.pass.active) ? `<div class="card pass-mini"><b>🎟️ Total unlock active</b><small>Preview · ${esc((s.pass && s.pass.plan) || 'Full')} · <a class="link" href="#/total">Quorbit Total ›</a>${s.pass && s.pass.active ? ' · <a class="link" href="#/archive">Archive ›</a>' : ''}</small></div>`
+: (E.listUnlocks && E.listUnlocks(s).length ? `<div class="card pass-mini"><b>🎟️ Scoped Total unlock</b><small>Preview · ${esc((E.listUnlocks(s)[0] || {}).label || 'topic')} · <a class="link" href="#/total">Play ›</a> · <a class="link" href="#/pass">Manage</a></small></div>`
 : `<a class="card contribute" href="#/pass"><span class="s-ico">🎟️</span><div><b>Total unlocks</b><small>Full · topic · sub-topic →</small></div></a>`)}
 `, 'me');
 bindAuthCard(() => meProfile());
 K.bindSound(); K.bindDisplay();
-on('#resetBtn', 'click', async () => { if (await K.confirmModal({ title: 'Reset demo data?', body: 'This clears all Quorbit data in this browser: scores, streaks and your profile.', stay: 'Keep my data', leave: 'Reset' })) { S.reset(); K.applyDisplay(); toast('Demo data cleared'); go('#/home'); } });
+on('#resetBtn', 'click', async () => { if (await K.confirmModal({ title: 'Reset all data?', body: 'This clears all Quorbit data in this browser: scores, streaks and your profile.', stay: 'Keep my data', leave: 'Reset' })) { S.reset(); K.applyDisplay(); toast('Data cleared'); go('#/home'); } });
 }
 function libraryStats() {
 const shelfIds = new Set([...SHELVES.map(s => s.id), 'fun']);
@@ -4918,13 +4963,11 @@ ${levelCard()}
 <div><b>${st.best}</b><small>High score</small></div>
 </section>
 <div class="share-card" id="shareCard">
-<div class="share-head"><span>🪐 Share your orbit</span><small>Orbit card · score · streak</small></div>
-<img class="orbit-card-img" id="orbitCardImg" width="1080" height="1080" alt="Your orbit card: ${E.shareCardData(rec, TODAY, set, shareStats).correct} of ${rec.marks.length} correct" hidden>
+<div class="share-head"><span>🪐 Share your orbit</span><small>Score · streak · link</small></div>
 <pre class="share-preview" id="sharePreview">${esc(share)}</pre>
 <div class="share-btns">
 <a class="btn btn-wa btn-big" id="waBtn" href="${esc(E.whatsappUrl(share))}" target="_blank" rel="noopener">🟢 Share on WhatsApp</a>
 <button class="btn btn-gold" id="nativeShareBtn">📤 Share…</button>
-<a class="btn btn-ghost" id="saveCardBtn" download="quorbit-${U.dayNumber(TODAY)}.png" href="#" hidden>💾 Save image</a>
 <button class="btn btn-ghost" id="shareBtn">📋 Copy</button>
 </div>
 </div>
@@ -4939,19 +4982,14 @@ ${set.map((x, i) => `<li class="m-${rec.marks[i]}"><span>${E.MARK_EMOJI[rec.mark
 </ol>
 `, 'home');
 startCountdown();
-const cardP = (QB.shareCard ? QB.shareCard.render(E.shareCardData(rec, TODAY, set, shareStats)) : Promise.resolve(null)).catch(() => null);
-cardP.then(c => { if (!c || seq !== routeSeq) return; const im = document.getElementById('orbitCardImg'), sv = document.getElementById('saveCardBtn');
-if (im) { im.src = c.url; im.hidden = false; } if (sv) { sv.href = c.url; sv.hidden = false; } });
 on('#nativeShareBtn', 'click', async () => {
 QB.track('share-click');
-const c = await cardP; const file = c && c.blob && typeof File === 'function' ? new File([c.blob], `quorbit-${U.dayNumber(TODAY)}.png`, { type: 'image/png' }) : null;
 try {
-if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: share }); QB.track('share-done'); return; }
 if (navigator.share) { await navigator.share({ text: share }); QB.track('share-done'); return; }
 } catch (e) { if (e && e.name === 'AbortError') return; }
+try { window.open(E.whatsappUrl(share), '_blank', 'noopener'); QB.track('share-done'); return; } catch (e) {}
 const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Share failed');
 });
-on('#saveCardBtn', 'click', () => QB.track('save-image'));
 try { const k = 'qb:gcFinish'; if (localStorage.getItem(k) !== TODAY) { localStorage.setItem(k, TODAY); QB.track('daily-finish'); } } catch (e) {}
 on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 wirePostGame();
@@ -5273,7 +5311,7 @@ const topicLine = opts.topicName ? ` Unlock <b>${esc(opts.topicName)}</b> for a 
 return `<div class="card lock-card total-paywall" id="totalPaywall">
 <span class="lock-badge" aria-hidden="true">✨</span>
 <b>Quorbit Total</b>
-<small>Endless Hard-skew practice.${topicLine} Indicative prices — demo only, no payment.</small>
+<small>Endless Hard-skew practice.${topicLine} Indicative prices — preview only, no payment.</small>
 <span class="paid-later-chip" title="Payments not live yet">Paid later · soft share</span>
 <div class="row2 lock-ctas">
 <a class="btn btn-gold" href="#/pass">🎟️ Unlock tiers</a>
@@ -5532,7 +5570,7 @@ ${lv.level > before.level ? `<p class="center gold"><b>⬆️ Level up! You're n
 <a class="btn btn-gold" href="#/duel/${D.t.id}" id="rematch">⚔️ New opponent</a>
 <a class="btn btn-ghost" href="#/topics">🎯 Topics</a>
 </div>
-<p class="muted small center">Demo: opponents are simulated players. Live 1v1 matchmaking comes with the backend.</p>
+<p class="muted small center">Practice mode: opponents are simulated players. Live 1v1 matchmaking comes with the backend.</p>
 `, 'duel');
 on('#rematch', 'click', e => { e.preventDefault(); route(); });
 }
@@ -5653,7 +5691,7 @@ view(`
 ${levelCard()}
 ${soundCard()}
 ${displayCard()}
-${(E.hasFullTotal ? E.hasFullTotal(s) : s.pass.active) ? `<div class="card pass-mini"><b>🎟️ Total unlock active</b><small>Demo · ${esc(s.pass.plan || 'Full')}${s.pass.active ? ' · <a class="link" href="#/archive">Archive ›</a>' : ''} · <a class="link" href="#/total">Total ›</a></small></div>`
+${(E.hasFullTotal ? E.hasFullTotal(s) : s.pass.active) ? `<div class="card pass-mini"><b>🎟️ Total unlock active</b><small>Preview · ${esc(s.pass.plan || 'Full')}${s.pass.active ? ' · <a class="link" href="#/archive">Archive ›</a>' : ''} · <a class="link" href="#/total">Total ›</a></small></div>`
 : (E.listUnlocks && E.listUnlocks(s).length ? `<div class="card pass-mini"><b>🎟️ Scoped unlock</b><small>${esc((E.listUnlocks(s)[0] || {}).label || '')} · <a class="link" href="#/total">Play ›</a></small></div>`
 : `<a class="card contribute" href="#/pass"><span class="s-ico">🎟️</span><div><b>Total unlocks</b><small>Full · topic · sub-topic →</small></div></a>`)}
 <div class="menu">
@@ -5730,7 +5768,7 @@ const slices = [
 const activeList = unlocks.length
 ? `<ul class="unlock-active">${unlocks.map(u => {
 const left = u.expiresAt ? Math.max(0, Math.ceil((u.expiresAt - Date.now()) / 86400000)) : D[u.tier] || 7;
-return `<li><b>${esc(u.label)}</b><small>${esc(u.tier)} · ~${left}d left · demo</small></li>`;
+return `<li><b>${esc(u.label)}</b><small>${esc(u.tier)} · ~${left}d left · preview</small></li>`;
 }).join('')}</ul>`
 : '';
 view(`
@@ -5759,7 +5797,7 @@ view(`
 </label>
 </div>
 ${activeList}
-<button class="btn btn-gold btn-big" id="buyBtn">Activate unlock (demo, no payment)</button>
+<button class="btn btn-gold btn-big" id="buyBtn">Activate unlock (preview, no payment)</button>
 <p class="muted small center">Legacy Champions Pass student/school packs can return later. <a class="link" href="#/terms">Terms</a> · <a class="link" href="#/privacy">Privacy</a></p>
 `, 'me');
 let tier = 'full';
@@ -5845,7 +5883,7 @@ ${segmented('format', [['mcq', 'Multiple choice'], ['typed', 'Typed answer']], '
 <legend>Optional image</legend>
 <p class="muted small">Attach a file or paste a URL. We will use it only if rights are clear.</p>
 <label>Image URL <span class="muted">(optional)</span><input class="input" name="imageHint" type="url" placeholder="https://…"></label>
-<label>Or choose a file <span class="muted">(stored as a stub on this device)</span><input class="input" name="imageFile" type="file" accept="image/*"></label>
+<label>Or choose a file <span class="muted">(under ~900 KB)</span><input class="input" name="imageFile" type="file" accept="image/*"></label>
 <label>Caption <span class="muted">(optional)</span><input class="input" name="imageCaption" maxlength="120" placeholder="Short credit or description"></label>
 </fieldset>
 <label class="check declaration"><input type="checkbox" name="declaration" required>
@@ -5875,7 +5913,7 @@ const contributorName = (prof.name || auth.displayName || 'Quizzer').trim();
 let imageData = '';
 const file = form.querySelector('input[name="imageFile"]') && form.querySelector('input[name="imageFile"]').files[0];
 if (file) {
-if (file.size > 900000) return (err.textContent = 'Image is too large for a local stub (keep under ~900 KB).');
+if (file.size > 900000) return (err.textContent = 'Image is too large (keep it under ~900 KB).');
 try {
 imageData = await new Promise((resolve, reject) => {
 const r = new FileReader();
@@ -5885,7 +5923,7 @@ r.readAsDataURL(file);
 });
 } catch (ex) { return (err.textContent = 'Could not read that image file.'); }
 }
-await A.submitQuestion({
+const res = await A.submitQuestion({
 contributorId,
 contributorName,
 contributorCity: prof.city || '',
@@ -5903,7 +5941,7 @@ imageData,
 imageCaption: String(v.imageCaption || '').trim(),
 declarationAt: Date.now()
 });
-toast('Thanks! Pending desk review.');
+toast(res && res.queued ? 'Saved. We\'ll send it when you\'re back online.' : 'Thanks! Pending desk review.');
 submit();
 });
 }
