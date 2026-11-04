@@ -1399,6 +1399,7 @@ background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08)
 .pr-signup:active { background: rgba(245, 197, 66, .1); }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
+  <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
   <div class="stage" aria-hidden="true">
@@ -1465,6 +1466,7 @@ window.QB_IMAGES = {};</script>
   <script>
 window.QB = window.QB || {};
 (function (QB) {
+QB.track = function (name) { try { name = String(name).replace(/^\/+/, ''); const g = window.goatcounter; if (g && g.count) g.count({ path: name, title: name, event: true }); } catch (e) {} };
 const IST_OFFSET_MS = 330 * 60 * 1000; // UTC+5:30
 const LAUNCH_DATE = '2026-10-01';      // Day #1
 function pad(n) { return String(n).padStart(2, '0'); }
@@ -1894,7 +1896,7 @@ Object.assign({}, by('final'), { blurb: 'No options: type your answer. Spelling 
 Object.assign({}, by('connect'), { name: 'Connect Finale', blurb: 'On alternate days: four pictures linked by one word (type it), or a set of text clues. Two clues are free; each extra one costs 5 points.' })
 ];
 const slotsFor = date => (isLegacy(date) ? SLOTS13 : SLOTS);
-const AIRED_COUNT_FROM = '2026-10-01';
+const AIRED_COUNT_FROM = '2026-11-05';
 function airedCount(date = U.istDateString()) {
 let n = 0; for (let d = AIRED_COUNT_FROM; d <= date; d = U.addDays(d, 1)) n += (d >= STRICT_FROM ? dailySet(d).length : slotsFor(d).length);
 return n;
@@ -4722,14 +4724,17 @@ const cardP = (QB.shareCard ? QB.shareCard.render(E.shareCardData(rec, TODAY, se
 cardP.then(c => { if (!c || seq !== routeSeq) return; const im = document.getElementById('orbitCardImg'), sv = document.getElementById('saveCardBtn');
 if (im) { im.src = c.url; im.hidden = false; } if (sv) { sv.href = c.url; sv.hidden = false; } });
 on('#nativeShareBtn', 'click', async () => {
+QB.track('share-click');
 const c = await cardP; const file = c && c.blob && typeof File === 'function' ? new File([c.blob], `quorbit-${U.dayNumber(TODAY)}.png`, { type: 'image/png' }) : null;
 try {
-if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: share }); return; }
-if (navigator.share) { await navigator.share({ text: share }); return; }
+if (file && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], text: share }); QB.track('share-done'); return; }
+if (navigator.share) { await navigator.share({ text: share }); QB.track('share-done'); return; }
 } catch (e) { if (e && e.name === 'AbortError') return; }
 const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Share failed');
 });
-on('#shareBtn', 'click', async () => { const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
+on('#saveCardBtn', 'click', () => QB.track('save-image'));
+try { const k = 'qb:gcFinish'; if (localStorage.getItem(k) !== TODAY) { localStorage.setItem(k, TODAY); QB.track('daily-finish'); } } catch (e) {}
+on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 wirePostGame();
 }
 function isAuthSignedIn() {
@@ -5526,7 +5531,7 @@ view(`
 <div class="card legal-block" id="privacy-sale">
 <b>No sale of personal data</b>
 <p class="muted small">This demo does not sell your profile. Future cloud sync will be described here before launch.</p>
-<p class="muted small">We use privacy-friendly, cookie-free Cloudflare Web Analytics to count anonymous page visits.</p>
+<p class="muted small">We use privacy-friendly, cookie-free Cloudflare Web Analytics and GoatCounter to count anonymous page visits and game events (e.g. Daily started/finished, shared). No cookies, no personal data.</p>
 </div>
 <div class="menu quiet-legal">
 <a href="#/terms">📜 Terms</a>
@@ -5815,6 +5820,7 @@ URL.revokeObjectURL(a.href);
 toast('Download started');
 });
 }
+document.addEventListener('submit', () => { const h = location.hash || ''; if (/^#\/(account|join|me)/.test(h)) QB.track('signup-submit'); }, true);
 function route(opts = {}) {
 routeSeq++; QB.audio.setIntensity(0); guard = null; floatCta(null);
 const h = (location.hash || '#/home').slice(2).split('/');
@@ -5825,6 +5831,11 @@ document.body.classList.toggle('in-play', playing);
 if ((r === 'topic' || r === 'pack') && arg2 === 'play') { try { sessionStorage.setItem('qb:lastPlayedRoute', `#/${r}/${arg}`); } catch (e) {} }
 else if (r === 'play') { try { sessionStorage.removeItem('qb:lastPlayedRoute'); } catch (e) {} } // the Daily spans topics: exclude none
 setBack();
+if (!opts.cache) { const T = QB.track;
+if (r === 'play') T('daily-start'); else if (r === 'practice') T('practice-start');
+else if ((r === 'topic' || r === 'pack') && arg2 === 'play') T('topic-pack-start');
+else if (r === 'account' || r === 'join') T('signup-open');
+else if (r === 'pass' || (r === 'total' && !arg)) T('pass-view'); }
 if (opts.cache && fromCache(curHash())) return;
 switch (r) {
 case 'how': return how();
