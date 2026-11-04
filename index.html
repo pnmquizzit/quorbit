@@ -1496,6 +1496,7 @@ window.QB = window.QB || {};
 QB.track = function (name) { try { name = String(name).replace(/^\/+/, ''); const g = window.goatcounter; if (g && g.count) g.count({ path: name, title: name, event: true }); } catch (e) {} };
 const IST_OFFSET_MS = 330 * 60 * 1000; // UTC+5:30
 const LAUNCH_DATE = '2026-10-01';      // Day #1
+const PUBLIC_DAY1 = '2026-11-05';      // public Episode #1 (display only; scheduler uses dayNumber)
 function pad(n) { return String(n).padStart(2, '0'); }
 function istDateString(now = Date.now()) {
 const d = new Date(now + IST_OFFSET_MS);
@@ -1512,6 +1513,8 @@ function addDays(s, n) {
 const d = new Date(parseDate(s) + n * 86400000);
 return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 }
+function episodeNo(s) { return Math.round((parseDate(s) - parseDate(PUBLIC_DAY1)) / 86400000) + 1; }
+function episodeTag(s) { const n = episodeNo(s); return n > 0 ? '#' + n : 'Preview'; }
 function dayNumber(s) { return Math.round((parseDate(s) - parseDate(LAUNCH_DATE)) / 86400000) + 1; }
 function weekday(s) { return new Date(parseDate(s)).getUTCDay(); } // 0 = Sunday
 function msToNextIstMidnight(now = Date.now()) {
@@ -1565,7 +1568,7 @@ if (THING_KINDS.has(q.kind) || (PLACE_KINDS.has(q.kind) && nonPlace)) return 'pi
 return 'mix-bag'; // unmapped / ambiguous -> Mixed bag (H5)
 }
 const PIC_RULES = { PLACE_KINDS, THING_KINDS, NON_PLACE_SUB, MIXED_CAT, packs: ['pic-people', 'pic-places', 'pic-things', 'pic-brands', 'mix-bag'] };
-QB.util = { IST_OFFSET_MS, LAUNCH_DATE, istDateString, parseDate, addDays, dayNumber, weekday, msToNextIstMidnight,
+QB.util = { IST_OFFSET_MS, LAUNCH_DATE, PUBLIC_DAY1, episodeNo, episodeTag, istDateString, parseDate, addDays, dayNumber, weekday, msToNextIstMidnight,
 prettyDate, hashString, rng, shuffle, pick, esc, fmtCountdown, pad, picPack, PIC_RULES };
 })(window.QB);
 </script>
@@ -2308,11 +2311,11 @@ function shareText(rec, date, stats) {
 const c = correctCount(rec), n = (rec.marks || []).length, t = shareTitle(c), url = shareUrl();
 const avg = rec.avgMs != null ? rec.avgMs : avgMs(rec.answers);
 const line3 = [avg != null ? '⚡' + fmtSecs(avg) : null, '🔥' + (stats.streak || 0), stats.points != null ? '🎯' + Number(stats.points).toLocaleString('en-US') : null].filter(Boolean).join(' · ');
-return `🪐 Quorbit #${U.dayNumber(date)} · ${c}/${n} · ${t.emoji} ${t.title}\n${rec.marks.map(m => SHARE_DOT[m] || '⚪').join('')}\n${line3}` + (url ? '\n' + url : '');
+return `🪐 Quorbit ${U.episodeTag(date) === 'Preview' ? 'Preview' : U.episodeTag(date)} · ${c}/${n} · ${t.emoji} ${t.title}\n${rec.marks.map(m => SHARE_DOT[m] || '⚪').join('')}\n${line3}` + (url ? '\n' + url : '');
 }
 function shareCardData(rec, date, set, stats) {
 const c = correctCount(rec), avg = rec.avgMs != null ? rec.avgMs : avgMs(rec.answers);
-return { day: U.dayNumber(date), date, marks: rec.marks.slice(), icons: rec.marks.map((m, i) => (set && set[i] ? CARD_ICON[set[i].slot.key] || '⭐' : '⭐')),
+return { day: U.episodeNo(date) > 0 ? U.episodeNo(date) : 'Preview', date, marks: rec.marks.slice(), icons: rec.marks.map((m, i) => (set && set[i] ? CARD_ICON[set[i].slot.key] || '⭐' : '⭐')),
 correct: c, n: rec.marks.length, title: shareTitle(c).title, avgMs: avg, avg: avg != null ? fmtSecs(avg) : null, streak: stats.streak || 0, points: stats.points, url: shareUrl() };
 }
 function recordDaily(date, rec, preview) {
@@ -4089,7 +4092,7 @@ x.fillStyle = '#f5f5f7'; x.font = '40px ' + F; x.textBaseline = 'middle'; x.fill
 });
 x.textBaseline = 'alphabetic'; x.textAlign = 'center';
 const [, mo, dy] = String(d.date).split('-').map(Number);
-x.fillStyle = '#a1a1a6'; x.font = '600 32px ' + F; x.fillText(`QUORBIT DAILY #${d.day} · ${dy} ${MON[mo - 1]}`, cx, 82);
+x.fillStyle = '#a1a1a6'; x.font = '600 32px ' + F; x.fillText(`${d.day > 0 ? 'QUORBIT DAILY #' + d.day : 'QUORBIT PREVIEW'} · ${dy} ${MON[mo - 1]}`, cx, 82);
 x.fillStyle = '#f5f5f7'; x.font = '700 112px ' + F; x.fillText(`${d.correct}/${d.n}`, cx, 190);
 x.font = '700 56px ' + F; x.fillStyle = '#f5c542'; x.fillText(d.title, cx, 930);
 const st = [d.avgMs != null ? '⚡ ' + d.avg : null, '🔥 ' + d.streak, d.points != null ? '🎯 ' + Number(d.points).toLocaleString('en-US') : null].filter(Boolean).join('    ');
@@ -4458,7 +4461,7 @@ mythology: `<g class="topic-ico"><path class="stroke" d="M0 -6.5 L2 0 L6.5 0 L3 
 };
 function diffMixPie(set, opts = {}) {
 const n = Math.max(1, set.length);
-const ep = opts.ep != null ? opts.ep : U.dayNumber(TODAY);
+const ep = opts.ep != null ? opts.ep : U.episodeNo(TODAY);
 const size = opts.size || 280;
 const R = 112, Ri = 72, Rh = 32;
 const counts = { easy: 0, medium: 0, hard: 0 };
@@ -4520,12 +4523,12 @@ return `<svg class="diff-pie" viewBox="-130 -130 260 260" width="${size}" height
 ${slices.join('')}
 ${icons.join('')}
 <circle r="${Rh}" class="pie-hub"/>
-<text y="1" text-anchor="middle" class="pie-c1">#${ep}</text>
+<text y="1" text-anchor="middle" class="pie-c1">${ep > 0 ? '#' + ep : 'Preview'}</text>
 <text y="15" text-anchor="middle" class="pie-c2">ORBIT</text>
 </svg>`;
 }
 function lineupOrbit(set) {
-const ep = U.dayNumber(TODAY);
+const ep = U.episodeNo(TODAY);
 const counts = { easy: 0, medium: 0, hard: 0 };
 set.forEach(x => { counts[x.difficulty] = (counts[x.difficulty] || 0) + 1; });
 const chips = ['easy', 'medium', 'hard'].filter(d => counts[d]).map(d =>
@@ -4584,8 +4587,8 @@ view(`
 </section>
 <section class="card episode">
 <div class="ep-head">
-<div class="ep-ring">${ringSvg(U.dayNumber(TODAY))}</div>
-<div class="ep-meta"><div class="ep-no">EPISODE #${U.dayNumber(TODAY)}</div><div class="muted small">${esc(U.prettyDate(TODAY))} · base max ${max} pts${E.EDITION !== 'mixed' ? ` · <a id="editionTag" class="link" href="?edition=mixed#/home" title="Switch back to the mixed edition">🌐 ${E.EDITIONS[E.EDITION].label} edition</a>` : ''}</div></div>
+<div class="ep-ring">${ringSvg(U.episodeNo(TODAY))}</div>
+<div class="ep-meta"><div class="ep-no">${U.episodeNo(TODAY) > 0 ? 'EPISODE #' + U.episodeNo(TODAY) : 'PREVIEW'}</div><div class="muted small">${esc(U.prettyDate(TODAY))} · base max ${max} pts${E.EDITION !== 'mixed' ? ` · <a id="editionTag" class="link" href="?edition=mixed#/home" title="Switch back to the mixed edition">🌐 ${E.EDITIONS[E.EDITION].label} edition</a>` : ''}</div></div>
 <div class="onair"><span></span>ON AIR</div>
 </div>
 ${lineupOrbit(set)}
@@ -4641,7 +4644,7 @@ function ringSvg(n) {
 return `<svg viewBox="0 0 64 64" class="ring-svg" aria-hidden="true"><ellipse cx="32" cy="34" rx="29" ry="10" fill="none" stroke="#f5c542" stroke-width="3" opacity=".9" transform="rotate(-18 32 34)"/>
 <circle cx="32" cy="32" r="17" fill="url(#pg)"/><defs><radialGradient id="pg" cx="35%" cy="30%"><stop offset="0" stop-color="#ffe9a0"/><stop offset="1" stop-color="#e39b12"/></radialGradient></defs>
 <path d="M3.5 39 A29 10 -18 0 0 61 26" fill="none" stroke="#f5c542" stroke-width="3" transform="rotate(0)"/>
-<text x="32" y="38" text-anchor="middle" font-size="15" font-weight="900" fill="#1a0d4d" font-family="Courier New,monospace">${n % 1000}</text></svg>`;
+<text x="32" y="38" text-anchor="middle" font-size="15" font-weight="900" fill="#1a0d4d" font-family="Courier New,monospace">${n > 0 ? n % 1000 : '★'}</text></svg>`;
 }
 function startCountdown() {
 const tick = () => document.querySelectorAll('[data-cd]').forEach(el => (el.textContent = U.fmtCountdown(U.msToNextIstMidnight())));
@@ -4685,7 +4688,7 @@ const p = S.get().progress;
 game = p && p.date === TODAY ? { date: TODAY, set, idx: p.idx, results: p.results, score: p.score } : { date: TODAY, set, idx: 0, results: [], score: 0 };
 const midQ = p && p.date === TODAY && p.qIdx === game.idx && p.qStart;
 if (midQ) return renderQuestion();
-preRoll(`Episode #${U.dayNumber(TODAY)} · ${game.idx ? `Round ${game.idx + 1} of ${set.length}` : `${set.length} rounds`}`, renderQuestion);
+preRoll(`${U.episodeNo(TODAY) > 0 ? 'Episode #' + U.episodeNo(TODAY) : 'Preview'} · ${game.idx ? `Round ${game.idx + 1} of ${set.length}` : `${set.length} rounds`}`, renderQuestion);
 }
 function preRollPanel() {
 const st = window.QB_STATS; const C = E.CLOCK, H = E.HINT, K = E.COMBO;
@@ -4961,7 +4964,7 @@ return { d, n: idx.length, got: idx.reduce((s, i) => s + (rec.answers[i] ? rec.a
 const news = newsState();
 view(`
 <section class="result spotlight">
-<p class="kicker">Episode #${U.dayNumber(TODAY)} · final score</p>
+<p class="kicker">${U.episodeNo(TODAY) > 0 ? 'Episode #' + U.episodeNo(TODAY) : 'Preview'} · final score</p>
 <div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>${rec.score > rec.max ? `<p class="muted small center" id="overMax">🔥 combo · +${rec.score - rec.max} over base max ${rec.max}</p>` : ''}
 <div class="title-badge">${t.emoji} ${t.title}</div>
 <div class="wheel-wrap" id="resultWheel">${wagonWheel(roundSpokes(set, rec), { id: 'wagon', center: String(rec.score), sub: rec.score > rec.max ? '🔥 combo' : '/ ' + rec.max,
@@ -5009,7 +5012,7 @@ const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsAp
 });
 try { const k = 'qb:gcFinish'; if (localStorage.getItem(k) !== TODAY) { localStorage.setItem(k, TODAY); QB.track('daily-finish'); } } catch (e) {}
 try { if (!PREVIEW && QB.auth && QB.auth.mail) { const c = rec.marks.filter(m => m === 'full' || m === 'part').length;
-QB.auth.mail('first-daily', { score: c, title: E.shareTitle ? E.shareTitle(c).title : '', episode: U.dayNumber(TODAY) }); } } catch (e) {}
+QB.auth.mail('first-daily', { score: c, title: E.shareTitle ? E.shareTitle(c).title : '', episode: U.episodeNo(TODAY) > 0 ? U.episodeNo(TODAY) : 'Preview' }); } } catch (e) {}
 on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 wirePostGame();
 }
@@ -5637,7 +5640,7 @@ const s = S.get(); const P = s.points || { total: 0 }; const L = E.levelFor(P.to
 const days = Object.entries(s.daily).sort((a, b) => b[1].score - a[1].score || b[0].localeCompare(a[0])).slice(0, 5);
 return `<h2 class="section-title">Your best days</h2>
 <div class="card mine-sum"><b>${L.icon} ${L.name}</b> · ${P.total.toLocaleString('en-IN')} lifetime points</div>
-<ol class="board mine" id="bestDays">${days.map(([d, r], i) => `<li><span class="rk">${i + 1}</span><div class="who"><b>Episode #${U.dayNumber(d)}</b><small>${esc(U.prettyDate(d))}${r.preview ? ' · replay' : ''}</small></div><span class="sc">${r.score}</span></li>`).join('')
+<ol class="board mine" id="bestDays">${days.map(([d, r], i) => `<li><span class="rk">${i + 1}</span><div class="who"><b>${U.episodeNo(d) > 0 ? 'Episode #' + U.episodeNo(d) : 'Preview'}</b><small>${esc(U.prettyDate(d))}${r.preview ? ' · replay' : ''}</small></div><span class="sc">${r.score}</span></li>`).join('')
 || '<li class="muted"><div class="who"><b>No episodes yet</b><small>Play today to start your list</small></div></li>'}</ol>`;
 }
 function join() {
@@ -5697,7 +5700,7 @@ ${P.played ? `
 <p class="ww-key"><span><i class="k-full"></i>70%+</span><span><i class="k-part"></i>40–69%</span><span><i class="k-wrong"></i>under 40%</span></p>
 <ul class="topic-bars">${P.topics.map(bar).join('')}</ul>
 <h2 class="section-title">Recent episodes</h2>
-<ul class="recent">${P.recent.slice().reverse().map(r => `<li><span>#${U.dayNumber(r.date)} · ${esc(U.prettyDate(r.date))}</span><b>${E.scoreShort(r)}</b></li>`).join('')}</ul>
+<ul class="recent">${P.recent.slice().reverse().map(r => `<li><span>${U.episodeTag(r.date)} · ${esc(U.prettyDate(r.date))}</span><b>${E.scoreShort(r)}</b></li>`).join('')}</ul>
 <p class="muted small center">Average across all games: ${P.avgPct}% of the maximum.</p>`
 : `<div class="card center"><p class="lead">No episodes yet.</p><a class="btn btn-gold" href="#/play">▶ Play today's episode</a></div>`}
 `, 'me');
@@ -5888,7 +5891,7 @@ ${active ? '<p class="lead">Replay any past episode. Archive plays don\'t count 
 : `<div class="card locked"><b>🔒 The archive is part of the Champions Pass</b><small>${E.PAYMENTS_LIVE ? 'Here is a look at what\'s inside.' : 'Coming soon.'}</small>${E.PAYMENTS_LIVE ? '<a class="btn btn-gold" href="#/pass">Unlock</a>' : ''}</div>`}
 <ol class="archive ${active ? '' : 'blur'}">${days.map(d => {
 const r = s.daily[d];
-return `<li><a ${active ? `href="?date=${d}#/play"` : ''}><b>#${U.dayNumber(d)}</b><span>${esc(U.prettyDate(d))}</span><em>${r ? E.scoreShort(r) : 'Play ›'}</em></a></li>`;
+return `<li><a ${active ? `href="?date=${d}#/play"` : ''}><b>${U.episodeTag(d)}</b><span>${esc(U.prettyDate(d))}</span><em>${r ? E.scoreShort(r) : 'Play ›'}</em></a></li>`;
 }).join('') || '<li class="muted">No past episodes yet.</li>'}</ol>
 `, 'me');
 }
