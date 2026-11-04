@@ -2822,7 +2822,7 @@ lead: 'Short version: we collect as little as we can, use no ad cookies, and nev
 blocks: [
 ['On your device', 'Scores, streaks, settings, your board name and city, and any submissions are saved in your browser’s local storage. They stay on this device. “Reset data” in Settings clears them.'],
 ['Analytics (cookie-free)', 'We use Cloudflare Web Analytics and GoatCounter to count anonymous page views and simple game events (for example, Daily started, finished or shared). Both are cookie-free and do not build a profile of you.'],
-['Sign-in (coming later)', 'We plan to offer optional sign-in with Google (via Google Firebase) to sync streaks across devices. When it ships, we will store only your name, email and game progress, and we will update this page before it goes live.'],
+['Sign-in', 'Optional sign-in uses Firebase Authentication (Google or email and password). We store only your email and name to save your progress (streak, best score, games played); your password is handled by Firebase and never seen by us.'],
 ['Contributed questions', 'If a question you submit is approved, your display name may appear with it as “(contributed by …)”, so players and claimants know who submitted it. Do not submit if you are unwilling to be named.'],
 ['Images', 'Picture-round images come from Wikimedia Commons and similar sources under open licences; credits are listed in the app.'],
 ['What we never do', 'We do not sell or rent personal data and do not show third-party ad tracking today. If that ever changes, this page will say so first.'],
@@ -2856,26 +2856,142 @@ blocks: [
   <script>
 (function () {
 const QB = window.QB = window.QB || {};
+const FIREBASE_VERSION = '12.4.0';
+const SDK = 'https://www.gstatic.com/firebasejs/' + FIREBASE_VERSION + '/';
+const firebaseConfig = {
+apiKey: 'AIzaSyCS0-1a7K7IB9jvJIiMFbKH9sRVb9sPG3c',
+authDomain: 'quorbit-1904e.firebaseapp.com',
+projectId: 'quorbit-1904e',
+storageBucket: 'quorbit-1904e.firebasestorage.app',
+messagingSenderId: '251566155741',
+appId: '1:251566155741:web:c5e3bfe12997a2979ef834'
+};
+const REDIRECT_FLAG = 'qb:authRedirect';
 const listeners = new Set();
 const emit = a => listeners.forEach(fn => { try { fn(a); } catch (e) {} });
-const provider = {
-async signIn(kind, extra = {}) {
-const S = QB.store;
-const displayName = extra.displayName || (kind === 'google' ? 'Google quizzer' : (extra.phone ? '+91 ' + extra.phone : 'Signed-in quizzer'));
-const user = { provider: kind, phone: extra.phone || null, email: extra.email || null, displayName, signedInAt: Date.now(), stub: true };
-S.update(s => { s.auth = user; if (!s.profile) s.profile = { name: displayName, city: '', school: '', mobile: extra.phone || '', orgType: 'None', joinedAt: Date.now() }; });
-return user;
-},
-async signOut() { QB.store.update(s => { s.auth = null; }); }
+const track = n => { try { QB.track && QB.track(n); } catch (e) {} };
+let fbPromise = null;
+function loadFirebase() {
+if (fbPromise) return fbPromise;
+fbPromise = Promise.all([import(SDK + 'firebase-app.js'), import(SDK + 'firebase-auth.js')]).then(([appMod, m]) => {
+const app = appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(firebaseConfig);
+const auth = m.getAuth(app);
+m.onAuthStateChanged(auth, u => syncUser(u));
+return { auth, m };
+}).catch(e => { fbPromise = null; throw e; });
+return fbPromise;
+}
+function saveProfile(uid) {
+try {
+const s = QB.store.get(); const st = s.stats || {};
+const prof = { uid, streak: st.streak || 0, best: Math.max(st.best || 0, 0), maxStreak: st.maxStreak || 0, played: st.played || 0, lastPlayed: st.lastDate || null, savedAt: Date.now() };
+localStorage.setItem('qb:profile:' + uid, JSON.stringify(prof));
+return prof;
+} catch (e) { return null; }
+}
+function syncUser(u) {
+const S = QB.store; if (!S) return;
+const cur = S.get().auth;
+if (!u) { if (cur && cur.uid) { S.update(s => { s.auth = null; }); emit(null); } return; }
+const pid = (u.providerData && u.providerData[0] && u.providerData[0].providerId) || 'password';
+const user = {
+uid: u.uid, provider: pid === 'google.com' ? 'google' : 'email', email: u.email || null,
+displayName: u.displayName || (u.email ? u.email.split('@')[0] : 'Quizzer'), signedInAt: (cur && cur.uid === u.uid && cur.signedInAt) || Date.now(), savedToAccount: true
 };
+S.update(s => { s.auth = user; if (!s.profile) s.profile = { name: user.displayName, city: '', school: '', mobile: '', orgType: 'None', joinedAt: Date.now() }; });
+saveProfile(u.uid);
+if (!cur || cur.uid !== u.uid) emit(user);
+}
+function friendly(e) {
+const c = (e && e.code) || '';
+const map = {
+'auth/popup-closed-by-user': 'Sign-in window closed. Try again when ready.',
+'auth/cancelled-popup-request': 'Sign-in window closed. Try again when ready.',
+'auth/wrong-password': 'Wrong email or password.',
+'auth/invalid-credential': 'Wrong email or password.',
+'auth/invalid-login-credentials': 'Wrong email or password.',
+'auth/user-not-found': 'No account with that email. Create one instead?',
+'auth/email-already-in-use': 'That email already has an account. Sign in instead.',
+'auth/weak-password': 'Password needs at least 6 characters.',
+'auth/invalid-email': 'That email address looks off.',
+'auth/missing-password': 'Enter your password.',
+'auth/too-many-requests': 'Too many tries. Wait a minute and try again.',
+'auth/network-request-failed': 'Network hiccup. Check your connection and retry.',
+'auth/unauthorized-domain': 'Sign-in is being set up, try again shortly.',
+'auth/operation-not-allowed': 'Sign-in is being set up, try again shortly.',
+'auth/configuration-not-found': 'Sign-in is being set up, try again shortly.'
+};
+if (map[c]) return map[c];
+if (!c) return 'Could not reach sign-in. Check your connection and retry.';
+return 'Sign-in failed. Please try again.';
+}
+const fail = e => { const err = new Error(friendly(e)); err.code = e && e.code; throw err; };
+const isMobile = () => /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+function done(cred, m, method) {
+let isNew = false; try { isNew = !!(m.getAdditionalUserInfo(cred) || {}).isNewUser; } catch (e) {}
+syncUser(cred.user);
+track(isNew ? 'signup-success-' + method : 'signin-success');
+if (isNew) track('signup-success');
+return QB.auth.current();
+}
 QB.auth = {
-isStub: true,
+isStub: false,
+version: FIREBASE_VERSION,
+config: firebaseConfig,
+preload: () => loadFirebase().catch(() => null),
 current: () => (QB.store && QB.store.get().auth) || null,
 isSignedIn: () => !!(QB.auth.current() && QB.auth.current().provider),
-async signIn(kind, extra) { const u = await provider.signIn(kind, extra); emit(u); return u; },
-async signOut() { await provider.signOut(); emit(null); },
+friendly,
+async signIn(kind, extra = {}) {
+const { auth, m } = await loadFirebase();
+try {
+if (kind === 'google') {
+const prov = new m.GoogleAuthProvider();
+prov.setCustomParameters({ prompt: 'select_account' });
+if (isMobile()) { sessionStorage.setItem(REDIRECT_FLAG, '1'); await m.signInWithRedirect(auth, prov); return null; }
+try { return done(await m.signInWithPopup(auth, prov), m, 'google'); }
+catch (e) {
+if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) { sessionStorage.setItem(REDIRECT_FLAG, '1'); await m.signInWithRedirect(auth, prov); return null; }
+throw e;
+}
+}
+const cred = await m.signInWithEmailAndPassword(auth, String(extra.email || '').trim(), extra.password || '');
+return done(cred, m, 'email');
+} catch (e) { fail(e); }
+},
+async signUpEmail(email, password, displayName) {
+const { auth, m } = await loadFirebase();
+try {
+const cred = await m.createUserWithEmailAndPassword(auth, String(email || '').trim(), password || '');
+if (displayName) { try { await m.updateProfile(cred.user, { displayName }); } catch (e) {} }
+syncUser(cred.user); track('signup-success-email'); track('signup-success');
+return QB.auth.current();
+} catch (e) { fail(e); }
+},
+async resetPassword(email) {
+const { auth, m } = await loadFirebase();
+try { await m.sendPasswordResetEmail(auth, String(email || '').trim()); return true; } catch (e) { fail(e); }
+},
+async signOut() {
+try { const { auth, m } = await loadFirebase(); await m.signOut(auth); } catch (e) {}
+QB.store.update(s => { s.auth = null; }); emit(null);
+},
 onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
 };
+function boot() {
+let pending = false; try { pending = sessionStorage.getItem(REDIRECT_FLAG) === '1'; } catch (e) {}
+const cur = QB.auth.current();
+if (cur && cur.stub) { QB.store.update(s => { s.auth = null; }); } // drop pre-Firebase local stub sessions
+if (!pending && !(cur && cur.uid)) return;
+const go = () => loadFirebase().then(({ auth, m }) => {
+if (!pending) return;
+try { sessionStorage.removeItem(REDIRECT_FLAG); } catch (e) {}
+return m.getRedirectResult(auth).then(cred => { if (cred) { done(cred, m, 'google'); } })
+.catch(e => { try { QB.toast && QB.toast(friendly(e)); } catch (x) {} });
+}).catch(() => {});
+(window.requestIdleCallback || (f => setTimeout(f, 1500)))(go);
+}
+if (document.readyState === 'complete') setTimeout(boot, 0); else window.addEventListener('load', boot);
 })();
 </script>
   <script>
@@ -3653,88 +3769,73 @@ function isSignedIn() { return !!(authOf() && authOf().provider); }
 function authFinePrint() {
 return "Free. We ask before merging this device's history.";
 }
-function stubSignIn(provider, extra = {}) {
-QB.auth.signIn(provider, extra).then(() => toast('Signed in on this device · cloud sync coming soon'));
-}
+function authErr(e) { return (e && e.message) || 'Sign-in failed. Please try again.'; }
 function stubSignOut() {
 QB.auth.signOut().then(() => toast('Signed out'));
 }
+function shortName(a) { return a.displayName || (a.email ? a.email.split('@')[0] : 'Quizzer'); }
 function signInCardHTML(mode) {
 const a = authOf();
 if (a) {
-const label = a.provider === 'google' ? 'Google' : 'Phone';
-const sub = a.email || (a.phone ? '+91 ' + a.phone : '');
+const label = a.provider === 'google' ? 'Google' : 'Email';
 return `<section class="card auth-card" id="authCard" data-mode="${mode}">
-<b>You're signed in</b>
-<p class="muted small">${esc(label)}${sub ? ' · ' + esc(sub) : ''} · on this device</p>
+<b>Signed in as ${esc(shortName(a))}</b>
+<p class="muted small">${esc(label)}${a.email ? ' · ' + esc(a.email) : ''}</p>
+<p class="muted small auth-saved">✓ Streak, best and games played saved to your account</p>
 <button type="button" class="btn btn-ghost" id="authSignOut">Sign out</button>
 </section>`;
 }
-const head = mode === 'friends' ? 'Bring your friends along.' : 'Keep your orbit together.';
-const body = mode === 'friends'
-? 'Sign in to compare daily scores with friends.'
-: 'Save streaks and badges across devices.';
-return `<section class="card auth-card" id="authCard" data-mode="${mode}" data-phone-step="idle">
+const head = mode === 'friends' ? 'Bring your friends along.' : 'Save your streak.';
+const body = mode === 'friends' ? 'Sign in to compare daily scores with friends.' : 'Create a free account to keep your streak, best score and games played.';
+return `<section class="card auth-card" id="authCard" data-mode="${mode}" data-email-mode="signup">
 <b>${head}</b>
 <p class="muted small">${body}</p>
 <button type="button" class="btn btn-gold btn-big" id="authGoogle">Continue with Google</button>
-<button type="button" class="btn btn-ghost" id="authPhoneToggle" aria-expanded="false" aria-controls="authPhonePanel">Continue with phone</button>
-<div class="auth-phone" id="authPhonePanel" hidden>
-<label class="auth-phone-label">Mobile number
-<div class="phone"><span>+91</span><input class="input" id="authPhoneInput" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" placeholder="98xxxxxxxx" autocomplete="tel-national"></div>
-</label>
-<button type="button" class="btn btn-gold" id="authSendOtp">Send OTP</button>
+<p class="muted small center auth-or">or use email</p>
+<form class="auth-email" id="authEmailForm" novalidate>
+<input class="input" id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" aria-label="Email" required>
+<input class="input" id="authPassword" type="password" autocomplete="new-password" minlength="6" placeholder="Password (6+ characters)" aria-label="Password" required>
+<button type="submit" class="btn btn-gold" id="authEmailSubmit">Create account</button>
+</form>
+<div class="auth-links">
+<button type="button" class="btn btn-ghost btn-tiny" id="authModeToggle">Have an account? Sign in</button>
+<button type="button" class="btn btn-ghost btn-tiny" id="authForgot" hidden style="display:none">Forgot password?</button>
 </div>
-<div class="auth-otp" id="authOtpPanel" hidden>
-<label class="auth-phone-label">Enter 6-digit OTP
-<input class="input auth-otp-input" id="authOtpInput" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" placeholder="••••••" autocomplete="one-time-code">
-</label>
-<button type="button" class="btn btn-gold" id="authVerifyOtp">Verify OTP</button>
-<button type="button" class="btn btn-ghost btn-tiny" id="authResendOtp">Resend OTP</button>
-</div>
+<p class="muted small auth-msg" id="authMsg" role="status" aria-live="polite"></p>
 <p class="muted small auth-fine">${authFinePrint()}</p>
 </section>`;
 }
 function bindAuthCard(refresh) {
 const card = $app.querySelector('#authCard'); if (!card) return;
-const phonePanel = $app.querySelector('#authPhonePanel');
-const otpPanel = $app.querySelector('#authOtpPanel');
-const showPhone = () => {
-if (phonePanel) phonePanel.hidden = false;
-if (otpPanel) otpPanel.hidden = true;
-card.dataset.phoneStep = 'phone';
-const tog = $app.querySelector('#authPhoneToggle'); if (tog) tog.setAttribute('aria-expanded', 'true');
-const pi = $app.querySelector('#authPhoneInput'); if (pi) setTimeout(() => pi.focus(), 50);
+if (!authOf() && QB.auth.preload) QB.auth.preload(); // lazy: fetch Firebase SDK only once the sheet is open
+const msg = t => { const m = $app.querySelector('#authMsg'); if (m) m.textContent = t || ''; };
+const busy = (on_) => card.querySelectorAll('button,input').forEach(el => { el.disabled = on_; });
+const ok = u => { if (u) { toast('Signed in as ' + shortName(u)); refresh(); } };
+const setMode = mode => {
+card.dataset.emailMode = mode;
+const sub = $app.querySelector('#authEmailSubmit'), tog = $app.querySelector('#authModeToggle'), fg = $app.querySelector('#authForgot'), pw = $app.querySelector('#authPassword');
+if (sub) sub.textContent = mode === 'signin' ? 'Sign in' : 'Create account';
+if (tog) tog.textContent = mode === 'signin' ? 'New here? Create account' : 'Have an account? Sign in';
+if (fg) { fg.hidden = mode !== 'signin'; fg.style.display = mode === 'signin' ? '' : 'none'; }
+if (pw) pw.autocomplete = mode === 'signin' ? 'current-password' : 'new-password';
+msg('');
 };
-const hidePhone = () => {
-if (phonePanel) phonePanel.hidden = true;
-if (otpPanel) otpPanel.hidden = true;
-card.dataset.phoneStep = 'idle';
-const tog = $app.querySelector('#authPhoneToggle'); if (tog) tog.setAttribute('aria-expanded', 'false');
-};
-const showOtp = () => {
-if (phonePanel) phonePanel.hidden = true;
-if (otpPanel) otpPanel.hidden = false;
-card.dataset.phoneStep = 'otp';
-};
-on('#authGoogle', 'click', () => { stubSignIn('google'); refresh(); });
-on('#authSignOut', 'click', () => { stubSignOut(); refresh(); });
-on('#authPhoneToggle', 'click', () => (card.dataset.phoneStep === 'idle' ? showPhone() : hidePhone()));
-on('#authSendOtp', 'click', () => {
-const inp = $app.querySelector('#authPhoneInput');
-const phone = (inp && inp.value || '').trim();
-if (!/^[6-9]\d{9}$/.test(phone)) { toast('Enter a valid 10-digit Indian mobile'); return; }
-card.dataset.pendingPhone = phone;
-toast('OTP sent (demo) — use any 6 digits');
-showOtp();
-const oi = $app.querySelector('#authOtpInput'); if (oi) setTimeout(() => oi.focus(), 50);
+on('#authGoogle', 'click', async () => { msg(''); busy(true); try { ok(await QB.auth.signIn('google')); } catch (e) { msg(authErr(e)); } finally { busy(false); } });
+on('#authSignOut', 'click', () => { stubSignOut(); setTimeout(refresh, 50); });
+on('#authModeToggle', 'click', () => setMode(card.dataset.emailMode === 'signin' ? 'signup' : 'signin'));
+on('#authForgot', 'click', async () => {
+const email = ($app.querySelector('#authEmail')?.value || '').trim();
+if (!/^\S+@\S+\.\S+$/.test(email)) { msg('Type your email above, then tap Forgot password.'); return; }
+busy(true); try { await QB.auth.resetPassword(email); msg('Reset link sent. Check your inbox (and spam).'); } catch (e) { msg(authErr(e)); } finally { busy(false); }
 });
-on('#authResendOtp', 'click', () => toast('OTP resent (demo)'));
-on('#authVerifyOtp', 'click', () => {
-const code = ($app.querySelector('#authOtpInput')?.value || '').trim();
-if (!/^\d{6}$/.test(code)) { toast('Enter the 6-digit OTP'); return; }
-stubSignIn('phone', { phone: card.dataset.pendingPhone || '' });
-refresh();
+on('#authEmailForm', 'submit', async ev => {
+ev.preventDefault();
+const email = ($app.querySelector('#authEmail')?.value || '').trim(), pw = $app.querySelector('#authPassword')?.value || '';
+if (!/^\S+@\S+\.\S+$/.test(email)) { msg('That email address looks off.'); return; }
+if (pw.length < 6) { msg('Password needs at least 6 characters.'); return; }
+busy(true);
+try { ok(card.dataset.emailMode === 'signin' ? await QB.auth.signIn('email', { email, password: pw }) : await QB.auth.signUpEmail(email, pw)); }
+catch (e) { msg(authErr(e)); } finally { busy(false); }
 });
 }
 function friendsCardHTML() {
@@ -3785,9 +3886,9 @@ const acc = Object.entries(by).sort((a, b) => a[0].localeCompare(b[0]));
 const band = x => (x >= 70 ? 'full' : x >= 40 ? 'part' : 'wrong');
 const R = monthRecap();
 const a = authOf();
-const heroName = a && a.displayName ? a.displayName : (p ? p.name : 'Guest quizzer');
+const heroName = a ? (a.displayName || (a.email ? a.email.split('@')[0] : 'Quizzer')) : (p ? p.name : 'Guest quizzer');
 const heroSub = a
-? (a.provider === 'google' ? 'Signed in with Google' : (a.phone ? '+91 ' + a.phone : 'Signed in')) + (p && p.city ? ' · ' + p.city : '')
+? (a.provider === 'google' ? 'Signed in with Google' : 'Signed in with email') + ' · progress saved' + (p && p.city ? ' · ' + p.city : '')
 : (p ? [p.city, p.school].filter(Boolean).join(' · ') : 'Join to save your name on the boards.');
 view(`
 <section class="profile me-hero">
@@ -3986,6 +4087,7 @@ let timers = [];
 const later = (fn, ms) => { const t = setTimeout(fn, ms); timers.push(t); return t; };
 const every = (fn, ms) => { const t = setInterval(fn, ms); timers.push(t); return t; };
 function clearTimers() { timers.forEach(t => { if (t && t.off) t.off(); else { clearTimeout(t); clearInterval(t); } }); timers = []; }
+QB.toast = m => toast(m);
 function toast(msg) {
 const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
 clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove("show"), 1800);
@@ -5872,6 +5974,7 @@ toast('Download started');
 });
 }
 document.addEventListener('submit', () => { const h = location.hash || ''; if (/^#\/(account|join|me)/.test(h)) QB.track('signup-submit'); }, true);
+if (QB.auth && QB.auth.onChange) QB.auth.onChange(() => { if (/^#\/(account|me|friends)/.test(location.hash || '')) route(); });
 function route(opts = {}) {
 routeSeq++; QB.audio.setIntensity(0); guard = null; floatCta(null);
 const h = (location.hash || '#/home').slice(2).split('/');
