@@ -2948,10 +2948,9 @@ try {
 if (kind === 'google') {
 const prov = new m.GoogleAuthProvider();
 prov.setCustomParameters({ prompt: 'select_account' });
-if (isMobile()) { sessionStorage.setItem(REDIRECT_FLAG, '1'); await m.signInWithRedirect(auth, prov); return null; }
 try { return done(await m.signInWithPopup(auth, prov), m, 'google'); }
 catch (e) {
-if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) { sessionStorage.setItem(REDIRECT_FLAG, '1'); await m.signInWithRedirect(auth, prov); return null; }
+if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment' || e.code === 'auth/web-storage-unsupported')) { sessionStorage.setItem(REDIRECT_FLAG, '1'); await m.signInWithRedirect(auth, prov); return null; }
 throw e;
 }
 }
