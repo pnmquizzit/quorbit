@@ -1424,6 +1424,16 @@ background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08)
 .toast { background: rgba(28,24,48,.94); color: #fff; font-weight: 600; font-size: .9375rem; padding: 9px 16px; border: 1px solid rgba(255,255,255,.12);
 box-shadow: 0 6px 20px rgba(0,0,0,.35); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); max-width: min(90vw, 360px); line-height: 1.3; }
 body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
+.result .big-score { margin: 4px 0; }
+.result .title-badge { margin: 4px 0 6px; }
+.share-hero { margin: 10px 0 14px; }
+.btn-share { padding: 17px 18px; font-size: 1.125rem; font-weight: 700; min-height: 56px; border-radius: 14px; }
+.share-nudge { margin: 10px 0 2px; color: var(--muted); font-size: 0.9375rem; }
+.share-alt { display: flex; justify-content: center; align-items: center; gap: 10px; color: var(--muted); font-size: 0.875rem; }
+.share-alt .link { color: var(--muted); font-weight: 600; font-size: 0.875rem; padding: 8px 4px; cursor: pointer; }
+.share-peek { margin: 12px 0; color: var(--muted); font-size: 0.875rem; }
+.share-peek summary { cursor: pointer; padding: 8px 0; }
+.pg-signup { margin-top: 8px; }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -1493,7 +1503,10 @@ window.QB_IMAGES = {};</script>
   <script>
 window.QB = window.QB || {};
 (function (QB) {
-QB.track = function (name) { try { name = String(name).replace(/^\/+/, ''); const g = window.goatcounter; if (g && g.count) g.count({ path: name, title: name, event: true }); } catch (e) {} };
+const gcQ = []; let gcT = 0; QB.trackLog = [];
+const gcFlush = () => { const g = window.goatcounter; if (g && g.count) { while (gcQ.length) { const n = gcQ.shift(); try { g.count({ path: n, title: n, event: true }); } catch (e) {} } gcT = 0; return; }
+if (gcT++ < 40) setTimeout(gcFlush, 500); };
+QB.track = function (name) { try { name = String(name).replace(/^\/+/, ''); QB.trackLog.push(name); gcQ.push(name); gcFlush(); } catch (e) {} };
 const IST_OFFSET_MS = 330 * 60 * 1000; // UTC+5:30
 const LAUNCH_DATE = '2026-10-01';      // Day #1
 const PUBLIC_DAY1 = '2026-11-05';      // public Episode #1 (display only; scheduler uses dayNumber)
@@ -4970,6 +4983,7 @@ if (!rec) return go('#/home');
 const st = stats(); const t = E.titleFor(rec.score, rec.max);
 const seq = routeSeq; const set = await A.getDaily(TODAY); if (seq !== routeSeq) return;
 const shareStats = { streak: E.liveStreak(st, TODAY), points: (S.get().points || {}).total }; const share = E.shareText(rec, TODAY, shareStats); const avg = rec.avgMs != null ? rec.avgMs : E.avgMs(rec.answers);
+const shareCorrect = rec.marks.filter(m => m === 'full' || m === 'part').length;
 const byDiff = ['easy', 'medium', 'hard'].map(d => {
 const idx = set.map((x, i) => (x.difficulty === d ? i : -1)).filter(i => i >= 0);
 return { d, n: idx.length, got: idx.reduce((s, i) => s + (rec.answers[i] ? rec.answers[i].points : 0), 0), max: idx.reduce((s, i) => s + set[i].base, 0) };
@@ -4980,6 +4994,11 @@ view(`
 <p class="kicker">${U.episodeNo(TODAY) > 0 ? 'Episode #' + U.episodeNo(TODAY) : 'Preview'} · final score</p>
 <div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>${rec.score > rec.max ? `<p class="muted small center" id="overMax">🔥 combo · +${rec.score - rec.max} over base max ${rec.max}</p>` : ''}
 <div class="title-badge">${t.emoji} ${t.title}</div>
+<div class="share-hero" id="shareHero">
+<button class="btn btn-gold btn-share" id="nativeShareBtn" type="button">Share your score</button>
+<p class="share-nudge" id="shareNudge">Can your friends beat ${shareCorrect}/${set.length}? Challenge them.</p>
+<div class="share-alt"><a class="link" id="waBtn" href="${esc(E.whatsappUrl(share))}" target="_blank" rel="noopener">WhatsApp</a><span aria-hidden="true">·</span><button class="link" id="shareBtn" type="button">Copy text</button></div>
+</div>
 <div class="wheel-wrap" id="resultWheel">${wagonWheel(roundSpokes(set, rec), { id: 'wagon', center: String(rec.score), sub: rec.score > rec.max ? '🔥 combo' : '/ ' + rec.max,
 label: `Wagon wheel of today's ${set.length} rounds: ` + set.map((x, i) => `${x.slot.name} ${rec.answers[i] ? rec.answers[i].points : 0} of ${x.base}`).join(', ') })}</div>
 ${WW_KEY}
@@ -4995,15 +5014,7 @@ ${levelCard()}
 <div><b>${st.played ? Math.round(st.totalScore / st.played) : 0}</b><small>Average</small></div>
 <div><b>${st.best}</b><small>High score</small></div>
 </section>
-<div class="share-card" id="shareCard">
-<div class="share-head"><span>🪐 Share your orbit</span><small>Score · streak · link</small></div>
-<pre class="share-preview" id="sharePreview">${esc(share)}</pre>
-<div class="share-btns">
-<a class="btn btn-wa btn-big" id="waBtn" href="${esc(E.whatsappUrl(share))}" target="_blank" rel="noopener">🟢 Share on WhatsApp</a>
-<button class="btn btn-gold" id="nativeShareBtn">📤 Share…</button>
-<button class="btn btn-ghost" id="shareBtn">📋 Copy</button>
-</div>
-</div>
+<details class="share-peek" id="shareCard"><summary>See what you'll share</summary><pre class="share-preview" id="sharePreview">${esc(share)}</pre></details>
 <a class="card news-teaser" href="#/stats" id="statsLink"><span class="s-ico">📊</span><div><b>Your stats</b><small>Games played, average score and your best topic</small></div><span class="chev">›</span></a>
 <div class="card center"><div class="muted small">NEXT EPISODE IN</div><div class="countdown-big" data-cd>--:--:--</div></div>
 ${news ? `<a class="card news-teaser" href="#/world"><span class="s-ico">🌍</span><div><b>Bonus: World This Week</b><small>${news.stale ? 'From the archive' : 'Fresh'} · ${esc(news.label)}</small></div><span class="chev">›</span></a>` : ''}
@@ -5017,16 +5028,19 @@ ${set.map((x, i) => `<li class="m-${rec.marks[i]}"><span>${E.MARK_EMOJI[rec.mark
 startCountdown();
 on('#nativeShareBtn', 'click', async () => {
 QB.track('share-click');
-try {
-if (navigator.share) { await navigator.share({ text: share }); QB.track('share-done'); return; }
-} catch (e) { if (e && e.name === 'AbortError') return; }
-try { window.open(E.whatsappUrl(share), '_blank', 'noopener'); QB.track('share-done'); return; } catch (e) {}
-const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Share failed');
+if (navigator.share) {
+try { await navigator.share({ text: share }); QB.track('share-done'); return; }
+catch (e) { if (e && e.name === 'AbortError') return; }
+}
+const ok = await copyText(share); if (ok) QB.track('share-copy');
+let opened = null; try { opened = window.open(E.whatsappUrl(share), '_blank', 'noopener'); QB.track('share-whatsapp'); QB.track('share-done'); } catch (e) {}
+toast(ok ? 'Copied. Paste it in WhatsApp or any chat.' : (opened !== null ? 'Opening WhatsApp…' : 'Share failed. Select the text below.'));
 });
+on('#waBtn', 'click', () => { QB.track('share-click'); QB.track('share-whatsapp'); QB.track('share-done'); });
 try { const k = 'qb:gcFinish'; if (localStorage.getItem(k) !== TODAY) { localStorage.setItem(k, TODAY); QB.track('daily-finish'); } } catch (e) {}
 try { if (!PREVIEW && QB.auth && QB.auth.mail) { const c = rec.marks.filter(m => m === 'full' || m === 'part').length;
 QB.auth.mail('first-daily', { score: c, title: E.shareTitle ? E.shareTitle(c).title : '', episode: U.episodeNo(TODAY) > 0 ? U.episodeNo(TODAY) : 'Preview' }); } } catch (e) {}
-on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
+on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); if (ok) { QB.track('share-copy'); QB.track('share-done'); } toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 wirePostGame();
 }
 function isAuthSignedIn() {
@@ -5053,7 +5067,7 @@ ${ask ? `<div class="pg-ask" id="pgAsk">
 <button type="button" class="pg-x" id="pgDismiss" aria-label="Not now">✕</button>
 <b id="pgTitle">Save your streak</b>
 <p class="small muted">Free account. Your streak follows you to any device.</p>
-<a class="btn btn-gold pg-signup" href="#/account" id="pgSignup">Sign up free</a>
+<a class="btn btn-ghost pg-signup" href="#/account" id="pgSignup">Sign up free</a>
 </div>` : ''}
 <p class="pg-label">Explore more</p>
 <div class="pg-chips">${postGameChips().map(c => `<a class="pg-chip" href="${c.href}"><span aria-hidden="true">${c.icon}</span>${esc(c.label)}</a>`).join('')}</div>
