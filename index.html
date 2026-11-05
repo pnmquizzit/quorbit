@@ -109,6 +109,7 @@ border: 1px solid var(--line); border-radius: 18px; box-shadow: none; }
 .episode { padding: 16px; background: var(--card); }
 .ep-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
 .ep-no { font-family: var(--mono); font-weight: 900; font-size: 1.25rem; color: var(--gold); letter-spacing: 2px; text-shadow: none; }
+.edition-label { font-weight: 700; color: var(--text); letter-spacing: 0.02em; }
 .onair { display: flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 700; letter-spacing: 1.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
 .onair span { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: none; animation: none; }
 @keyframes blink { 50% { opacity: .2; } }
@@ -2336,12 +2337,13 @@ return /^https?:/.test(location.protocol) ? location.host + path : '';
 function shareText(rec, date, stats) {
 const c = correctCount(rec), n = (rec.marks || []).length, t = shareTitle(c), url = shareUrl();
 const avg = rec.avgMs != null ? rec.avgMs : avgMs(rec.answers);
+const ed = (EDITIONS[EDITION] && EDITIONS[EDITION].label) || 'Mixed';
 const line3 = [avg != null ? '⚡' + fmtSecs(avg) : null, '🔥' + (stats.streak || 0), stats.points != null ? '🎯' + Number(stats.points).toLocaleString('en-US') : null].filter(Boolean).join(' · ');
-return `🪐 Quorbit ${U.episodeTag(date) === 'Preview' ? 'Preview' : U.episodeTag(date)} · ${c}/${n} · ${t.emoji} ${t.title}\n${rec.marks.map(m => SHARE_DOT[m] || '⚪').join('')}\n${line3}` + (url ? '\n' + url : '');
+return `🪐 Quorbit ${U.episodeTag(date) === 'Preview' ? 'Preview' : U.episodeTag(date)} · ${ed} — ${c}/${n} · ${t.emoji} ${t.title}\n${rec.marks.map(m => SHARE_DOT[m] || '⚪').join('')}\n${line3}` + (url ? '\n' + url : '');
 }
 function shareCardData(rec, date, set, stats) {
 const c = correctCount(rec), avg = rec.avgMs != null ? rec.avgMs : avgMs(rec.answers);
-return { day: U.episodeNo(date) > 0 ? U.episodeNo(date) : 'Preview', date, marks: rec.marks.slice(), icons: rec.marks.map((m, i) => (set && set[i] ? CARD_ICON[set[i].slot.key] || '⭐' : '⭐')),
+return { day: U.episodeNo(date) > 0 ? U.episodeNo(date) : 'Preview', date, edition: (EDITIONS[EDITION] && EDITIONS[EDITION].label) || 'Mixed', marks: rec.marks.slice(), icons: rec.marks.map((m, i) => (set && set[i] ? CARD_ICON[set[i].slot.key] || '⭐' : '⭐')),
 correct: c, n: rec.marks.length, title: shareTitle(c).title, avgMs: avg, avg: avg != null ? fmtSecs(avg) : null, streak: stats.streak || 0, points: stats.points, url: shareUrl() };
 }
 function recordDaily(date, rec, preview) {
@@ -2619,35 +2621,63 @@ const CITIES = ['Bengaluru', 'Mumbai', 'Delhi', 'Chennai', 'Kolkata', 'Hyderabad
 const SCHOOLS = ['Banyan Tree Public School', 'Sunrise Vidya Mandir', 'Riverside Model School', 'Lotus Lane Academy', 'Greenfield High',
 'Cedar Hill School', 'Kaveri Valley College', 'Northstar Institute of Technology', 'Ganges Arts & Science College', 'Monsoon Labs Pvt Ltd',
 'Peacock Systems', 'Coral Bay Junior College'];
+const WORLD = ['NorthernLights', 'kiwi_quizzer', 'OwlAtNoon', 'LisbonLad', 'MapleMind', 'QuietQuasar', 'tokyo_trivia', 'Nerdy_Narwhal'];
+const PAT = [f => 'quizwala_' + f, (f, l) => f + '.' + l[0], f => f + '_quizzes', (f, l, n) => f + l[0] + n, f => 'chai_' + f,
+(f, l) => f + '_' + l, f => f + '.reads', (f, l, n) => 'the' + f + n];
+const SOLO = ['chai_quizzer', 'filtercoffee', 'masala_brain', 'samosa_sage', 'DesiDecoder', 'ByteBhai', 'pixel_pandit', 'MonsoonMind', 'TriviaTiger', 'auto_rickshaw_iq'];
+function handle(r) {
+const x = r();
+if (x < 0.1) return U.pick(WORLD, r);
+if (x < 0.2) return U.pick(SOLO, r);
+const f = U.pick(FIRST, r).toLowerCase(), l = U.pick(LAST, r).toLowerCase(), n = 1 + Math.floor(r() * 98);
+return U.pick(PAT, r)(f, l, n);
+}
 const BOT_STYLE = [
 { label: 'Steady', skill: 0.62 }, { label: 'Sharp', skill: 0.72 }, { label: 'Quizzer', skill: 0.8 }, { label: 'Champion', skill: 0.86 }
 ];
-function players(n = 80) {
+function players(n = 160) {
 const r = U.rng('qd-mock-players-v1');
 return Array.from({ length: n }, (_, i) => {
 const skill = 0.35 + r() * 0.6;
 return {
-id: 'mock' + i, name: `${U.pick(FIRST, r)} ${U.pick(LAST, r)[0]}.`, city: U.pick(CITIES, r), school: U.pick(SCHOOLS, r),
+id: 'mock' + i, name: handle(r), city: U.pick(CITIES, r), school: U.pick(SCHOOLS, r),
 skill, avatar: ['🦚', '🐯', '🐘', '🦁', '🐒', '🦜', '🐢', '🐬', '🦋', '🐫'][i % 10], mock: true
 };
 });
 }
+function activeCount(date) { const k = U.episodeNo(date); return k < 1 ? 0 : Math.min(160, 60 + 4 * k); }
+function dayScore(p, date) {
+if (date < U.PUBLIC_DAY1 || +p.id.slice(4) >= activeCount(date)) return 0;
+const r = U.rng(`${p.id}-d-${date}`);
+if (r() > 0.55 + p.skill * 0.4) return 0;                       // skipped that day
+return Math.round(Math.min(104, Math.max(8, p.skill * 88 + (r() - 0.5) * 36)));
+}
+function dayAvgMs(p, date) { const r = U.rng(`${p.id}-t-${date}`); return Math.round(4200 + (1 - p.skill) * 6000 + r() * 3000); }
 function scoreFor(p, period, today) {
-const r = U.rng(`${p.id}-${period}-${period === 'alltime' ? 'x' : period === 'weekly' ? U.dayNumber(today) / 7 | 0 : today}`);
-const day = () => Math.round(Math.min(100, Math.max(0, (p.skill * 100) + (r() - 0.5) * 40)) / 5) * 5;
-if (period === 'daily') return day();
-if (period === 'weekly') { let s = 0; for (let i = 0; i < 7; i++) s += r() < 0.85 ? day() : 0; return s; }
-return Math.round(p.skill * 6000 + r() * 2500);
+if (period === 'daily') return dayScore(p, today);
+let s = 0, d = today, n = period === 'weekly' ? 7 : 3660;
+while (n-- > 0 && d >= U.PUBLIC_DAY1) { s += dayScore(p, d); d = U.addDays(d, -1); }
+return s;
+}
+function maskName(n) {
+n = String(n || '').trim(); if (!n) return 'Quizzer';
+if (n.includes('@')) n = n.split('@')[0];
+const first = n.split(/[\s._-]+/)[0] || n;
+return first.slice(0, 2) + '•••';
+}
+function maskEmail(e) {
+e = String(e || ''); const i = e.indexOf('@'); if (i < 0) return '';
+return e.slice(0, Math.min(2, i)) + '•••' + e.slice(i);
 }
 function randomBot() {
 const style = U.pick(BOT_STYLE);
 return {
-name: `${U.pick(FIRST)} ${U.pick(LAST)}`, city: U.pick(CITIES), skill: style.skill + (Math.random() - 0.5) * 0.08,
+name: handle(Math.random), city: U.pick(CITIES), skill: style.skill + (Math.random() - 0.5) * 0.08,
 level: 3 + Math.floor(Math.random() * 25), style: style.label,
 avatar: U.pick(['🦚', '🐯', '🐘', '🦁', '🦜', '🐬', '🦉'])
 };
 }
-QB.mock = { players, scoreFor, randomBot, CITIES, SCHOOLS };
+QB.mock = { players, handle, activeCount, dayAvgMs, scoreFor, dayScore, maskName, maskEmail, randomBot, CITIES, SCHOOLS };
 })(window.QB);
 </script>
   <script>
@@ -2673,7 +2703,7 @@ submitDailyResult(date, rec, preview) { E.recordDaily(date, rec, preview); retur
 getLeaderboard({ period = 'daily', scope = 'india', today }) {
 const st = S.get();
 const me = st.profile;
-let rows = QB.mock.players().map(p => ({ ...p, score: QB.mock.scoreFor(p, period, today) }));
+let rows = QB.mock.players().map(p => ({ ...p, score: QB.mock.scoreFor(p, period, today), avgMs: period === 'daily' ? QB.mock.dayAvgMs(p, today) : null })).filter(p => p.score > 0);
 if (me) {
 rows.forEach((p, i) => {
 if (i % 9 === 0 && me.city) p.city = me.city;
@@ -2681,7 +2711,7 @@ if (i % 11 === 0 && me.school) p.school = me.school;
 });
 }
 const mine = myScore(period, today);
-rows.push({ id: 'me', name: me ? me.name : 'You', city: me ? me.city : '', school: me ? me.school : '', avatar: '⭐', score: mine, me: true });
+rows.push({ id: 'me', name: me ? QB.mock.maskName(me.name) : 'You', city: me ? me.city : '', school: me ? me.school : '', avatar: '⭐', score: mine, me: true });
 const same = (a, b) => (a || '').trim().toLowerCase() === (b || '').trim().toLowerCase();
 if (scope === 'city' && me) rows = rows.filter(r => same(r.city, me.city));
 if (scope === 'school' && me) rows = rows.filter(r => same(r.school, me.school));
@@ -2834,8 +2864,8 @@ return delay({ ok: true });
 };
 function myScore(period, today) {
 const st = S.get();
-const real = Object.entries(st.daily).filter(([, r]) => !r.preview);
-if (period === 'daily') return st.daily[today] && !st.daily[today].preview ? st.daily[today].score : 0;
+const real = Object.entries(st.daily).filter(([d, r]) => !r.preview && d >= U.PUBLIC_DAY1);
+if (period === 'daily') return today >= U.PUBLIC_DAY1 && st.daily[today] && !st.daily[today].preview ? st.daily[today].score : 0;
 if (period === 'weekly') return real.filter(([d]) => d > U.addDays(today, -7) && d <= today).reduce((s, [, r]) => s + r.score, 0);
 return real.reduce((s, [, r]) => s + r.score, 0) + Object.values(st.topics).reduce((s, t) => s + t.xp, 0);
 }
@@ -3665,7 +3695,7 @@ const c = challenge ? CH : null; topic = c ? c.topic : (E.TOPICS.find(t => t.id 
 lastTopic = topic; lastDiff = diff;
 const seed = c ? c.seed : newSeed(); const T = E.TOPICS.find(t => t.id === topic);
 const { qs, plan } = duelSetup(seed, topic, diff);
-const me = S.get().profile; const myName = me ? me.name.split(' ')[0] : 'You';
+const me = S.get().profile; const myName = me ? QB.mock.maskName(me.name) : 'You';
 const D = { i: 0, me: 0, op: 0, myR: 0, opR: 0, log: [], over: false, paused: 0, st: null, seed, topic, diff };
 const hash = challenge ? '#/duel/c' : `#/duel/${topic}/${diff}`;
 K.setGuard({ kind: 'duel', hash, active: () => !D.over, pause() { if (!D.paused) D.paused = performance.now(); },
@@ -3775,20 +3805,25 @@ const TIERS = [
 { name: 'Diamond', icon: '💎', scale: 880 }, { name: 'Quizmaster', icon: '👑', scale: 1200 }];
 const PROMOTE = 5, DEMOTE = 3, SIZE = 20;
 const weekStart = d => U.addDays(d, -((U.weekday(d) + 6) % 7));
-const weekPts = (ws) => { const by = (st().points || {}).byDate || {}; let t = 0; for (let i = 0; i < 7; i++) t += by[U.addDays(ws, i)] || 0; return t; };
+const weekPts = (ws) => { const by = (st().points || {}).byDate || {}; let t = 0; for (let i = 0; i < 7; i++) { const d = U.addDays(ws, i); if (d >= U.PUBLIC_DAY1) t += by[d] || 0; } return t; };
 function weekFrac(ws) { const now = Date.now() + U.IST_OFFSET_MS; const start = U.parseDate(ws); return Math.max(0, Math.min(1, (now - start) / (7 * 86400000))); }
+function rivalFrac(ws, atEnd) {
+const end = U.parseDate(U.addDays(ws, 7)); const start = Math.max(U.parseDate(ws), U.parseDate(U.PUBLIC_DAY1));
+const now = atEnd ? end : Math.min(end, Date.now() + U.IST_OFFSET_MS);
+return Math.max(0, Math.min(1, (now - start) / (7 * 86400000)));
+}
 function rivals(ws, tier, frac) {
 const r = U.rng(`league-${ws}-${tier}`); const M = QB.mock;
 const FIRST = ['Aarav', 'Ananya', 'Ishaan', 'Diya', 'Kabir', 'Meera', 'Vihaan', 'Saanvi', 'Arjun', 'Kavya', 'Rohan', 'Nandini', 'Aditya', 'Priya', 'Farhan', 'Zoya', 'Harpreet', 'Tenzin', 'Sneha', 'Karthik', 'Riya', 'Joseph', 'Aisha', 'Imran', 'Tanvi', 'Lavanya'];
 const AV = ['🦊', '🐯', '🦉', '🐼', '🐬', '🦚', '🐘', '🦁', '🐢', '🐙', '🦜', '🐝'];
 return Array.from({ length: SIZE - 1 }, (_, i) => {
 const target = Math.round(TIERS[tier].scale * (0.25 + r() * 1.6)); const curve = 0.7 + r() * 0.7;
-const name = FIRST[Math.floor(r() * FIRST.length)] + ' ' + 'ABCDEGHIKMNPRSTV'[Math.floor(r() * 16)] + '.';
+const name = M.handle(r);
 return { name, city: M.CITIES[Math.floor(r() * M.CITIES.length)], av: AV[Math.floor(r() * AV.length)], pts: Math.round(target * Math.pow(frac, curve)), bot: true };
 });
 }
 function board(ws, tier, mine, frac) {
-const me = S.get().profile; const list = rivals(ws, tier, frac).concat([{ name: me ? me.name : 'You', city: me ? me.city : 'Guest', av: '⭐', pts: mine, you: true }]);
+const me = S.get().profile; const list = rivals(ws, tier, frac).concat([{ name: me ? QB.mock.maskName(me.name) : 'You', city: me ? me.city : 'Guest', av: '⭐', pts: mine, you: true }]);
 return list.sort((a, b) => b.pts - a.pts || (a.you ? -1 : b.you ? 1 : 0)).map((x, i) => Object.assign(x, { rank: i + 1 }));
 }
 function settleLeague() {
@@ -3796,7 +3831,7 @@ const today = realToday(), ws = weekStart(today);
 S.update(s => {
 const L = s.league || (s.league = { tier: 0, week: ws, history: [] });
 if (L.week === ws) return;
-const mine = weekPts(L.week); const b = board(L.week, L.tier, mine, 1); const rank = b.find(x => x.you).rank;
+const mine = weekPts(L.week); const b = board(L.week, L.tier, mine, rivalFrac(L.week, true)); const rank = b.find(x => x.you).rank;
 const result = mine > 0 && rank <= PROMOTE && L.tier < TIERS.length - 1 ? 'up' : (rank > SIZE - DEMOTE || mine === 0) && L.tier > 0 ? 'down' : 'stay';
 L.history = (L.history || []).concat([{ week: L.week, tier: L.tier, rank, pts: mine, result }]).slice(-26);
 L.tier += result === 'up' ? 1 : result === 'down' ? -1 : 0; L.week = ws; L.last = { result, tier: L.tier, rank };
@@ -3805,7 +3840,7 @@ L.tier += result === 'up' ? 1 : result === 'down' ? -1 : 0; L.week = ws; L.last 
 function leagues() {
 settleLeague();
 const s = st(); const L = s.league; const ws = L.week; const T = TIERS[L.tier]; const mine = weekPts(ws); const frac = weekFrac(ws);
-const b = board(ws, L.tier, mine, frac); const meRow = b.find(x => x.you); const cut = b[PROMOTE - 1];
+const b = board(ws, L.tier, mine, rivalFrac(ws)); const meRow = b.find(x => x.you); const cut = b[PROMOTE - 1];
 const toPromo = meRow.rank <= PROMOTE ? 0 : Math.max(1, cut.pts - mine + 1);
 const pct = meRow.rank <= PROMOTE ? 100 : Math.round(100 * mine / Math.max(1, cut.pts + 1));
 const daysLeft = 7 - Math.floor(frac * 7);
@@ -3827,7 +3862,7 @@ ${L.last ? `<div class="card league-news">${L.last.result === 'up' ? `🎉 Promo
 <small class="muted">Points from the daily episode, packs and Orbit duels all count.</small>
 </section>
 <ol class="league-board" id="leagueBoard">${b.map(x => `<li class="${x.you ? 'you' : ''} ${x.rank <= PROMOTE ? 'up' : ''} ${L.tier && x.rank > SIZE - DEMOTE ? 'down' : ''}">
-<span class="lb-r">${x.rank}</span><span class="lb-av">${x.av}</span><span class="lb-n"><b>${esc(x.name)}</b><small>${esc(x.city)}${x.bot ? ' · practice rival' : ''}</small></span><span class="lb-p">${x.pts}</span></li>${x.rank === PROMOTE ? '<li class="zone-line" aria-hidden="true">▲ promotion zone</li>' : ''}${L.tier && x.rank === SIZE - DEMOTE ? '<li class="zone-line down" aria-hidden="true">▼ demotion zone</li>' : ''}`).join('')}</ol>
+<span class="lb-r">${x.rank}</span><span class="lb-av">${x.av}</span><span class="lb-n"><b>${x.you ? 'You · ' : ''}${esc(x.name)}</b><small>${esc(x.city)}${x.bot ? ' · practice rival' : ''}</small></span><span class="lb-p">${x.pts}</span></li>${x.rank === PROMOTE ? '<li class="zone-line" aria-hidden="true">▲ promotion zone</li>' : ''}${L.tier && x.rank === SIZE - DEMOTE ? '<li class="zone-line down" aria-hidden="true">▼ demotion zone</li>' : ''}`).join('')}</ol>
 <h2 class="section-title">Personal bests</h2>
 <section class="stats pb-grid" id="personalBests">
 <div><b>${best.day}</b><small>Best episode</small></div><div><b>${best.week}</b><small>Best week</small></div>
@@ -3860,14 +3895,14 @@ function authErr(e) { return (e && e.message) || 'Sign-in failed. Please try aga
 function stubSignOut() {
 QB.auth.signOut().then(() => toast('Signed out'));
 }
-function shortName(a) { return a.displayName || (a.email ? a.email.split('@')[0] : 'Quizzer'); }
+function shortName(a) { return QB.mock.maskName(a.displayName || a.email); }
 function signInCardHTML(mode) {
 const a = authOf();
 if (a) {
 const label = a.provider === 'google' ? 'Google' : 'Email';
 return `<section class="card auth-card" id="authCard" data-mode="${mode}">
 <b>Signed in as ${esc(shortName(a))}</b>
-<p class="muted small">${esc(label)}${a.email ? ' · ' + esc(a.email) : ''}</p>
+<p class="muted small">${esc(label)}${a.email ? ' · ' + esc(QB.mock.maskEmail(a.email)) : ''}</p>
 <p class="muted small auth-saved">✓ Streak, best and games played saved to your account</p>
 <button type="button" class="btn btn-ghost" id="authSignOut">Sign out</button>
 </section>`;
@@ -3976,7 +4011,7 @@ const acc = Object.entries(by).sort((a, b) => a[0].localeCompare(b[0]));
 const band = x => (x >= 70 ? 'full' : x >= 40 ? 'part' : 'wrong');
 const R = monthRecap();
 const a = authOf();
-const heroName = a ? (a.displayName || (a.email ? a.email.split('@')[0] : 'Quizzer')) : (p ? p.name : 'Guest quizzer');
+const heroName = a ? QB.mock.maskName(a.displayName || a.email) : (p ? QB.mock.maskName(p.name) : 'Guest quizzer');
 const heroSub = a
 ? (a.provider === 'google' ? 'Signed in with Google' : 'Signed in with email') + ' · progress saved' + (p && p.city ? ' · ' + p.city : '')
 : (p ? [p.city, p.school].filter(Boolean).join(' · ') : 'Join to save your name on the boards.');
@@ -4118,7 +4153,8 @@ x.fillStyle = '#f5f5f7'; x.font = '40px ' + F; x.textBaseline = 'middle'; x.fill
 });
 x.textBaseline = 'alphabetic'; x.textAlign = 'center';
 const [, mo, dy] = String(d.date).split('-').map(Number);
-x.fillStyle = '#a1a1a6'; x.font = '600 32px ' + F; x.fillText(`${d.day > 0 ? 'QUORBIT DAILY #' + d.day : 'QUORBIT PREVIEW'} · ${dy} ${MON[mo - 1]}`, cx, 82);
+const ed = d.edition ? String(d.edition).toUpperCase() : '';
+x.fillStyle = '#a1a1a6'; x.font = '600 32px ' + F; x.fillText(`${d.day > 0 ? 'QUORBIT DAILY #' + d.day : 'QUORBIT PREVIEW'}${ed ? ' · ' + ed : ''} · ${dy} ${MON[mo - 1]}`, cx, 82);
 x.fillStyle = '#f5f5f7'; x.font = '700 112px ' + F; x.fillText(`${d.correct}/${d.n}`, cx, 190);
 x.font = '700 56px ' + F; x.fillStyle = '#f5c542'; x.fillText(d.title, cx, 930);
 const st = [d.avgMs != null ? '⚡ ' + d.avg : null, '🔥 ' + d.streak, d.points != null ? '🎯 ' + Number(d.points).toLocaleString('en-US') : null].filter(Boolean).join('    ');
@@ -4614,7 +4650,7 @@ view(`
 <section class="card episode">
 <div class="ep-head">
 <div class="ep-ring">${ringSvg(U.episodeNo(TODAY))}</div>
-<div class="ep-meta"><div class="ep-no">${U.episodeNo(TODAY) > 0 ? 'EPISODE #' + U.episodeNo(TODAY) : 'PREVIEW'}</div><div class="muted small">${esc(U.prettyDate(TODAY))} · base max ${max} pts${E.EDITION !== 'mixed' ? ` · <a id="editionTag" class="link" href="?edition=mixed#/home" title="Switch back to the mixed edition">🌐 ${E.EDITIONS[E.EDITION].label} edition</a>` : ''}</div></div>
+<div class="ep-meta"><div class="ep-no">${U.episodeNo(TODAY) > 0 ? 'EPISODE #' + U.episodeNo(TODAY) : 'PREVIEW'}</div><div class="muted small">${esc(U.prettyDate(TODAY))} · <span id="editionTag" class="edition-label">${E.EDITION !== 'mixed' ? `<a class="link" href="?edition=mixed#/home" title="Switch back to the mixed edition">${esc(E.EDITIONS[E.EDITION].label)}</a>` : esc(E.EDITIONS[E.EDITION].label)}</span> · base max ${max} pts</div></div>
 <div class="onair"><span></span>ON AIR</div>
 </div>
 ${lineupOrbit(set)}
@@ -4939,7 +4975,7 @@ $app.querySelector('#reveal').innerHTML = `
 ${tier ? `<div class="tier-line" id="tierLine">🎖 ${E.TIER_LABEL[tier]} <span class="muted">×${E.TIER_MULT[tier]}</span></div>` : ''}
 <div class="answer-line">${q.tiers ? 'Rarest answer' : 'Answer'}: <b>${esc(q.answer)}</b>${isTyped && choice && !points ? `<span class="muted small"> (you said "${esc(choice)}")</span>` : ''}</div>
 ${q.tiers ? `<div class="accepted small muted">Also accepted: ${Object.keys(q.tiers).filter(a => a !== q.answer).map(esc).join(', ')}</div>` : ''}
-<div class="dyk"><span class="dyk-tag">Did you know?</span> ${esc(q.fact)}</div>
+${q.fact ? `<div class="dyk"><span class="dyk-tag">${isPic ? 'The connection' : 'Did you know?'}</span> ${esc(q.fact)}</div>` : ''}
 ${sourceLine(q)}
 ${credits ? `<div class="credits-inline">${credits}</div>` : ''}
 <button class="btn btn-gold btn-big" id="nextBtn">${last ? '🏁 See my result' : 'Next round ▸'}</button>
@@ -4991,7 +5027,7 @@ return { d, n: idx.length, got: idx.reduce((s, i) => s + (rec.answers[i] ? rec.a
 const news = newsState();
 view(`
 <section class="result spotlight">
-<p class="kicker">${U.episodeNo(TODAY) > 0 ? 'Episode #' + U.episodeNo(TODAY) : 'Preview'} · final score</p>
+<p class="kicker">${U.episodeNo(TODAY) > 0 ? 'Episode #' + U.episodeNo(TODAY) : 'Preview'} · ${esc(E.EDITIONS[E.EDITION].label)} · final score</p>
 <div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>${rec.score > rec.max ? `<p class="muted small center" id="overMax">🔥 combo · +${rec.score - rec.max} over base max ${rec.max}</p>` : ''}
 <div class="title-badge">${t.emoji} ${t.title}</div>
 <div class="share-hero" id="shareHero">
@@ -5529,7 +5565,7 @@ const qs = E.buildDuel(topicId, TODAY); const plan = E.botPlan(bot, qs);
 const D = { t, bot, qs, plan, i: 0, me: 0, op: 0, log: [], G }; G.D = D;
 view(`
 <section class="vs spotlight">
-<div class="vs-p"><div class="av">⭐</div><b>${esc(me ? me.name : 'You')}</b><small>${esc(me ? me.city : 'Guest')}</small></div>
+<div class="vs-p"><div class="av">⭐</div><b>${esc(me ? QB.mock.maskName(me.name) : 'You')}</b><small>${esc(me ? me.city : 'Guest')}</small></div>
 <div class="vs-mid">VS</div>
 <div class="vs-p"><div class="av">${bot.avatar}</div><b>${esc(bot.name)}</b><small>${esc(bot.city)} · LV ${bot.level}</small></div>
 </section>
@@ -5641,7 +5677,7 @@ if (seq !== routeSeq) return;
 const mine = rows.find(r => r.me); const top = rows.slice(0, 25);
 const row = r => `<li class="${r.me ? 'me' : ''} ${r.rank <= 3 ? 'podium p' + r.rank : ''}">
 <span class="rk">${r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : r.rank}</span><span class="av sm">${r.avatar}</span>
-<div class="who"><b>${esc(r.name)}${r.me ? ' (you)' : ''}</b><small>${esc([r.city, r.school].filter(Boolean).join(' · ') || 'Join to show your city & school')}</small></div>
+<div class="who"><b>${r.me ? 'You · ' : ''}${esc(r.name)}</b><small>${esc([r.city, r.school, r.avgMs ? '⚡ ' + E.fmtSecs(r.avgMs) + ' avg' : ''].filter(Boolean).join(' · ') || 'Join to show your city & school')}</small></div>
 <span class="sc">${r.score.toLocaleString('en-IN')}</span></li>`;
 view(`
 <h1 class="page-title">🏆 Leaderboard</h1>
@@ -5738,7 +5774,7 @@ const st = s.stats;
 view(`
 <section class="profile spotlight">
 <div class="av xl">⭐</div>
-<h1 class="page-title">${esc(p.name)} ${s.pass.active ? '<span class="badge gold-b">CHAMPION</span>' : ''}</h1>
+<h1 class="page-title">${esc(QB.mock.maskName(p.name))} ${s.pass.active ? '<span class="badge gold-b">CHAMPION</span>' : ''}</h1>
 <p class="muted">${esc([p.city, p.school].filter(Boolean).join(' · '))}</p>
 </section>
 <section class="stats">
