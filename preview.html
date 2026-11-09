@@ -1440,6 +1440,22 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
 .share-peek { margin: 12px 0; color: var(--muted); font-size: 0.875rem; }
 .share-peek summary { cursor: pointer; padding: 8px 0; }
 .pg-signup { margin-top: 8px; }
+.slider-card { text-align: center; padding: 16px 14px; }
+.slider-card .kicker { margin: 0 0 6px; }
+.slider-q { font-weight: 700; font-size: 1.0625rem; margin: 4px 0 10px; }
+.slider-lead { color: var(--muted); font-size: .9375rem; margin: 0 0 12px; }
+.slider-val { display: block; font-family: var(--mono); font-size: 2rem; font-weight: 800; color: var(--gold); margin: 6px 0 4px; }
+.slider-range { width: 100%; height: 44px; margin: 4px 0 0; accent-color: var(--gold); touch-action: pan-y; background: transparent; }
+.slider-range::-webkit-slider-thumb { width: 32px; height: 32px; }
+.slider-range::-moz-range-thumb { width: 32px; height: 32px; }
+.slider-ends { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.slider-fine { display: grid; grid-template-columns: 56px 1fr 56px; gap: 8px; }
+.slider-fine .btn { min-height: 48px; font-size: 1.25rem; }
+.slider-tier { display: inline-block; font-weight: 800; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.08); margin: 2px 0 8px; }
+.slider-tier.t-bullseye { background: rgba(48,209,88,.18); color: var(--green); }
+.slider-tier.t-close { background: rgba(255,214,10,.16); color: var(--gold); }
+.slider-tier.t-way { background: rgba(255,69,58,.16); color: var(--red); }
+.slider-ans { margin: 4px 0 8px; }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -1675,6 +1691,8 @@ daily: {},                     // date -> {score, max, marks:[], answers:[{point
 progress: null,                // in-progress daily {date, idx, results, score, qIdx, qStart, qHints}
 catchup: {},                   // date -> catch-up rec (separate from daily; never touches streak)
 catchupProgress: null,         // in-progress catch-up {date, idx, results, score, qIdx, qStart, qHints, catchup:true}
+slider: {},                    // date -> Closest-guess bonus result {id, guess, answer, gap, tier, gapText} or {id, skipped}
+sliderCatchup: {},             // same, for bonus rounds played from catch-up
 stats: { played: 0, streak: 0, maxStreak: 0, lastDate: null, totalScore: 0, best: 0, perfect: 0 },
 previewStats: { played: 0, streak: 0, maxStreak: 0, lastDate: null, totalScore: 0, best: 0, perfect: 0 },
 points: { total: 0, byDate: {}, daily: 0, duel: 0 },  // lifetime running total (all plays) + points earned per IST day
@@ -2369,7 +2387,8 @@ const head = catchup
 ? `🪐 Quorbit ${ep} · ${U.fmtDay(date)} · Catch-up · ${c}/${n} · ${t.emoji} ${t.title}`
 : `🪐 Quorbit ${ep} · ${c}/${n} · ${t.emoji} ${t.title}`;
 const line3 = [avg != null ? '⚡' + fmtSecs(avg) : null, catchup ? null : '🔥' + ((stats && stats.streak) || 0), stats && stats.points != null ? '🎯' + Number(stats.points).toLocaleString('en-US') : null].filter(Boolean).join(' · ');
-return `${head}\n${rec.marks.map(m => SHARE_DOT[m] || '⚪').join('')}\n${line3}` + (url ? '\n' + url : '');
+const bonus = opts && opts.bonusLine ? '\n' + opts.bonusLine : '';
+return `${head}\n${rec.marks.map(m => SHARE_DOT[m] || '⚪').join('')}\n${line3}` + bonus + (url ? '\n' + url : '');
 }
 function shareCardData(rec, date, set, stats) {
 const c = correctCount(rec), avg = rec.avgMs != null ? rec.avgMs : avgMs(rec.answers);
@@ -4208,6 +4227,70 @@ QB.shareCard = { draw, render };
 })();
 </script>
   <script>
+window.QB_SLIDER = {
+start: '2026-11-05',
+items: [],
+skip: [],
+pin: {}
+};
+</script>
+<script>
+(function (QB) {
+const U = QB.util;
+const D = window.QB_SLIDER || {};
+const START = D.start || '2026-11-05';
+const ITEMS = Array.isArray(D.items) ? D.items : [];
+const SKIP = new Set(D.skip || []);
+const PIN = D.pin || {};
+const BY_ID = Object.fromEntries(ITEMS.map(it => [it.id, it]));
+const num = x => typeof x === 'number' && isFinite(x);
+function valid(it) {
+return !!it && typeof it.id === 'string' && !!it.q && !!it.unit && !!it.fact && Array.isArray(it.sources) && it.sources.length > 0
+&& (it.region === 'India' || it.region === 'World') && num(it.answer) && num(it.min) && num(it.max) && num(it.step) && num(it.tol)
+&& it.step > 0 && it.min < it.max && it.answer >= it.min && it.answer <= it.max && it.tol >= 0 && (it.max - it.min) / it.step <= 2000;
+}
+const eligible = (it, date) => valid(it) && it.verified === true && !!U.parseDate(it.from) && date >= it.from && !SKIP.has(it.id);
+const plan = {}; let planned = null; const used = new Set();
+function itemFor(date) {
+if (!U.parseDate(date) || date < START) return null;
+if (planned == null || planned < date) {
+let d = planned == null ? START : U.addDays(planned, 1);
+while (d <= date) {
+const pin = PIN[d] && BY_ID[PIN[d]];
+let pick = pin && eligible(pin, d) && !used.has(pin.id) ? pin : null;
+if (!pick) {
+const pool = ITEMS.filter(it => eligible(it, d) && !used.has(it.id) && !Object.values(PIN).includes(it.id))
+.sort((a, b) => a.from.localeCompare(b.from) || U.hashString('slider|' + a.id) - U.hashString('slider|' + b.id));
+pick = pool[0] || null;
+}
+if (pick) used.add(pick.id);
+plan[d] = pick ? pick.id : null; planned = d; d = U.addDays(d, 1);
+}
+}
+return plan[date] ? BY_ID[plan[date]] : null;
+}
+const decimals = step => { const s = String(step); return s.includes('.') ? s.split('.')[1].length : 0; };
+const snap = (it, v) => { const k = Math.round((v - it.min) / it.step); const r = it.min + k * it.step; return +Math.min(it.max, Math.max(it.min, r)).toFixed(decimals(it.step)); };
+const fmt = (it, v) => (it.display === 'year' ? String(v) : Number(v).toLocaleString('en-IN', { maximumFractionDigits: decimals(it.step) }));
+const label = (it, v) => (it.display === 'year' ? fmt(it, v) : `${fmt(it, v)} ${it.unit}`);
+function grade(it, guess) {
+const g = snap(it, guess); const gap = +Math.abs(g - it.answer).toFixed(decimals(it.step) + 2);
+const tier = gap <= it.step + 1e-9 ? 'bullseye' : gap <= it.tol + 1e-9 ? 'close' : 'way';
+return { id: it.id, guess: g, answer: it.answer, gap, tier, gapText: gapText(it, gap) };
+}
+function gapText(it, gap) { if (gap === 0) return 'Exact'; return `${fmt(it, gap)} ${gap === 1 && it.unitOne ? it.unitOne : it.unit} off`; }
+const TIER = { bullseye: { label: 'Bullseye', icon: '🎯' }, close: { label: 'Close', icon: '🟡' }, way: { label: 'Way off', icon: '🔴' } };
+const key = catchup => (catchup ? 'sliderCatchup' : 'slider');
+function resultFor(date, catchup) { const s = QB.store.get(); return (s[key(catchup)] || {})[date] || null; }
+function record(date, res, catchup) {
+QB.store.update(s => { const k = key(catchup); if (!s[k]) s[k] = {}; if (s[k][date]) return; s[k][date] = Object.assign({}, res, { at: Date.now() }); });
+}
+function skip(date, id, catchup) { record(date, { id, skipped: true }, catchup); }
+function shareLine(res) { if (!res || res.skipped || res.gap == null) return ''; return `Bonus 🎯 ${res.gap === 0 ? 'Bullseye' : res.gapText}`; }
+QB.slider = { START, ITEMS, valid, eligible, itemFor, snap, fmt, label, grade, gapText, TIER, resultFor, record, skip, shareLine };
+})(window.QB);
+</script>
+<script>
 (function (QB) {
 const U = QB.util, S = QB.store, E = QB.engine, A = QB.api, sfx = QB.sfx, esc = U.esc;
 const $app = document.getElementById('app');
@@ -5065,7 +5148,7 @@ const rec = S.get().daily[TODAY];
 if (!rec) return go('#/home');
 const st = stats(); const t = E.titleFor(rec.score, rec.max);
 const seq = routeSeq; const set = await A.getDaily(TODAY); if (seq !== routeSeq) return;
-const shareStats = { streak: E.liveStreak(st, TODAY), points: (S.get().points || {}).total }; const share = E.shareText(rec, TODAY, shareStats); const avg = rec.avgMs != null ? rec.avgMs : E.avgMs(rec.answers);
+const shareStats = { streak: E.liveStreak(st, TODAY), points: (S.get().points || {}).total }; const share = E.shareText(rec, TODAY, shareStats, { bonusLine: sliderShareLine(TODAY, false) }); const avg = rec.avgMs != null ? rec.avgMs : E.avgMs(rec.answers);
 const shareCorrect = rec.marks.filter(m => m === 'full' || m === 'part').length;
 const byDiff = ['easy', 'medium', 'hard'].map(d => {
 const idx = set.map((x, i) => (x.difficulty === d ? i : -1)).filter(i => i >= 0);
@@ -5088,6 +5171,7 @@ ${WW_KEY}
 <div class="diff-split">${byDiff.map(b => `<div>${DIFFBADGE(b.d)}<b>${b.got}</b><small class="muted"> pts · ${b.n} q</small></div>`).join('')}</div>
 ${avg != null ? `<p class="speed-sum" id="speedSum">⚡ Avg answer ${E.fmtSecs(avg)}${rec.fastMs ? ` · fastest right ${E.fmtSecs(rec.fastMs)}` : ''}</p>` : ''}
 </section>
+${PREVIEW ? '' : sliderCard(TODAY, false)}
 ${postGameCard()}
 ${levelCard()}
 <section class="stats" id="resultStats">
@@ -5125,6 +5209,7 @@ try { if (!PREVIEW && QB.auth && QB.auth.mail) { const c = rec.marks.filter(m =>
 QB.auth.mail('first-daily', { score: c, title: E.shareTitle ? E.shareTitle(c).title : '', episode: U.episodeNo(TODAY) > 0 ? U.episodeNo(TODAY) : 'Preview' }); } } catch (e) {}
 on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); if (ok) { QB.track('share-copy'); QB.track('share-done'); } toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 wirePostGame();
+if (!PREVIEW) wireSlider(TODAY, false);
 }
 function isAuthSignedIn() {
 const a = S.get().auth;
@@ -6215,7 +6300,7 @@ if (!rec) return go(catchupDateOk(date) ? '#/catchup/' + date : '#/catchup');
 const t = E.titleFor(rec.score, rec.max);
 const seq = routeSeq; const set = await A.getDaily(date); if (seq !== routeSeq) return;
 const shareStats = { streak: E.liveStreak(stats(), TODAY), points: (S.get().points || {}).total };
-const share = E.shareText(rec, date, shareStats, { catchup: true });
+const share = E.shareText(rec, date, shareStats, { catchup: true, bonusLine: sliderShareLine(date, true) });
 const shareCorrect = rec.marks.filter(m => m === 'full' || m === 'part').length;
 const avg = rec.avgMs != null ? rec.avgMs : E.avgMs(rec.answers);
 view(`
@@ -6234,6 +6319,7 @@ label: `Wagon wheel of ${set.length} catch-up rounds: ` + set.map((x, i) => `${x
 ${WW_KEY}
 ${avg != null ? `<p class="speed-sum" id="speedSum">⚡ Avg answer ${E.fmtSecs(avg)}${rec.fastMs ? ` · fastest right ${E.fmtSecs(rec.fastMs)}` : ''}</p>` : ''}
 </section>
+${sliderCard(date, true)}
 <details class="share-peek" id="shareCard"><summary>See what you'll share</summary><pre class="share-preview" id="sharePreview">${esc(share)}</pre></details>
 <div class="row2"><a class="btn btn-ghost" href="#/catchup">More catch-up</a><a class="btn btn-ghost" href="#/home">Back to today</a></div>
 <h2 class="section-title">Answers</h2>
@@ -6255,6 +6341,51 @@ toast(ok ? 'Copied. Paste it in WhatsApp or any chat.' : (opened !== null ? 'Ope
 on('#waBtn', 'click', () => { QB.track('share-click'); QB.track('share-whatsapp'); QB.track('share-done'); });
 on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); if (ok) { QB.track('share-copy'); QB.track('share-done'); } toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 try { const k = 'qb:gcCatchupFinish:' + date; if (!localStorage.getItem(k)) { localStorage.setItem(k, '1'); QB.track('catchup-finish'); } } catch (e) {}
+wireSlider(date, true);
+}
+const SL = QB.slider;
+function sliderShareLine(date, catchup) { return SL ? SL.shareLine(SL.resultFor(date, catchup)) : ''; }
+function sliderCard(date, catchup) {
+const it = SL && SL.itemFor(date); if (!it) return '';
+const res = SL.resultFor(date, catchup);
+if (res && res.skipped) return '';
+if (res) { const T = SL.TIER[res.tier] || SL.TIER.way;
+return `<section class="card slider-card slider-done" id="sliderCard">
+<p class="kicker">Bonus · Closest guess</p>
+<p class="slider-q">${esc(it.q)}</p>
+<div class="slider-tier t-${res.tier}" id="sliderTier">${T.icon} ${T.label}</div>
+<p class="slider-ans">Answer: <b>${esc(SL.label(it, it.answer))}</b> · you said ${esc(SL.label(it, res.guess))} · <b id="sliderGap">${esc(res.gapText)}</b></p>
+<div class="dyk"><span class="dyk-tag">Did you know?</span> ${esc(it.fact)}</div>
+<p class="muted small">Bonus only · your score and streak are unchanged</p>
+</section>`; }
+return `<section class="card slider-card" id="sliderCard">
+<p class="kicker">Bonus · Closest guess</p>
+<p class="slider-lead">One number, no clock. Just for fun: it never changes your score or streak.</p>
+<div class="row2"><button class="btn btn-gold" id="sliderPlay" type="button">Play</button><button class="btn btn-ghost" id="sliderSkip" type="button">Skip</button></div>
+</section>`;
+}
+function wireSlider(date, catchup) {
+const it = SL && SL.itemFor(date); const card = document.getElementById('sliderCard'); if (!it || !card) return;
+const skipBtn = document.getElementById('sliderSkip'), playBtn = document.getElementById('sliderPlay');
+if (skipBtn) skipBtn.addEventListener('click', () => { SL.skip(date, it.id, catchup); QB.track('slider-skip'); route(); });
+if (!playBtn) return;
+playBtn.addEventListener('click', () => {
+QB.track('slider-start');
+let v = SL.snap(it, (it.min + it.max) / 2);
+card.innerHTML = `<p class="kicker">Bonus · Closest guess</p>
+<p class="slider-q" id="sliderQ">${esc(it.q)}</p>
+<output class="slider-val" id="sliderVal" for="sliderRange" aria-live="polite"></output>
+<input class="slider-range" id="sliderRange" type="range" min="${it.min}" max="${it.max}" step="${it.step}" value="${v}" aria-labelledby="sliderQ">
+<div class="slider-ends muted small"><span>${esc(SL.fmt(it, it.min))}</span><span>${esc(SL.fmt(it, it.max))}</span></div>
+<div class="slider-fine"><button class="btn btn-ghost" id="sliderMinus" type="button" aria-label="Decrease by ${it.step}">−</button><button class="btn btn-gold" id="sliderGo" type="button">Lock it in</button><button class="btn btn-ghost" id="sliderPlus" type="button" aria-label="Increase by ${it.step}">+</button></div>`;
+const r = document.getElementById('sliderRange'), out = document.getElementById('sliderVal');
+const show = () => { out.textContent = SL.label(it, v); r.value = v; r.setAttribute('aria-valuetext', out.textContent); };
+show();
+r.addEventListener('input', () => { v = SL.snap(it, +r.value); show(); });
+document.getElementById('sliderMinus').addEventListener('click', () => { v = SL.snap(it, v - it.step); show(); });
+document.getElementById('sliderPlus').addEventListener('click', () => { v = SL.snap(it, v + it.step); show(); });
+document.getElementById('sliderGo').addEventListener('click', () => { SL.record(date, SL.grade(it, v), catchup); QB.track('slider-finish'); route(); });
+});
 }
 document.addEventListener('submit', () => { const h = location.hash || ''; if (/^#\/(account|join|me)/.test(h)) QB.track('signup-submit'); }, true);
 if (QB.auth && QB.auth.onChange) QB.auth.onChange(() => { if (/^#\/(account|me|friends)/.test(location.hash || '')) route(); });
