@@ -1460,6 +1460,14 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
 .slider-tier.t-close { background: rgba(255,214,10,.16); color: var(--gold); }
 .slider-tier.t-way { background: rgba(255,69,58,.16); color: var(--red); }
 .slider-ans { margin: 4px 0 8px; }
+.slider-badge { margin: 8px 0 4px; font-weight: 700; }
+.slider-badge-card { text-align: center; }
+.slider-badge-name { font-weight: 800; margin: 2px 0 4px; }
+.slider-round { padding: 8px 0 24px; }
+.slider-round .slider-card { margin: 0; }
+.slider-round #sliderResults { width: 100%; margin-top: 14px; }
+.slider-round .row2 .btn { min-height: 48px; }
+.slider-round .row2 { margin-top: 4px; }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -4064,6 +4072,17 @@ try { await navigator.share({ title: 'Quorbit', text: 'Play the daily Quorbit qu
 catch (e) { if (!e || e.name !== 'AbortError') { const ok = await K.copyText(invite); toast(ok ? 'Invite link copied' : 'Could not copy — select the link'); } }
 });
 }
+function sharpshooterMeCard() {
+const b = QB.slider.badge();
+const title = b.label || '🎯 Sharpshooter';
+const sub = b.progress ? b.progress : (b.label ? 'Closest-guess bonus · top tier' : 'Close or Bullseye on the bonus slider counts as a hit');
+const hits = b.hits ? `${b.hits} hit${b.hits === 1 ? '' : 's'}` : 'No hits yet';
+return `<div class="card slider-badge-card" id="sharpshooterCard">
+<p class="kicker">Bonus · Closest guess</p>
+<p class="slider-badge-name">${esc(title)}</p>
+<p class="muted small">${esc(sub)} · ${esc(hits)}</p>
+</div>`;
+}
 function meProfile() {
 const s = st(); const p = s.profile; const tot = (s.points || {}).total || 0; const L = E.levelFor(tot);
 const B = badgeState(); const got = B.filter(b => b.got).length;
@@ -4102,6 +4121,7 @@ ${!p || (a && (!p.city || p.name === a.displayName)) ? `<a class="card contribut
 <a class="btn btn-wa" id="recapShare" href="${esc(E.whatsappUrl(recapText(R)))}" target="_blank" rel="noopener">📤 Share on WhatsApp</a>
 <small class="muted">Percentile is against simulated practice players until real leagues launch.</small>
 </section>
+${QB.slider && QB.slider.badge ? sharpshooterMeCard() : ''}
 <h2 class="section-title">Badges <span class="muted small">${got}/${B.length}</span></h2>
 <ul class="badge-grid" id="badgeGrid">${B.map(b => `<li class="${b.got ? 'got' : ''}" title="${esc(b.how)}"><span class="bg-ico">${b.got ? b.icon : '🔒'}</span><b>${esc(b.name)}</b><small>${b.got ? 'Unlocked' : `${b.v}/${b.goal} · ${esc(b.how)}`}</small></li>`).join('')}</ul>
 ${fav.length ? `<h2 class="section-title">Favourite topics</h2><div class="chip-wrap" id="favTopics">${fav.map(([k, t]) => `<span class="chip-btn static">${CAT_ICON[k]} ${esc(k)} <small>${t.n} q</small></span>`).join('')}</div>` : ''}
@@ -4328,8 +4348,29 @@ function record(date, res, catchup) {
 QB.store.update(s => { const k = key(catchup); if (!s[k]) s[k] = {}; if (s[k][date]) return; s[k][date] = Object.assign({}, res, { at: Date.now() }); });
 }
 function skip(date, id, catchup) { record(date, { id, skipped: true }, catchup); }
-function shareLine(res) { if (!res || res.skipped || res.gap == null) return ''; return `Bonus 🎯 ${res.gap === 0 ? 'Bullseye' : res.gapText}`; }
-QB.slider = { START, ITEMS, valid, eligible, itemFor, snap, fmt, label, grade, gapText, TIER, resultFor, record, skip, shareLine };
+const BADGE_TIERS = [{ at: 3, name: 'Bronze' }, { at: 10, name: 'Silver' }, { at: 25, name: 'Gold' }];
+const isHit = res => !!(res && !res.skipped && (res.tier === 'bullseye' || res.tier === 'close'));
+function allResults() {
+const s = QB.store.get() || {}, out = Object.assign({}, s.slider || {});
+Object.entries(s.sliderCatchup || {}).forEach(([d, res]) => { if (!out[d] || (!isHit(out[d]) && isHit(res))) out[d] = res; });
+return out;
+}
+function hitCount() { return Object.values(allResults()).filter(isHit).length; }
+function badge() {
+const n = hitCount();
+let earned = null; for (const t of BADGE_TIERS) if (n >= t.at) earned = t;
+const next = BADGE_TIERS.find(t => n < t.at) || null;
+const more = next ? next.at - n : 0;
+return { hits: n, tier: earned ? earned.name : null, label: earned ? '🎯 Sharpshooter ' + earned.name : null, next: next ? next.name : null, nextAt: next ? next.at : null, more,
+progress: next ? (more === 1 ? '1 more hit to ' : more + ' more hits to ') + next.name : null };
+}
+function shareLine(res) {
+if (!res || res.skipped || res.gap == null) return '';
+const base = `Bonus 🎯 ${res.gap === 0 ? 'Bullseye' : res.gapText}`;
+const b = badge();
+return b.label ? base + ' · ' + b.label : base;
+}
+QB.slider = { START, ITEMS, valid, eligible, itemFor, snap, fmt, label, grade, gapText, TIER, BADGE_TIERS, isHit, hitCount, badge, resultFor, record, skip, shareLine };
 })(window.QB);
 </script>
   <script>
@@ -4434,11 +4475,18 @@ let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remo
 }
 }
 const ROOTS = { home: 1, topics: 1, leaderboard: 1, me: 1, '': 1 };
-const PARENT = { how: '#/home', lineup: '#/home', play: '#/home', result: '#/home', catchup: '#/home', world: '#/home', practice: '#/home', credits: '#/me', topic: '#/topics',
+const PARENT = { how: '#/home', lineup: '#/home', play: '#/home', result: '#/home', bonus: '#/result', catchup: '#/home', world: '#/home', practice: '#/home', credits: '#/me', topic: '#/topics',
 duel: '#/duel', pack: '#/topics', total: '#/topics', board: '#/leaderboard', stats: '#/me', pass: '#/me', archive: '#/me', submit: '#/me', join: '#/me',
 friends: '#/me', account: '#/me', settings: '#/me', faq: '#/me', terms: '#/me', privacy: '#/me', legal: '#/me', about: '#/me', contact: '#/me', pricing: '#/me', refund: '#/me', review: '#/me', desk: '#/me' };
 const curHash = () => location.hash || '#/home';
 const routeOf = h => (h || '#/home').slice(2).split('/');
+function parentHash(h) {
+const [r, arg, arg2] = routeOf(h);
+if (r === 'total' && arg) return '#/total';
+if (r === 'catchup' && arg2 === 'bonus' && arg) return '#/catchup/' + arg + '/result';
+if (r === 'catchup' && arg) return '#/catchup';
+return PARENT[r] || '#/home';
+}
 const isRoot = h => { const [r, arg] = routeOf(h); return r === 'duel' ? !arg : r === 'join' ? false : !!ROOTS[r] || !PARENT[r]; };
 const navStack = [curHash()];
 let guard = null;
@@ -4472,15 +4520,15 @@ return ok;
 }
 async function goBack() {
 if (!(await confirmLeave())) return;
-const h = curHash(); const [r, arg] = routeOf(h);
-const parent = (r === 'total' && arg) ? '#/total' : (r === 'catchup' && arg) ? '#/catchup' : (PARENT[r] || '#/home');
+const h = curHash();
+const parent = parentHash(h);
 if (navStack.length > 1 && navStack[navStack.length - 2] === parent) history.back();
 else location.hash = parent;
 }
 function setBack() {
 const b = document.getElementById('backBtn'); const sub = !isRoot(curHash());
 b.hidden = !sub; document.getElementById('topbar').classList.toggle('has-back', sub);
-const [r, arg] = routeOf(curHash()); const p = (r === 'total' && arg) ? '#/total' : (r === 'catchup' && arg) ? '#/catchup' : (PARENT[r] || '#/home');
+const p = parentHash(curHash());
 b.setAttribute('aria-label', 'Back to ' + ({ '#/home': 'Today', '#/topics': 'Topics', '#/total': 'Quorbit Total', '#/duel': 'Duel topics', '#/me': 'Me' }[p] || 'previous screen'));
 }
 let floatOff = null;
@@ -5172,12 +5220,12 @@ fingerprint: E.episodeFingerprint(game.set), episodeRev: E.EPISODE_REV };
 if (!isFinite(rec.fastMs)) rec.fastMs = null;
 if (game.catchup) {
 E.recordCatchup(game.date, rec);
-sfx.fanfare(); guard = null; location.replace('#/catchup/' + game.date + '/result');
+sfx.fanfare(); guard = null; location.replace(sliderOfferHash(game.date, true) || ('#/catchup/' + game.date + '/result'));
 if (rec.score >= rec.max) SX.confetti(70);
 return;
 }
 await A.submitDailyResult(TODAY, rec, PREVIEW);
-sfx.fanfare(); guard = null; location.replace('#/result');
+sfx.fanfare(); guard = null; location.replace(sliderOfferHash(TODAY, false) || '#/result');
 if (rec.score >= rec.max) SX.confetti(70);
 setTimeout(() => SX.igniteFlame(), 500); SX.checkBadges();
 }
@@ -5914,6 +5962,19 @@ toast(first ? `Welcome to the show, ${v.name.trim().split(' ')[0]}!` : 'Profile 
 go(first && E.PAYMENTS_LIVE ? '#/pass' : '#/me');
 });
 }
+function sharpshooterCard() {
+if (!SL || !SL.badge) return '';
+const b = SL.badge();
+const title = b.label || '🎯 Sharpshooter';
+const sub = b.progress ? b.progress : (b.label ? 'Closest-guess bonus · top tier' : 'Closest-guess bonus');
+const hits = b.hits ? `${b.hits} hit${b.hits === 1 ? '' : 's'} · Close or Bullseye counts` : 'Close or Bullseye on the bonus slider counts as a hit';
+return `<div class="card slider-badge-card" id="sharpshooterCard">
+<p class="kicker">Bonus · Closest guess</p>
+<p class="slider-badge-name" id="sharpshooterName">${esc(title)}</p>
+<p class="muted small" id="sharpshooterProgress">${esc(sub)}</p>
+<p class="muted small" id="sharpshooterHits">${esc(hits)}</p>
+</div>`;
+}
 function statsPage() {
 const s = S.get(); const st = stats(); const P = E.personalStats(s.daily, PREVIEW);
 const ico = t => E.CAT_ICON[t.topic] || (t.topic === 'Visual' ? '🖼️' : t.topic === 'Connect' ? '🧩' : '❔');
@@ -5929,6 +5990,7 @@ ${levelCard()}
 <div><b data-k="streak">${E.liveStreak(st, TODAY)}</b><small>Streak 🔥</small></div>
 <div><b data-k="maxStreak">${st.maxStreak}</b><small>Best streak</small></div>
 </section>
+${sharpshooterCard()}
 ${P.played ? `
 <div class="card best-topic" id="bestTopic"><span class="s-ico">🏅</span><div><small>BEST TOPIC</small><b>${esc(P.bestTopic.topic)}</b>
 <small>${P.bestTopic.pct}% of available points over ${P.bestTopic.n} question${P.bestTopic.n === 1 ? '' : 's'}</small></div></div>
@@ -6387,35 +6449,57 @@ try { const k = 'qb:gcCatchupFinish:' + date; if (!localStorage.getItem(k)) { lo
 wireSlider(date, true);
 }
 const SL = QB.slider;
+const SLIDER_KICKER = 'Bonus · Closest guess';
+const SLIDER_ROUND_KICKER = 'Bonus round 🎯 · Closest guess';
 function sliderShareLine(date, catchup) { return SL ? SL.shareLine(SL.resultFor(date, catchup)) : ''; }
-function sliderCard(date, catchup) {
-const it = SL && SL.itemFor(date); if (!it) return '';
-const res = SL.resultFor(date, catchup);
-if (res && res.skipped) return '';
-if (res) { const T = SL.TIER[res.tier] || SL.TIER.way;
-return `<section class="card slider-card slider-done" id="sliderCard">
-<p class="kicker">Bonus · Closest guess</p>
+function sliderPending(date, catchup) { return !!(SL && SL.itemFor(date) && !SL.resultFor(date, catchup)); }
+function sliderResultsHash(date, catchup) { return catchup ? '#/catchup/' + date + '/result' : '#/result'; }
+function sliderOfferHash(date, catchup) {
+if (PREVIEW && !catchup) return null;
+return sliderPending(date, catchup) ? (catchup ? '#/catchup/' + date + '/bonus' : '#/bonus') : null;
+}
+function sliderBadgeLine() {
+if (!SL || !SL.badge) return '';
+const b = SL.badge();
+const text = b.label && b.progress ? `${b.label} · ${b.progress}` : (b.label || b.progress || '');
+return text ? `<p class="slider-badge" id="sliderBadge">${esc(text)}</p>` : '';
+}
+function sliderDoneInner(it, res, kicker) {
+const T = SL.TIER[res.tier] || SL.TIER.way;
+return `<p class="kicker">${esc(kicker)}</p>
 <p class="slider-q">${esc(it.q)}</p>
 <div class="slider-tier t-${res.tier}" id="sliderTier">${T.icon} ${T.label}</div>
 <p class="slider-ans">Answer: <b>${esc(SL.label(it, it.answer))}</b> · you said ${esc(SL.label(it, res.guess))} · <b id="sliderGap">${esc(res.gapText)}</b></p>
 <div class="dyk"><span class="dyk-tag">Did you know?</span> ${esc(it.fact)}</div>
-<p class="muted small">Bonus only · your score and streak are unchanged</p>
+${sliderBadgeLine()}
+<p class="muted small">Bonus only · your score and streak are unchanged</p>`;
+}
+function sliderCard(date, catchup) {
+const it = SL && SL.itemFor(date); if (!it) return '';
+const res = SL.resultFor(date, catchup);
+if (res && res.skipped) return '';
+if (res) {
+return `<section class="card slider-card slider-done" id="sliderCard">
+${sliderDoneInner(it, res, SLIDER_KICKER)}
 </section>`; }
 return `<section class="card slider-card" id="sliderCard">
-<p class="kicker">Bonus · Closest guess</p>
+<p class="kicker">${SLIDER_KICKER}</p>
 <p class="slider-lead">One number, no clock. Just for fun: it never changes your score or streak.</p>
 <div class="row2"><button class="btn btn-gold" id="sliderPlay" type="button">Play</button><button class="btn btn-ghost" id="sliderSkip" type="button">Skip</button></div>
 </section>`;
 }
-function wireSlider(date, catchup) {
+function wireSlider(date, catchup, opts) {
 const it = SL && SL.itemFor(date); const card = document.getElementById('sliderCard'); if (!it || !card) return;
+const kicker = (opts && opts.kicker) || SLIDER_KICKER;
+const afterSkip = (opts && opts.afterSkip) || route;
+const afterLock = (opts && opts.afterLock) || route;
 const skipBtn = document.getElementById('sliderSkip'), playBtn = document.getElementById('sliderPlay');
-if (skipBtn) skipBtn.addEventListener('click', () => { SL.skip(date, it.id, catchup); QB.track('slider-skip'); route(); });
+if (skipBtn) skipBtn.addEventListener('click', () => { SL.skip(date, it.id, catchup); QB.track('slider-skip'); afterSkip(); });
 if (!playBtn) return;
 playBtn.addEventListener('click', () => {
 QB.track('slider-start');
 let v = SL.snap(it, (it.min + it.max) / 2);
-card.innerHTML = `<p class="kicker">Bonus · Closest guess</p>
+card.innerHTML = `<p class="kicker">${esc(kicker)}</p>
 <p class="slider-q" id="sliderQ">${esc(it.q)}</p>
 <output class="slider-val" id="sliderVal" for="sliderRange" aria-live="polite"></output>
 <input class="slider-range" id="sliderRange" type="range" min="${it.min}" max="${it.max}" step="${it.step}" value="${v}" aria-labelledby="sliderQ">
@@ -6427,7 +6511,34 @@ show();
 r.addEventListener('input', () => { v = SL.snap(it, +r.value); show(); });
 document.getElementById('sliderMinus').addEventListener('click', () => { v = SL.snap(it, v - it.step); show(); });
 document.getElementById('sliderPlus').addEventListener('click', () => { v = SL.snap(it, v + it.step); show(); });
-document.getElementById('sliderGo').addEventListener('click', () => { SL.record(date, SL.grade(it, v), catchup); QB.track('slider-finish'); route(); });
+document.getElementById('sliderGo').addEventListener('click', () => { SL.record(date, SL.grade(it, v), catchup); QB.track('slider-finish'); afterLock(it, SL.resultFor(date, catchup)); });
+});
+}
+function sliderBonus(date, catchup) {
+if (!catchup && PREVIEW) return location.replace('#/result');
+if (catchup) {
+if (!(S.get().catchup || {})[date]) return go(catchupDateOk(date) ? '#/catchup/' + date : '#/catchup');
+} else if (!S.get().daily[TODAY]) return go('#/home');
+if (!sliderPending(date, catchup)) return location.replace(sliderResultsHash(date, catchup));
+const it = SL.itemFor(date);
+view(`<section class="slider-round" id="sliderRound">
+<section class="card slider-card" id="sliderCard">
+<p class="kicker">${SLIDER_ROUND_KICKER}</p>
+<p class="slider-lead">One number, no clock. Just for fun: it never changes your score or streak.</p>
+<div class="row2"><button class="btn btn-gold" id="sliderPlay" type="button">Play</button><button class="btn btn-ghost" id="sliderSkip" type="button">Skip</button></div>
+</section>
+</section>`, 'home');
+const toResults = () => location.replace(sliderResultsHash(date, catchup));
+wireSlider(date, catchup, {
+kicker: SLIDER_ROUND_KICKER,
+afterSkip: toResults,
+afterLock: (item, res) => {
+const card = document.getElementById('sliderCard'); if (!card || !res) return toResults();
+card.classList.add('slider-done');
+card.innerHTML = sliderDoneInner(item || it, res, SLIDER_ROUND_KICKER)
++ `<button class="btn btn-gold btn-big" id="sliderResults" type="button">See your results</button>`;
+const b = document.getElementById('sliderResults'); if (b) b.addEventListener('click', toResults);
+}
 });
 }
 document.addEventListener('submit', () => { const h = location.hash || ''; if (/^#\/(account|join|me)/.test(h)) QB.track('signup-submit'); }, true);
@@ -6436,7 +6547,7 @@ function route(opts = {}) {
 routeSeq++; QB.audio.setIntensity(0); guard = null; floatCta(null);
 const h = (location.hash || '#/home').slice(2).split('/');
 const [r, arg, arg2] = h;
-const playing = r === 'play' || r === 'practice' || (r === 'topic' && arg2 === 'play') || (r === 'pack' && arg2 === 'play')
+const playing = r === 'play' || r === 'practice' || r === 'bonus' || (r === 'topic' && arg2 === 'play') || (r === 'pack' && arg2 === 'play')
 || (r === 'duel' && !!arg) || (r === 'total' && !!arg) || (r === 'catchup' && arg && arg2 !== 'result');
 document.body.classList.toggle('in-play', playing);
 if ((r === 'topic' || r === 'pack') && arg2 === 'play') { try { sessionStorage.setItem('qb:lastPlayedRoute', `#/${r}/${arg}`); } catch (e) {} }
@@ -6444,7 +6555,7 @@ else if (r === 'play') { try { sessionStorage.removeItem('qb:lastPlayedRoute'); 
 setBack();
 if (!opts.cache) { const T = QB.track;
 if (r === 'play') T('daily-start'); else if (r === 'practice') T('practice-start');
-else if (r === 'catchup' && arg && arg2 !== 'result') T('catchup-start');
+else if (r === 'catchup' && arg && arg2 !== 'result' && arg2 !== 'bonus') T('catchup-start');
 else if ((r === 'topic' || r === 'pack') && arg2 === 'play') T('topic-pack-start');
 else if (r === 'account' || r === 'join') T('signup-open');
 else if (r === 'pass' || (r === 'total' && !arg)) T('pass-view'); }
@@ -6457,7 +6568,8 @@ case 'credits': return credits();
 case 'play': return play();
 case 'practice': return practicePlay();
 case 'result': return result();
-case 'catchup': return arg2 === 'result' ? catchupResult(arg) : arg ? catchupPlay(arg) : catchupList();
+case 'bonus': return sliderBonus(TODAY, false);
+case 'catchup': return arg2 === 'result' ? catchupResult(arg) : arg2 === 'bonus' ? sliderBonus(arg, true) : arg ? catchupPlay(arg) : catchupList();
 case 'topics': return SX.library();
 case 'pack': return arg2 === 'play' ? SX.packPlay(arg) : SX.packPage(arg);
 case 'board': return leaderboard();
