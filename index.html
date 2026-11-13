@@ -1437,6 +1437,8 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
 .share-nudge { margin: 10px 0 2px; color: var(--muted); font-size: 0.9375rem; }
 .share-alt { display: flex; justify-content: center; align-items: center; gap: 10px; color: var(--muted); font-size: 0.875rem; }
 .share-alt .link { color: var(--muted); font-weight: 600; font-size: 0.875rem; padding: 8px 4px; cursor: pointer; }
+.tg-polls { margin: 0 0 12px; text-align: center; }
+.tg-polls a { color: var(--muted); font-weight: 500; font-size: 0.875rem; text-decoration: none; padding: 8px 4px; }
 .share-peek { margin: 12px 0; color: var(--muted); font-size: 0.875rem; }
 .share-peek summary { cursor: pointer; padding: 8px 0; }
 .pg-signup { margin-top: 8px; }
@@ -5257,6 +5259,7 @@ view(`
 <p class="share-nudge" id="shareNudge">Can your friends beat ${shareCorrect}/${set.length}? Challenge them.</p>
 <div class="share-alt"><a class="link" id="waBtn" href="${esc(E.whatsappUrl(share))}" target="_blank" rel="noopener">WhatsApp</a><span aria-hidden="true">·</span><button class="link" id="shareBtn" type="button">Copy text</button></div>
 </div>
+${telegramPollsLink()}
 <div class="wheel-wrap" id="resultWheel">${wagonWheel(roundSpokes(set, rec), { id: 'wagon', center: String(rec.score), sub: rec.score > rec.max ? '🔥 combo' : '/ ' + rec.max,
 label: `Wagon wheel of today's ${set.length} rounds: ` + set.map((x, i) => `${x.slot.name} ${rec.answers[i] ? rec.answers[i].points : 0} of ${x.base}`).join(', ') })}</div>
 ${WW_KEY}
@@ -5301,7 +5304,14 @@ try { if (!PREVIEW && QB.auth && QB.auth.mail) { const c = rec.marks.filter(m =>
 QB.auth.mail('first-daily', { score: c, title: E.shareTitle ? E.shareTitle(c).title : '', episode: U.episodeNo(TODAY) > 0 ? U.episodeNo(TODAY) : 'Preview' }); } } catch (e) {}
 on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); if (ok) { QB.track('share-copy'); QB.track('share-done'); } toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 wirePostGame();
+wireTelegramLink();
 if (!PREVIEW) wireSlider(TODAY, false);
+}
+function telegramPollsLink() {
+return `<p class="tg-polls"><a id="tgPollsLink" href="https://t.me/IquorbitQuiz" target="_blank" rel="noopener">Quick quiz polls daily on Telegram →</a></p>`;
+}
+function wireTelegramLink() {
+on('#tgPollsLink', 'click', () => { try { QB.track('telegram-click'); } catch (e) {} });
 }
 function isAuthSignedIn() {
 const a = S.get().auth;
@@ -6420,6 +6430,7 @@ view(`
 <p class="share-nudge" id="shareNudge">Can your friends beat ${shareCorrect}/${set.length}?</p>
 <div class="share-alt"><a class="link" id="waBtn" href="${esc(E.whatsappUrl(share))}" target="_blank" rel="noopener">WhatsApp</a><span aria-hidden="true">·</span><button class="link" id="shareBtn" type="button">Copy text</button></div>
 </div>
+${telegramPollsLink()}
 <div class="wheel-wrap" id="resultWheel">${wagonWheel(roundSpokes(set, rec), { id: 'wagon', center: String(rec.score), sub: rec.score > rec.max ? '🔥 combo' : '/ ' + rec.max,
 label: `Wagon wheel of ${set.length} catch-up rounds: ` + set.map((x, i) => `${x.slot.name} ${rec.answers[i] ? rec.answers[i].points : 0} of ${x.base}`).join(', ') })}</div>
 ${WW_KEY}
@@ -6447,6 +6458,7 @@ toast(ok ? 'Copied. Paste it in WhatsApp or any chat.' : (opened !== null ? 'Ope
 on('#waBtn', 'click', () => { QB.track('share-click'); QB.track('share-whatsapp'); QB.track('share-done'); });
 on('#shareBtn', 'click', async () => { QB.track('share-click'); const ok = await copyText(share); if (ok) { QB.track('share-copy'); QB.track('share-done'); } toast(ok ? 'Result copied. Paste it in WhatsApp!' : 'Copy failed. Select the text below.'); });
 try { const k = 'qb:gcCatchupFinish:' + date; if (!localStorage.getItem(k)) { localStorage.setItem(k, '1'); QB.track('catchup-finish'); } } catch (e) {}
+wireTelegramLink();
 wireSlider(date, true);
 }
 const SL = QB.slider;
