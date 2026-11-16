@@ -3809,6 +3809,7 @@ ${tug()}
 <div class="qhead" id="qhead">
 <div class="timer" id="timer" role="timer" aria-label="Seconds left"><span class="t-pill"><b id="timerNum">${DSECS}</b><small>s</small></span><span class="t-bar"><span class="timer-fill" id="timerFill"></span></span></div>
 <h2 class="question" id="qtext">${esc(q.question)}</h2>
+${q.clues && q.clues.length && q.round !== 'piconnect' ? `<ol class="clues duel-clues">${q.clues.map(c => `<li class="shown">${esc(c)}</li>`).join('')}</ol>` : ''}
 ${typeof contribLine === 'function' ? contribLine(q) : (q.contributorName ? `<p class="contrib-by muted small">(contributed by ${esc(q.contributorName)})</p>` : '')}
 </div>
 <div class="options" id="options">${options.map((o, i) => `<button class="opt" data-opt="${esc(o)}"><span class="opt-key">${'ABCD'[i]}</span><span>${esc(o)}</span><em class="bot-pick" hidden>🪐</em></button>`).join('')}</div>
