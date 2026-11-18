@@ -1668,6 +1668,11 @@ html:has(#ringsShareFig) {
 @media (prefers-reduced-motion: reduce) {
   .rings-banner::after, .tab-new, .rings-nudge { animation: none; }
 }
+
+/* Rings result: cross-link to Daily (gold) or a quiet "both done" line */
+.rings-nudge-daily { background: linear-gradient(105deg, #8a5a00 0%, #ffd60a 52%, #ffe566 100%); color: #1b0f5c; box-shadow: 0 6px 18px rgba(255, 214, 10, .22); margin: 14px 0 4px; }
+.rings-nudge-daily small, .rings-nudge-daily .chev { color: rgba(27, 15, 92, .7); }
+.rings-cross-done { margin: 14px 0 8px; text-align: center; font-weight: 600; font-size: 0.9375rem; line-height: 1.4; color: var(--muted); }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -4744,6 +4749,21 @@ const nextRound = today => ROUNDS.find(r => !roundOpen(r, today)) || null;
 const DROP_DAYS = [0, 3];
 const weekdayIST = dateStr => new Date(dateStr + 'T12:00:00+05:30').getDay();
 const isDropDay = (dateStr, preview, days) => !!(preview || (days || DROP_DAYS).includes(weekdayIST(dateStr)));
+const DROP_DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function nextDropWeekday(dateStr, days) {
+const set = (days || DROP_DAYS);
+const from = weekdayIST(dateStr);
+for (let i = 1; i <= 7; i++) {
+const d = (from + i) % 7;
+if (set.includes(d)) return DROP_DAY_NAMES[d];
+}
+return DROP_DAY_NAMES[set[0] || 0];
+}
+function resultCrossLink(opts) {
+opts = opts || {};
+if (!opts.dailyDone) return { kind: 'daily', href: '#/play', title: "Now play today's Daily Trivia →" };
+return { kind: 'done', title: 'Daily done ✓ · Next Ring ' + (opts.nextWeekday || nextDropWeekday(opts.date)) };
+}
 /** Labels shown on the result screen. Each label must score its listed points via scoreRing. */
 function acceptedAnswers(round, usedHint) {
 const out = [];
@@ -4773,7 +4793,7 @@ if (!r || !isDropDay(date, preview)) return false;
 if (opts.played) return false;
 return !!(preview || date);
 }
-const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, LINK_PTS, Q_SECS, RING_SECS, MAX, near, shouldAutoLand };
+const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, nextDropWeekday, resultCrossLink, LINK_PTS, Q_SECS, RING_SECS, MAX, near, shouldAutoLand };
 if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
 // ---------------------------------------------------------------- live Ring Masters counter (Firestore REST, no SDK)
@@ -5081,6 +5101,16 @@ const rest = accepted.filter(a => !a.top);
 const ask = !isSignedIn();
 const nx = ROUNDS.find(x => x.opensOn > r.opensOn) || null;
 const credits = r.reveal.filter(c => c.credit);
+let dailyDone = false;
+try {
+const date = (typeof QB !== 'undefined' && QB.ui && QB.ui.TODAY) || today();
+const recD = QB.store && QB.store.get && QB.store.get().daily && QB.store.get().daily[date];
+dailyDone = !!(recD && (recD.marks || recD.score != null));
+} catch (e) {}
+const cross = resultCrossLink({ dailyDone, date: today(), nextWeekday: nextDropWeekday(today()) });
+const crossHTML = cross.kind === 'daily'
+? `<a class="rings-nudge rings-nudge-daily" href="${cross.href}" id="ringsDailyNudge"><div><b>Now play today's Daily Trivia&nbsp;→</b><small>Seven rounds. Same for everyone.</small></div><span class="chev" aria-hidden="true">›</span></a>`
+: `<p class="rings-cross-done" id="ringsDailyNudge">${esc(cross.title)}</p>`;
 view(`<section class="hero rings-hero"><p class="kicker">${esc(r.title)} · result${PREVIEW_RINGS ? ' · preview' : ''}</p><h1 class="title">${verdict}</h1></section>
 <section class="card rings-score-card" id="ringsScore">
 <div class="rs-line"><span>Links <b>${rec.links}</b></span><span class="rs-sep">·</span><span>Ring <b>${rec.ring}</b></span><span class="rs-sep">·</span><span class="rs-total"><b>${rec.links + rec.ring}</b>/${MAX}</span></div>
@@ -5090,6 +5120,7 @@ view(`<section class="hero rings-hero"><p class="kicker">${esc(r.title)} · resu
 <ul>${rest.map(a => `<li>${esc(a.label)} <span class="muted">· ${a.pts}</span></li>`).join('')}</ul>
 </div>
 <div id="rmBox" class="rm-box"><p class="rm-line muted small">Counting Ring Masters…</p></div>
+${crossHTML}
 <button class="btn btn-gold" id="ringsShare" type="button">Share my Ring</button>
 <figure class="rings-share-fig" id="ringsShareFig">
 <img id="ringsShareImg" alt="Share card for this Ring — score only, no answers" width="1080" height="1080">
