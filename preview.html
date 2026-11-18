@@ -1618,8 +1618,8 @@ body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input
 }
 
 .rings-accepted { text-align: left; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
-.rings-top { margin: 0 0 8px; display: grid; gap: 2px; }
-.rings-top small { font-family: var(--mono); letter-spacing: 1.4px; color: var(--muted); font-size: 0.75rem; }
+.rings-top { margin: 0 0 8px; }
+.rings-top small { display: block; font-family: var(--mono); letter-spacing: 1.4px; color: var(--muted); font-size: 0.75rem; }
 .rings-top b { font-size: 1.0625rem; line-height: 1.35; }
 .rings-accepted ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .rings-accepted li { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.06); font-weight: 600; line-height: 1.35; font-size: 0.9375rem; }
@@ -1629,7 +1629,8 @@ body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input
 .rc-img { width: 120px; height: 80px; flex: none; border-radius: 10px; object-fit: cover; background: rgba(255,255,255,.06); }
 .rc-tile { width: 120px; height: 80px; flex: none; border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 6px; font-weight: 700; font-size: 0.8125rem; background: linear-gradient(135deg, #3b1d8f, #5e5ce6); color: #fff; }
 
-.rings-src { margin-top: 12px; margin-bottom: 8px; padding: 12px 14px; }
+.rings-src { margin-top: 12px; margin-bottom: 8px; padding: 12px 14px 16px; }
+.rings-src[open] { margin-bottom: 36px; }
 .rings-src summary { cursor: pointer; font-weight: 700; font-size: 0.9375rem; line-height: 1.4; color: var(--ink); }
 .rings-src-list { margin: 10px 0 0; padding-left: 1.15em; }
 .rings-src-list li { margin: 8px 0; line-height: 1.5; font-size: 0.9375rem; }
@@ -4782,9 +4783,9 @@ return `<p class="rm-line" id="rmLine"><b>${c.solvers} Ring Master${c.solvers ==
 }
 const pct = c => (c.players ? Math.max(1, Math.round(100 * c.solvers / c.players)) : 0);
 function loadMasters(r, rec) {
-const box = q('#rmBox'); if (!box) return;
+const box = q('#rmBox'); if (!box) return Promise.resolve(null);
 const pend = rec && rec.done && !rec.recorded ? fsRecord(docOf(r), !!rec.master).then(c => { rec.recorded = true; if (rec.master) rec.masterNo = c.solvers; putRec(r, rec); return c; }) : fsCounts(docOf(r));
-pend.then(c => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(c, rec); }).catch(() => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(null, rec); });
+return pend.then(c => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(c, rec); return c; }).catch(() => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(null, rec); return null; });
 }
 
 // ---------------------------------------------------------------- Rings tab
@@ -5051,12 +5052,9 @@ ${credits.length ? `<p class="rings-credits-h">Photos</p><ul class="rings-src-li
 <p class="muted small center rings-foot">${nx ? `Next Ring opens ${esc(prettyDay(nx.opensOn))}.` : 'A new Ring every week.'} Rings never affect your Daily streak.</p>
 ${PREVIEW_RINGS ? `<button class="btn btn-ghost" id="ringsReplay" type="button">Replay (preview only)</button>` : ''}
 ${faqHTML(false)}`, 'rings');
-loadMasters(r, rec);
 let shareCard = null;
-paintShareCard(r, rec).then(card => {
-shareCard = card;
-const img = q('#ringsShareImg'); if (img && card && card.url) { img.src = card.url; q('#ringsShareFig').classList.add('ready'); }
-});
+const showCard = card => { shareCard = card; const img = q('#ringsShareImg'); if (img && card && card.url) { img.src = card.url; q('#ringsShareFig').classList.add('ready'); } };
+loadMasters(r, rec).then(() => paintShareCard(r, rec)).then(showCard);
 on('#ringsShare', 'click', () => shareRing(r, rec));
 on('#ringsShareDl', 'click', () => {
 if (!shareCard || !shareCard.url) return;
