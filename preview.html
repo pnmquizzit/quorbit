@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#120b4a">
+  <meta name="color-scheme" content="dark only">
+  <meta name="supported-color-schemes" content="dark">
   <meta name="description" content="Quorbit: the free daily quiz show. Seven rounds a day, the same for everyone: Rapid Fire, a picture, Cricket Corner, a typed finale and a connect, plus topic duels and leaderboards.">
   <title>Quorbit · The Daily Quiz Show</title>
   <link rel="canonical" href="https://iquorbit.com/">
@@ -32,6 +34,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <style>
 :root {
+color-scheme: dark;
 --ink: #f5f5f7; --muted: #a1a1a6; --deep: #000000; --stage: #0c0c0e; --purple: #1c1c1e; --violet: #2c2c2e;
 --gold: #ffd60a; --gold-2: #ffd60a; --amber: #ffd60a; --green: #30d158; --red: #ff453a; --yellow: #ff9f0a;
 --blue: #0a84ff; --card: rgba(28, 28, 30, 0.92); --line: rgba(255, 255, 255, 0.12); --r: 14px;
@@ -45,6 +48,7 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { height: auto; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 90px); }
+html { color-scheme: only dark; }
 html, body { margin: 0; background: var(--deep); color: var(--ink); font-family: var(--display); }
 body { min-height: 100vh; min-height: 100svh; font-size: 1rem; line-height: 1.4; overscroll-behavior-y: none; }
 a { color: inherit; text-decoration: none; }
@@ -1481,7 +1485,7 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
 .slider-round .row2 .btn { min-height: 48px; }
 .slider-round .row2 { margin-top: 4px; }
 .rings-card .btn-big { margin-top: 14px; }
-.rings-kicker { margin: 0 0 4px; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+.rings-kicker { margin: 0 0 4px; font-family: var(--rings-sans, var(--display)); font-size: 0.75rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
 .rings-h { margin: 0 0 6px; font-size: 1.25rem; color: var(--ink); }
 .rings-dots { display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; }
 .rings-dots i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--muted); }
@@ -1673,6 +1677,16 @@ html:has(#ringsShareFig) {
 .rings-nudge-daily { background: linear-gradient(105deg, #0050c8 0%, #0a84ff 55%, #4aa3ff 100%); color: #fff; box-shadow: 0 6px 18px rgba(10, 132, 255, .28); margin: 14px 0 4px; }
 .rings-nudge-daily small, .rings-nudge-daily .chev { color: rgba(255, 255, 255, .88); }
 .rings-cross-done { margin: 14px 0 8px; text-align: center; font-weight: 600; font-size: 0.9375rem; line-height: 1.4; color: var(--muted); }
+
+/* Rings primary Play: solid violet, distinct from gold Daily/Share (and survives force-dark). */
+.btn-rings-play {
+  background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 52%, #6d4aff 100%);
+  color: #fff;
+  border-radius: 980px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(94, 92, 230, .3);
+}
+.btn-rings-play:active { transform: scale(.98); opacity: .92; }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -4884,7 +4898,7 @@ view(`<section class="hero rings-hero"><p class="kicker">Weekly${PREVIEW_RINGS ?
 <h2 class="rings-h">What links the five?</h2>
 <p class="muted small">5 Links × ${LINK_PTS} pts, then ${RING_SECS} s to type the Ring for up to 100. Max ${MAX}.</p>
 <div class="rings-dots" aria-hidden="true">${r.questions.map(() => '<i></i>').join('')}<b class="rings-dots-ico">${ICO}</b></div>
-<a class="btn btn-gold btn-big" href="#/rings/play" id="ringsPlay">${started ? `Resume · Link ${Math.min(5, rec.answers.length + 1)}/5` : `Play ${esc(r.title)}`}</a>
+<a class="btn btn-rings-play btn-big" href="#/rings/play" id="ringsPlay">${started ? `Resume · Link ${Math.min(5, rec.answers.length + 1)}/5` : `Play ${esc(r.title)}`}</a>
 <a class="rings-daily-link" href="#/home" id="ringsPlayDaily">Or play today's Daily Trivia&nbsp;→</a>
 <div id="rmBox" class="rm-box"><p class="rm-line muted small">Loading Ring Masters…</p></div>
 </section>
