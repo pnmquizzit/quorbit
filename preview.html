@@ -1687,6 +1687,14 @@ html:has(#ringsShareFig) {
   box-shadow: 0 6px 18px rgba(94, 92, 230, .3);
 }
 .btn-rings-play:active { transform: scale(.98); opacity: .92; }
+
+/* Rings promo: quiet tab until Saturday; slim teaser Saturday; NEW from Saturday */
+.tabbar a.tab-rings { flex-direction: column; gap: 0; line-height: 1.15; }
+.tab-rings-sub { display: block; max-width: 100%; margin-top: 1px; font-size: 9px; font-weight: 600; letter-spacing: 0; line-height: 1.15; color: var(--muted); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tabbar a.tab-rings.tab-rings-quiet .tab-new,
+.tabbar a.tab-rings .tab-new[hidden] { display: none; }
+.rings-banner-teaser { box-shadow: 0 6px 16px rgba(94, 92, 230, .2); }
+.rings-banner-teaser::after { animation: none; }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -4763,6 +4771,18 @@ const nextRound = today => ROUNDS.find(r => !roundOpen(r, today)) || null;
 const DROP_DAYS = [0, 3];
 const weekdayIST = dateStr => new Date(dateStr + 'T12:00:00+05:30').getDay();
 const isDropDay = (dateStr, preview, days) => !!(preview || (days || DROP_DAYS).includes(weekdayIST(dateStr)));
+const firstOpenDate = () => (ROUNDS[0] && ROUNDS[0].opensOn) || '2026-11-22';
+function shiftISTDate(dateStr, days) {
+const t = Date.parse(dateStr + 'T12:00:00+05:30') + days * 86400000;
+return new Date(t).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+}
+function promoPhase(dateStr) {
+const open = firstOpenDate();
+const teaser = shiftISTDate(open, -1);
+if (!dateStr || dateStr < teaser) return 'quiet';
+if (dateStr < open) return 'teaser';
+return 'live';
+}
 const DROP_DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 function nextDropWeekday(dateStr, days) {
 const set = (days || DROP_DAYS);
@@ -4800,14 +4820,13 @@ const ref = (q.get('ref') || '').trim();
 if (ref && ref !== 'rings') return false;
 const date = opts.date || '';
 const preview = !!opts.preview;
-if (date) {
+if (!date || promoPhase(date) !== 'live') return false;
 const r = currentRound(date, preview);
 if (!r || !isDropDay(date, preview)) return false;
-}
 if (opts.played) return false;
-return !!(preview || date);
+return true;
 }
-const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, nextDropWeekday, resultCrossLink, LINK_PTS, Q_SECS, RING_SECS, MAX, near, shouldAutoLand };
+const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, nextDropWeekday, resultCrossLink, promoPhase, firstOpenDate, shiftISTDate, LINK_PTS, Q_SECS, RING_SECS, MAX, near, shouldAutoLand };
 if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
 // ---------------------------------------------------------------- live Ring Masters counter (Firestore REST, no SDK)
@@ -4835,7 +4854,8 @@ QB.rings = function (K) {
 const { U, esc, view, on, go, toast, copyText, setGuard, isSignedIn, every, sfx } = K;
 const $app = document.getElementById('app');
 const PREVIEW_RINGS = /[?&]rings=preview\b/.test(location.search);
-const today = () => U.istDateString();
+const MOCK_DAY = (() => { try { const v = new URLSearchParams(location.search).get('ringsDate'); return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null; } catch (e) { return null; } })();
+const today = () => MOCK_DAY || U.istDateString();
 const KEY = 'qb:rings';
 const docOf = r => (PREVIEW_RINGS && !roundOpen(r, today()) ? r.id + '-preview' : r.id); // preview plays before opening day never touch the real count
 const saveKey = r => (PREVIEW_RINGS ? 'pv:' : '') + r.id;
@@ -4906,9 +4926,19 @@ ${faqHTML(false)}
 ${PREVIEW_RINGS ? `<p class="muted small center">Preview mode: this play is kept apart from the live round.</p>` : ''}`, 'rings');
 loadMasters(r, null);
 }
-/** Slim Play Rings banner on Today while this week's Ring is open and unplayed. */
+/** Today promo: none before Saturday; slim 'opens tomorrow' teaser on Saturday; full Play banner once live and unplayed. */
 function homeCard() {
-const r = currentRound(today(), PREVIEW_RINGS);
+const day = today();
+const phase = promoPhase(day);
+if (phase === 'quiet') return '';
+if (phase === 'teaser') {
+return `<a class="rings-banner rings-banner-teaser" href="#/rings" id="ringsHome">
+<span class="rings-banner-ico">${ICO}</span>
+<div><b>Rings · opens tomorrow</b><small>Sunday · 5 Links, one hidden Ring</small></div>
+<span class="chev" aria-hidden="true">›</span>
+</a>`;
+}
+const r = currentRound(day, PREVIEW_RINGS);
 if (!r) return '';
 const rec = getRec(r);
 if (rec && rec.done) return '';
@@ -4930,6 +4960,7 @@ played: !!(function () { const r = currentRound(today(), PREVIEW_RINGS); const r
 }
 /** After the Daily: nudge if this week's Ring is still unplayed (any day it is open). */
 function nudgeCard() {
+if (promoPhase(today()) !== 'live') return '';
 const r = currentRound(today(), PREVIEW_RINGS);
 if (!r) return '';
 const rec = getRec(r);
@@ -5166,7 +5197,28 @@ document.body.appendChild(a); a.click(); a.remove();
 });
 on('#ringsReplay', 'click', () => { const all = load(); delete all[saveKey(r)]; save(all); go('#/rings'); });
 }
-return { page, homeCard, nudgeCard, faqHTML, ROUNDS, scoreRing, shouldAutoLand: shouldLandHere };
+function applyChrome() {
+const tab = document.querySelector('#tabbar a.tab-rings'); if (!tab) return;
+const phase = promoPhase(today());
+const open = firstOpenDate();
+const openLabel = 'Opens ' + prettyDay(open);
+tab.classList.toggle('tab-rings-quiet', phase === 'quiet');
+tab.classList.toggle('tab-rings-teaser', phase === 'teaser');
+const neu = tab.querySelector('.tab-new');
+if (neu) neu.hidden = phase === 'quiet';
+let sub = tab.querySelector('.tab-rings-sub');
+if (phase === 'quiet' || phase === 'teaser') {
+if (!sub) { sub = document.createElement('small'); sub.className = 'tab-rings-sub'; tab.appendChild(sub); }
+sub.textContent = phase === 'teaser' ? 'Opens tomorrow' : openLabel;
+tab.setAttribute('aria-label', phase === 'teaser' ? 'Rings, opens tomorrow' : 'Rings, ' + openLabel);
+tab.title = phase === 'teaser' ? 'Rings opens tomorrow' : 'Rings, ' + openLabel;
+} else {
+if (sub) sub.remove();
+tab.setAttribute('aria-label', 'Rings, new');
+tab.removeAttribute('title');
+}
+}
+return { page, homeCard, nudgeCard, faqHTML, ROUNDS, scoreRing, shouldAutoLand: shouldLandHere, applyChrome };
 };
 Object.assign(QB.rings, api);
 })(typeof window !== 'undefined' ? window : null);
@@ -5239,6 +5291,7 @@ pc.innerHTML = `<span class="hc-v">${L.icon} ${tot.toLocaleString('en-IN')}</spa
 pc.title = `${tot} lifetime points · ${L.name}`; pc.setAttribute('aria-label', `${tot} lifetime points, level ${L.name}: open your stats`); }
 document.querySelectorAll('#tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
 document.body.classList.toggle('rings-ui', tab === 'rings');
+try { if (RX && RX.applyChrome) RX.applyChrome(); } catch (e) {}
 const rib = document.getElementById('previewRibbon');
 rib.hidden = !PREVIEW;
 if (PREVIEW) rib.innerHTML = `PREVIEW MODE · ${esc(U.prettyDate(TODAY))} · <a href="${location.pathname}">back to today</a>`;
