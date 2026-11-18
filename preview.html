@@ -1582,6 +1582,10 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
 .rings-nudge { display: flex; align-items: center; gap: 12px; margin: 12px 0 14px; padding: 14px 16px; border-radius: 16px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 55%, #bf5af2 100%); box-shadow: 0 6px 18px rgba(94, 92, 230, .25); text-decoration: none; }
 .rings-nudge div { flex: 1; min-width: 0; text-align: left; }
 .rings-nudge b { display: block; font-size: 1.0625rem; }
+@media (max-width: 380px) {
+  .rings-nudge { gap: 8px; padding: 12px 12px; }
+  .rings-nudge b { font-size: 0.95rem; }
+}
 .rings-nudge small { display: block; margin-top: 2px; color: rgba(245,245,247,.82); }
 .rings-nudge .chev { color: rgba(255,255,255,.85); }
 
@@ -4842,7 +4846,7 @@ const r = currentRound(today(), PREVIEW_RINGS);
 if (!r) return '';
 const rec = getRec(r);
 if (rec && rec.done) return '';
-return `<a class="rings-nudge" href="#/rings" id="ringsNudge">${ICO}<div><b>Now try this week's Ring →</b><small>${esc(r.title)} · 5 Links, one hidden Ring</small></div><span class="chev">›</span></a>`;
+return `<a class="rings-nudge" href="#/rings" id="ringsNudge">${ICO}<div><b>Now try this week's Ring&nbsp;→</b><small>${esc(r.title)} · 5 Links, one hidden Ring</small></div><span class="chev">›</span></a>`;
 }
 
 // ---------------------------------------------------------------- the 5 Links
