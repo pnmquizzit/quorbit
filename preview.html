@@ -80,8 +80,8 @@ padding: 6px 6px calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba
 .tabbar a.active { color: var(--ink); background: rgba(255,255,255,.08); }
 .tabbar a.active span { filter: none; }
 .tabbar a.tab-rings { position: relative; overflow: visible; }
-.tab-new { position: absolute; top: 2px; left: 50%; right: auto; translate: 10px 0; font-size: 7px; font-weight: 800; letter-spacing: .08em; line-height: 1; padding: 1px 3px; border-radius: 3px; color: #1b0f5c; background: var(--gold); animation: tab-new-pulse 2.6s ease-in-out infinite; pointer-events: none; }
-.tabbar a.tab-rings .tab-new { translate: 10px 0; }
+.tab-new { position: absolute; font-weight: 800; letter-spacing: .08em; line-height: 1; border-radius: 3px; color: #1b0f5c; background: var(--gold); animation: tab-new-pulse 2.6s ease-in-out infinite; pointer-events: none; }
+.tabbar a.tab-rings .tab-new { top: 2px; right: 8px; left: auto; translate: none; font-size: 6px; padding: 1px 3px; }
 .tab-new-inline { position: static; translate: none; margin-left: 6px; vertical-align: 2px; }
 @keyframes tab-new-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
 @media (prefers-reduced-motion: reduce) { .tab-new { animation: none; } }
