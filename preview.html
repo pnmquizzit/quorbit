@@ -1515,7 +1515,7 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
 
 /* Rings typography: Inter (plus SF on Apple), scoped so Daily is unchanged */
 body.rings-ui {
-  --rings-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", Inter, "Segoe UI", system-ui, sans-serif;
+  --rings-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
   font-family: var(--rings-sans);
 }
 body.rings-ui .title, body.rings-ui .page-title, body.rings-ui .section-title,
@@ -1551,22 +1551,21 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
 .rings-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.2) 50%, transparent 65%); transform: translateX(-120%); animation: rings-banner-shimmer 3.6s ease-in-out infinite; pointer-events: none; }
 @keyframes rings-banner-shimmer { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
 @keyframes rings-banner-pulse { 0%, 100% { box-shadow: 0 8px 22px rgba(94, 92, 230, .28); } 50% { box-shadow: 0 8px 26px rgba(191, 90, 242, .4); } }
-.rings-banner { animation: rings-banner-pulse 3.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .rings-banner, .rings-banner::after { animation: none; } }
-.rings-banner, .rings-banner b, .rings-banner small { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", system-ui, sans-serif; }
+.rings-banner, .rings-banner b, .rings-banner small { font-family: var(--rings-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif); }
 
 /* ---- Rings v3: Saturn icon, graphic NEW, input, choice, sources, share ---- */
 .rings-ico { width: 1.25em; height: 1.25em; display: block; overflow: visible; }
 .tabbar a .tab-ico { display: grid; place-items: center; height: 22px; filter: grayscale(.6); }
 .tabbar a .tab-ico .rings-ico { width: 22px; height: 22px; color: var(--ink); }
 .tabbar a.active .tab-ico { filter: none; }
-.rb-ico .rings-ico, .rings-choice-ico .rings-ico, .rings-nudge .rings-ico, .btn-rings .rings-ico { width: 22px; height: 22px; display: inline-block; vertical-align: -5px; }
+.rb-ico .rings-ico, .rings-choice-ico .rings-ico, .rings-nudge .rings-ico, .btn-rings .rings-ico, .rings-banner-ico .rings-ico { width: 22px; height: 22px; display: inline-block; vertical-align: -5px; }
 .rings-dots-ico .rings-ico { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; }
 .rings-faq summary .rings-ico, .title .rings-ico { width: 1.1em; height: 1.1em; display: inline-block; vertical-align: -0.2em; margin-right: 4px; }
 
 .tab-new { display: inline-flex; align-items: center; gap: 2px; position: absolute; top: 1px; right: 6px; left: auto; translate: none; font-size: 6px; font-weight: 800; letter-spacing: .07em; line-height: 1; padding: 2px 4px 2px 3px; border-radius: 999px; color: #1b0f5c; background: linear-gradient(105deg, #ffe566 0%, #ffd60a 55%, #ff9f0a 100%); box-shadow: 0 0 0 1px rgba(255,214,10,.35), 0 0 10px rgba(255,214,10,.45); animation: tab-new-glow 2.4s ease-in-out infinite; pointer-events: none; }
 .tab-new-spark { width: 7px; height: 7px; color: #1b0f5c; flex: none; }
-@keyframes tab-new-glow { 0%, 100% { box-shadow: 0 0 0 1px rgba(255,214,10,.35), 0 0 8px rgba(255,214,10,.4); } 50% { box-shadow: 0 0 0 1px rgba(255,214,10,.55), 0 0 14px rgba(255,214,10,.7); } }
+@keyframes tab-new-glow { 0%, 100% { opacity: 1; } 50% { opacity: .72; } }
 @media (prefers-reduced-motion: reduce) { .tab-new { animation: none; } }
 
 .rings-choice { position: relative; margin: 4px 0 16px; padding: 18px 16px 16px; border-radius: 18px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 48%, #bf5af2 100%); box-shadow: 0 8px 22px rgba(94, 92, 230, .28); overflow: hidden; text-align: center; }
@@ -1641,11 +1640,34 @@ body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input
 .rings-src .link, .rings-src a { overflow-wrap: anywhere; word-break: break-word; font-size: 0.9375rem; line-height: 1.45; font-weight: 600; }
 .rings-credits-h { margin: 14px 0 0; font-weight: 700; font-size: 0.875rem; }
 .rings-credits-n { margin: 10px 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--muted); }
-.rings-foot { margin: 16px 0 8px; padding-bottom: 8px; }
+.rings-foot { margin: 16px 0 8px; padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 12px); }
 .rings-share-fig { margin: 12px 0 0; display: none; }
 .rings-share-fig.ready { display: grid; gap: 6px; justify-items: center; }
 .rings-share-fig img { width: 220px; height: 220px; border-radius: 12px; background: #000; }
 
+
+/* Rings v4: tab clearance, system fonts, cheap motion, Daily link on the Rings intro */
+:root { --rings-tab-clear: calc(70px + env(safe-area-inset-bottom, 0px)); }
+body.rings-ui .shell,
+body:has(#ringsHome) .shell,
+body:has(#ringsIntro) .shell,
+body:has(#ringsShareFig) .shell,
+body:has(#ringsNudge) .shell {
+  padding-bottom: calc(var(--rings-tab-clear) + 24px);
+}
+html:has(body.rings-ui),
+html:has(#ringsHome),
+html:has(#ringsShareFig) {
+  scroll-padding-bottom: calc(var(--rings-tab-clear) + 48px);
+}
+.rings-banner-ico { display: inline-flex; color: #fff; flex: none; }
+.rings-banner-ico .rings-ico { width: 26px; height: 26px; color: #fff; }
+.rings-daily-link { display: flex; align-items: center; justify-content: center; margin: 10px 0 0; min-height: 44px; padding: 8px 10px; text-align: center; color: var(--muted); font-weight: 600; font-size: 0.9375rem; line-height: 1.4; }
+.rings-daily-link:active { opacity: .75; }
+.rc-img { background: rgba(255,255,255,.06); aspect-ratio: 3 / 2; }
+@media (prefers-reduced-motion: reduce) {
+  .rings-banner::after, .tab-new, .rings-nudge { animation: none; }
+}
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -4475,8 +4497,15 @@ return cv;
 async function renderRings(d) {
 try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
 const cv = drawRings(document.createElement('canvas'), d);
-const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/png'); } catch (e) { r(null); } });
-return { canvas: cv, blob, url: cv.toDataURL('image/png') };
+const encode = async q => {
+const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/jpeg', q); } catch (e) { r(null); } });
+const url = cv.toDataURL('image/jpeg', q);
+return { canvas: cv, blob, url, type: 'image/jpeg', quality: q };
+};
+let out = await encode(0.85);
+if (out.blob && out.blob.size > 150000) out = await encode(0.72);
+if (out.blob && out.blob.size > 150000) out = await encode(0.6);
+return out;
 }
 QB.shareCard = { draw, render, drawRings, renderRings };
 })();
@@ -4725,7 +4754,26 @@ labels.forEach(label => out.push({ label, pts, tier: i, top: i === 0 }));
 });
 return out;
 }
-const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, LINK_PTS, Q_SECS, RING_SECS, MAX, near };
+function shouldAutoLand(opts) {
+opts = opts || {};
+const hash = 'hash' in opts ? (opts.hash || '') : '';
+const search = 'search' in opts ? (opts.search || '') : '';
+const h = hash;
+if (h && h !== '#' && h !== '#/') return false;
+let q; try { q = new URLSearchParams(search); } catch (e) { return false; }
+if (q.get('duel') || q.get('date')) return false;
+const ref = (q.get('ref') || '').trim();
+if (ref && ref !== 'rings') return false;
+const date = opts.date || '';
+const preview = !!opts.preview;
+if (date) {
+const r = currentRound(date, preview);
+if (!r || !isDropDay(date, preview)) return false;
+}
+if (opts.played) return false;
+return !!(preview || date);
+}
+const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, LINK_PTS, Q_SECS, RING_SECS, MAX, near, shouldAutoLand };
 if (typeof module === 'object' && module.exports) { module.exports = api; return; }
 
 // ---------------------------------------------------------------- live Ring Masters counter (Firestore REST, no SDK)
@@ -4817,28 +4865,34 @@ view(`<section class="hero rings-hero"><p class="kicker">Weekly${PREVIEW_RINGS ?
 <p class="muted small">5 Links × ${LINK_PTS} pts, then ${RING_SECS} s to type the Ring for up to 100. Max ${MAX}.</p>
 <div class="rings-dots" aria-hidden="true">${r.questions.map(() => '<i></i>').join('')}<b class="rings-dots-ico">${ICO}</b></div>
 <a class="btn btn-gold btn-big" href="#/rings/play" id="ringsPlay">${started ? `Resume · Link ${Math.min(5, rec.answers.length + 1)}/5` : `Play ${esc(r.title)}`}</a>
+<a class="rings-daily-link" href="#/home" id="ringsPlayDaily">Or play today's Daily Trivia&nbsp;→</a>
 <div id="rmBox" class="rm-box"><p class="rm-line muted small">Loading Ring Masters…</p></div>
 </section>
 ${faqHTML(false)}
 ${PREVIEW_RINGS ? `<p class="muted small center">Preview mode: this play is kept apart from the live round.</p>` : ''}`, 'rings');
 loadMasters(r, null);
 }
-/** Drop-day landing: Play Rings vs Play Daily Trivia, only when this week's Ring is unplayed. */
+/** Slim Play Rings banner on Today while this week's Ring is open and unplayed. */
 function homeCard() {
 const r = currentRound(today(), PREVIEW_RINGS);
-if (!r || !isDropDay(today(), PREVIEW_RINGS)) return '';
+if (!r) return '';
 const rec = getRec(r);
 if (rec && rec.done) return '';
-return `<section class="rings-choice" id="ringsHome">
+return `<a class="rings-banner" href="#/rings" id="ringsHome">
 ${newBadge(false)}
-<span class="rings-choice-ico">${ICO}</span>
-<h2 class="rings-h">It's a Ring day</h2>
-<p class="muted small">${esc(r.title)} · 5 Links, one hidden Ring</p>
-<div class="rings-choice-btns">
-<a class="btn btn-rings" href="#/rings" id="ringsPlayHome">${ICO} Play Rings</a>
-<a class="btn btn-ghost" href="#/play" id="ringsPlayDaily">Play Daily Trivia</a>
-</div>
-</section>`;
+<span class="rings-banner-ico">${ICO}</span>
+<div><b>Play Rings</b><small>${esc(r.title)} · 5 Links, one hidden Ring</small></div>
+<span class="chev" aria-hidden="true">›</span>
+</a>`;
+}
+function shouldLandHere() {
+return api.shouldAutoLand({
+hash: typeof location !== 'undefined' ? location.hash : '',
+search: typeof location !== 'undefined' ? location.search : '',
+date: today(),
+preview: PREVIEW_RINGS,
+played: !!(function () { const r = currentRound(today(), PREVIEW_RINGS); const rec = r && getRec(r); return rec && rec.done; })()
+});
 }
 /** After the Daily: nudge if this week's Ring is still unplayed (any day it is open). */
 function nudgeCard() {
@@ -5002,7 +5056,7 @@ async function shareRing(r, rec) {
 const text = shareText(r, rec);
 const card = await paintShareCard(r, rec);
 let file = null;
-try { if (card && card.blob) file = new File([card.blob], 'quorbit-rings-' + r.no + '.png', { type: 'image/png' }); } catch (e) {}
+try { if (card && card.blob) file = new File([card.blob], 'quorbit-rings-' + r.no + '.jpg', { type: 'image/jpeg' }); } catch (e) {}
 if (navigator.share) {
 const data = { title: 'Quorbit Rings #' + r.no, text };
 try { if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file]; } catch (e) {}
@@ -5011,7 +5065,7 @@ catch (e) { if (e && e.name === 'AbortError') return 'abort'; }
 }
 const ok = await copyText(text);
 if (file) {
-const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = 'quorbit-rings-' + r.no + '.png';
+const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = 'quorbit-rings-' + r.no + '.jpg';
 document.body.appendChild(a); a.click(); a.remove();
 }
 toast(ok ? (file ? 'Copied the text, and saved the image.' : 'Copied: paste it anywhere') : (file ? 'Image saved.' : 'Could not share'));
@@ -5062,12 +5116,12 @@ loadMasters(r, rec).then(() => paintShareCard(r, rec)).then(showCard);
 on('#ringsShare', 'click', () => shareRing(r, rec));
 on('#ringsShareDl', 'click', () => {
 if (!shareCard || !shareCard.url) return;
-const a = document.createElement('a'); a.href = shareCard.url; a.download = 'quorbit-rings-' + r.no + '.png';
+const a = document.createElement('a'); a.href = shareCard.url; a.download = 'quorbit-rings-' + r.no + '.jpg';
 document.body.appendChild(a); a.click(); a.remove();
 });
 on('#ringsReplay', 'click', () => { const all = load(); delete all[saveKey(r)]; save(all); go('#/rings'); });
 }
-return { page, homeCard, nudgeCard, faqHTML, ROUNDS, scoreRing };
+return { page, homeCard, nudgeCard, faqHTML, ROUNDS, scoreRing, shouldAutoLand: shouldLandHere };
 };
 Object.assign(QB.rings, api);
 })(typeof window !== 'undefined' ? window : null);
@@ -5140,11 +5194,6 @@ pc.innerHTML = `<span class="hc-v">${L.icon} ${tot.toLocaleString('en-IN')}</spa
 pc.title = `${tot} lifetime points · ${L.name}`; pc.setAttribute('aria-label', `${tot} lifetime points, level ${L.name}: open your stats`); }
 document.querySelectorAll('#tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
 document.body.classList.toggle('rings-ui', tab === 'rings');
-if (tab === 'rings' && !document.getElementById('ringsFont')) {
-const l = document.createElement('link'); l.id = 'ringsFont'; l.rel = 'stylesheet';
-l.href = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap';
-document.head.appendChild(l);
-}
 const rib = document.getElementById('previewRibbon');
 rib.hidden = !PREVIEW;
 if (PREVIEW) rib.innerHTML = `PREVIEW MODE · ${esc(U.prettyDate(TODAY))} · <a href="${location.pathname}">back to today</a>`;
@@ -7460,6 +7509,10 @@ stats, sourceLine, creditLine, contribLine, segmented, bindSegmented, floatCta, 
 confirmModal, applyDisplay, setGuard: g => { guard = g; } });
 const RX = QB.rings ? QB.rings({ U, esc, view, on, go, toast, copyText, every, sfx, goBack, isSignedIn: isAuthSignedIn, setGuard: g => { guard = g; } }) : null;
 if (SX.CH && !/^#\/duel/.test(location.hash)) { history.replaceState(history.state, '', location.pathname + location.search + '#/duel'); navStack[navStack.length - 1] = '#/duel'; }
+else if (RX && RX.shouldAutoLand && RX.shouldAutoLand()) {
+history.replaceState(history.state, '', location.pathname + location.search + '#/rings');
+navStack[navStack.length - 1] = '#/rings';
+}
 QB.ui = { route, TODAY, PREVIEW, confirmModal, wagonWheel, navStack, screenCache, scrollMem, HAS_VT, SX };
 route();
 })(window.QB);
