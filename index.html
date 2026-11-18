@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#120b4a">
+  <meta name="color-scheme" content="dark only">
+  <meta name="supported-color-schemes" content="dark">
   <meta name="description" content="Quorbit: the free daily quiz show. Seven rounds a day, the same for everyone: Rapid Fire, a picture, Cricket Corner, a typed finale and a connect, plus topic duels and leaderboards.">
   <title>Quorbit · The Daily Quiz Show</title>
   <link rel="canonical" href="https://iquorbit.com/">
@@ -32,6 +34,7 @@
   <link rel="manifest" href="manifest.webmanifest">
   <style>
 :root {
+color-scheme: dark;
 --ink: #f5f5f7; --muted: #a1a1a6; --deep: #000000; --stage: #0c0c0e; --purple: #1c1c1e; --violet: #2c2c2e;
 --gold: #ffd60a; --gold-2: #ffd60a; --amber: #ffd60a; --green: #30d158; --red: #ff453a; --yellow: #ff9f0a;
 --blue: #0a84ff; --card: rgba(28, 28, 30, 0.92); --line: rgba(255, 255, 255, 0.12); --r: 14px;
@@ -45,6 +48,7 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html { height: auto; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 90px); }
+html { color-scheme: only dark; }
 html, body { margin: 0; background: var(--deep); color: var(--ink); font-family: var(--display); }
 body { min-height: 100vh; min-height: 100svh; font-size: 1rem; line-height: 1.4; overscroll-behavior-y: none; }
 a { color: inherit; text-decoration: none; }
@@ -79,6 +83,12 @@ padding: 6px 6px calc(12px + env(safe-area-inset-bottom, 0px)); background: rgba
 .tabbar a span { font-size: 1.25rem; filter: grayscale(.6); }
 .tabbar a.active { color: var(--ink); background: rgba(255,255,255,.08); }
 .tabbar a.active span { filter: none; }
+.tabbar a.tab-rings { position: relative; overflow: visible; }
+.tab-new { position: absolute; font-weight: 800; letter-spacing: .08em; line-height: 1; border-radius: 3px; color: #1b0f5c; background: var(--gold); animation: tab-new-pulse 2.6s ease-in-out infinite; pointer-events: none; }
+.tabbar a.tab-rings .tab-new { top: 2px; right: 8px; left: auto; translate: none; font-size: 6px; padding: 1px 3px; }
+.tab-new-inline { position: static; translate: none; margin-left: 6px; vertical-align: 2px; }
+@keyframes tab-new-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .tab-new { animation: none; } }
 .kicker { text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.75rem; color: var(--muted); font-weight: 600; margin: 8px 0 4px; }
 .title { font-family: var(--serif); font-size: 1.75rem; line-height: 1.15; letter-spacing: -0.02em; margin: 4px 0 8px; font-weight: 700; text-shadow: none; }
 .page-title { font-family: var(--serif); font-size: 1.5rem; letter-spacing: -0.02em; font-weight: 700; margin: 12px 0 8px; }
@@ -1474,6 +1484,217 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
 .slider-round #sliderResults { width: 100%; margin-top: 14px; }
 .slider-round .row2 .btn { min-height: 48px; }
 .slider-round .row2 { margin-top: 4px; }
+.rings-card .btn-big { margin-top: 14px; }
+.rings-kicker { margin: 0 0 4px; font-family: var(--rings-sans, var(--display)); font-size: 0.75rem; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.rings-h { margin: 0 0 6px; font-size: 1.25rem; color: var(--ink); }
+.rings-dots { display: flex; align-items: center; gap: 8px; margin: 14px 0 2px; }
+.rings-dots i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--muted); }
+.rings-dots b { margin-left: 4px; font-size: 1.1rem; }
+.rm-box { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.rm-line { margin: 0; line-height: 1.4; }
+.rings-fb { text-align: center; }
+.rings-fb.ok { border-color: rgba(48,209,88,.5); } .rings-fb.bad { border-color: var(--line); }
+.rings-img { display: block; width: 200px; height: 200px; max-width: 100%; max-height: none; object-fit: cover; margin: 0 auto 12px; border-radius: 12px; }
+.rings-fb-t { margin: 0 0 4px; } .rings-fb .btn { margin-top: 12px; }
+.rings-ans { list-style: none; margin: 8px 0 10px; padding: 0; display: grid; gap: 8px; }
+.rings-ans li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,.06); font-weight: 700; }
+.rings-ans li.miss { color: var(--muted); font-weight: 600; }
+.ra-n { width: 22px; height: 22px; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(255,255,255,.1); font-family: var(--mono); font-size: 0.75rem; }
+.rings-ans li.ok .ra-n { background: var(--green); color: #000; }
+.rings-hint { margin: 12px 0; } .rings-hint .btn { width: 100%; }
+.rings-hint-t { margin: 0; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--gold); background: rgba(255,214,10,.08); }
+.rings-soft { margin-top: 10px; }
+.rings-score-card { text-align: center; }
+.rs-line { display: flex; justify-content: center; align-items: baseline; gap: 8px; flex-wrap: wrap; font-size: 1.125rem; }
+.rs-line b { font-family: var(--mono); color: var(--ink); } .rs-total b { color: var(--gold); font-size: 1.5rem; } .rs-sep { color: var(--muted); }
+.rings-theme { margin: 14px 0 0; display: grid; gap: 2px; } .rings-theme small { font-family: var(--mono); letter-spacing: 1.5px; color: var(--muted); font-size: 0.75rem; }
+.rings-theme b { font-size: 1.125rem; }
+.rings-score-card .btn { margin-top: 14px; }
+.rings-cars { list-style: none; padding: 0; margin: 0; }
+.rings-car { display: flex; gap: 12px; align-items: flex-start; }
+.rc-img { width: 64px; height: 64px; flex: none; border-radius: 10px; object-fit: cover; }
+.rc-h { margin: 0 0 4px; } .rings-car p.small { margin: 0; line-height: 1.45; color: var(--ink); opacity: .9; }
+.rings-src ul { margin: 8px 0 0; padding-left: 18px; } .rings-src li { margin: 2px 0; } .rings-src .link { padding: 4px 0; font-weight: 600; font-size: 0.875rem; }
+.rings-signup .pg-ask b { display: block; margin-bottom: 4px; }
+
+/* Rings typography: Inter (plus SF on Apple), scoped so Daily is unchanged */
+body.rings-ui {
+  --rings-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  font-family: var(--rings-sans);
+}
+body.rings-ui .title, body.rings-ui .page-title, body.rings-ui .section-title,
+body.rings-ui .rb-name, body.rings-ui .rings-h, body.rings-ui .question,
+body.rings-ui .opt, body.rings-ui .btn, body.rings-ui .lead, body.rings-ui .input {
+  font-family: var(--rings-sans);
+  letter-spacing: -0.02em;
+}
+body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weight: 700; }
+
+/* Missed Link: brief mark, then the next question — no answer, no picture */
+.rings-missed { text-align: center; margin: 14px 0 0; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+
+/* Result: one short credit line + picture; sources and FAQ stay collapsed */
+.rings-score-card { margin-bottom: 8px; }
+.rings-cars { display: grid; gap: 8px; }
+.rings-car { padding: 10px 12px; align-items: center; }
+.rings-car .rc-h { margin: 0; }
+.rings-car p.small { margin: 2px 0 0; line-height: 1.35; }
+.rings-src, .rings-faq { margin-top: 10px; }
+.rings-src summary, .rings-faq summary { cursor: pointer; font-weight: 700; font-size: 0.875rem; color: var(--muted); }
+.rings-src summary { font-size: 0.8125rem; }
+
+/* Home: Play Rings banner sits above the Daily wheel; purple vs yellow Play */
+.rings-banner { position: relative; display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; padding: 14px 16px; border-radius: 16px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 48%, #bf5af2 100%); box-shadow: 0 8px 22px rgba(94, 92, 230, .28); overflow: hidden; }
+.rings-banner:active { transform: scale(.98); }
+.rings-banner-ico { font-size: 1.5rem; filter: none; }
+.rings-banner div { flex: 1; min-width: 0; }
+.rings-banner b { display: block; font-size: 1.0625rem; font-weight: 700; letter-spacing: -0.02em; }
+.rings-banner small { display: block; margin-top: 2px; color: rgba(245,245,247,.82); font-size: 0.8125rem; }
+.rings-banner .chev { color: rgba(255,255,255,.85); }
+.rings-banner .tab-new { top: 4px; left: 28px; right: auto; translate: none; }
+.rings-banner::after { content: ''; position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.2) 50%, transparent 65%); transform: translateX(-120%); animation: rings-banner-shimmer 3.6s ease-in-out infinite; pointer-events: none; }
+@keyframes rings-banner-shimmer { 0%, 55% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@keyframes rings-banner-pulse { 0%, 100% { box-shadow: 0 8px 22px rgba(94, 92, 230, .28); } 50% { box-shadow: 0 8px 26px rgba(191, 90, 242, .4); } }
+@media (prefers-reduced-motion: reduce) { .rings-banner, .rings-banner::after { animation: none; } }
+.rings-banner, .rings-banner b, .rings-banner small { font-family: var(--rings-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif); }
+
+/* ---- Rings v3: Saturn icon, graphic NEW, input, choice, sources, share ---- */
+.rings-ico { width: 1.25em; height: 1.25em; display: block; overflow: visible; }
+.tabbar a .tab-ico { display: grid; place-items: center; height: 22px; filter: grayscale(.6); }
+.tabbar a .tab-ico .rings-ico { width: 22px; height: 22px; color: var(--ink); }
+.tabbar a.active .tab-ico { filter: none; }
+.rb-ico .rings-ico, .rings-choice-ico .rings-ico, .rings-nudge .rings-ico, .btn-rings .rings-ico, .rings-banner-ico .rings-ico { width: 22px; height: 22px; display: inline-block; vertical-align: -5px; }
+.rings-dots-ico .rings-ico { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; }
+.rings-faq summary .rings-ico, .title .rings-ico { width: 1.1em; height: 1.1em; display: inline-block; vertical-align: -0.2em; margin-right: 4px; }
+
+.tab-new { display: inline-flex; align-items: center; gap: 2px; position: absolute; top: 1px; right: 6px; left: auto; translate: none; font-size: 6px; font-weight: 800; letter-spacing: .07em; line-height: 1; padding: 2px 4px 2px 3px; border-radius: 999px; color: #1b0f5c; background: linear-gradient(105deg, #ffe566 0%, #ffd60a 55%, #ff9f0a 100%); box-shadow: 0 0 0 1px rgba(255,214,10,.35), 0 0 10px rgba(255,214,10,.45); animation: tab-new-glow 2.4s ease-in-out infinite; pointer-events: none; }
+.tab-new-spark { width: 7px; height: 7px; color: #1b0f5c; flex: none; }
+@keyframes tab-new-glow { 0%, 100% { opacity: 1; } 50% { opacity: .72; } }
+@media (prefers-reduced-motion: reduce) { .tab-new { animation: none; } }
+
+.rings-choice { position: relative; margin: 4px 0 16px; padding: 18px 16px 16px; border-radius: 18px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 48%, #bf5af2 100%); box-shadow: 0 8px 22px rgba(94, 92, 230, .28); overflow: hidden; text-align: center; }
+.rings-choice .tab-new { top: 8px; right: 10px; }
+.rings-choice-ico { display: inline-flex; margin: 2px 0 6px; }
+.rings-choice-ico .rings-ico { width: 36px; height: 36px; color: #fff; }
+.rings-choice .rings-h { color: #fff; margin: 0 0 4px; }
+.rings-choice p { color: rgba(245,245,247,.86); margin: 0 0 14px; }
+.rings-choice-btns { display: flex; flex-direction: column; gap: 8px; }
+.btn-rings { background: #fff; color: #3b1d8f; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; border-radius: 14px; }
+.btn-rings:active { transform: scale(.98); }
+.rings-choice .btn-ghost { color: #fff; border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.08); min-height: 48px; }
+.rings-nudge { display: flex; align-items: center; gap: 12px; margin: 12px 0 14px; padding: 14px 16px; border-radius: 16px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 55%, #bf5af2 100%); box-shadow: 0 6px 18px rgba(94, 92, 230, .25); text-decoration: none; }
+.rings-nudge div { flex: 1; min-width: 0; text-align: left; }
+.rings-nudge b { display: block; font-size: 1.0625rem; }
+@media (max-width: 380px) {
+  .rings-nudge { gap: 8px; padding: 12px 12px; }
+  .rings-nudge b { font-size: 0.95rem; }
+}
+.rings-nudge small { display: block; margin-top: 2px; color: rgba(245,245,247,.82); }
+.rings-nudge .chev { color: rgba(255,255,255,.85); }
+
+/* Ring type box: >=16px, tall enough, stays visible with the keyboard */
+body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input {
+  font-family: var(--rings-sans, inherit);
+  font-size: 16px !important;
+  line-height: 1.45;
+  letter-spacing: 0;
+  padding: 12px 14px;
+  min-height: 56px;
+  height: auto;
+  overflow: auto;
+  resize: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-text-size-adjust: 100%;
+  color: var(--ink);
+  background: rgba(255,255,255,.12);
+  border: 2px solid rgba(255,255,255,.35);
+}
+@media (max-width: 420px) {
+  body.rings-ui .typed .input, body.rings-ui .typed .btn, .rings-typed .input, .rings-typed .btn { min-height: 52px; }
+}
+.rings-typed { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 12px; width: 100%; }
+.rings-in-lab { font-size: 0.875rem; font-weight: 700; color: var(--muted); }
+.rings-in-row { display: flex; gap: 8px; align-items: stretch; width: 100%; }
+.rings-in-row .input { flex: 1; min-width: 0; }
+.rings-in-row .btn { flex: none; padding: 0 18px; }
+.rings-typed.docked { position: sticky; bottom: 0; z-index: 5; margin: 0 -8px; padding: 8px; background: rgba(0,0,0,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 12px 12px 0 0; }
+@media (max-width: 380px) {
+  .rings-in-row { flex-direction: column; }
+  .rings-in-row .btn { width: 100%; min-height: 48px; }
+}
+
+.rings-accepted { text-align: left; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
+.rings-top { margin: 0 0 8px; }
+.rings-top small { display: block; font-family: var(--mono); letter-spacing: 1.4px; color: var(--muted); font-size: 0.75rem; }
+.rings-top b { font-size: 1.0625rem; line-height: 1.35; }
+.rings-accepted ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rings-accepted li { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.06); font-weight: 600; line-height: 1.35; font-size: 0.9375rem; }
+
+.rings-cars { display: grid; gap: 10px; margin-bottom: 8px; }
+.rings-car { display: flex; gap: 12px; align-items: center; padding: 10px 12px; }
+.rc-img { width: 120px; height: 80px; flex: none; border-radius: 10px; object-fit: cover; background: rgba(255,255,255,.06); }
+.rc-tile { width: 120px; height: 80px; flex: none; border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 6px; font-weight: 700; font-size: 0.8125rem; background: linear-gradient(135deg, #3b1d8f, #5e5ce6); color: #fff; }
+
+.rings-src { margin-top: 12px; margin-bottom: 8px; padding: 12px 14px 16px; }
+.rings-src[open] { margin-bottom: 36px; }
+.rings-src summary { cursor: pointer; font-weight: 700; font-size: 0.9375rem; line-height: 1.4; color: var(--ink); }
+.rings-src-list { margin: 10px 0 0; padding-left: 1.15em; }
+.rings-src-list li { margin: 8px 0; line-height: 1.5; font-size: 0.9375rem; }
+.rings-src .link, .rings-src a { overflow-wrap: anywhere; word-break: break-word; font-size: 0.9375rem; line-height: 1.45; font-weight: 600; }
+.rings-credits-h { margin: 14px 0 0; font-weight: 700; font-size: 0.875rem; }
+.rings-credits-n { margin: 10px 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--muted); }
+.rings-foot { margin: 16px 0 8px; padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px) + 12px); }
+.rings-share-fig { margin: 12px 0 0; display: none; }
+.rings-share-fig.ready { display: grid; gap: 6px; justify-items: center; }
+.rings-share-fig img { width: 220px; height: 220px; border-radius: 12px; background: #000; }
+
+
+/* Rings v4: tab clearance, system fonts, cheap motion, Daily link on the Rings intro */
+:root { --rings-tab-clear: calc(70px + env(safe-area-inset-bottom, 0px)); }
+body.rings-ui .shell,
+body:has(#ringsHome) .shell,
+body:has(#ringsIntro) .shell,
+body:has(#ringsShareFig) .shell,
+body:has(#ringsNudge) .shell {
+  padding-bottom: calc(var(--rings-tab-clear) + 24px);
+}
+html:has(body.rings-ui),
+html:has(#ringsHome),
+html:has(#ringsShareFig) {
+  scroll-padding-bottom: calc(var(--rings-tab-clear) + 48px);
+}
+.rings-banner-ico { display: inline-flex; color: #fff; flex: none; }
+.rings-banner-ico .rings-ico { width: 26px; height: 26px; color: #fff; }
+.rings-daily-link { display: flex; align-items: center; justify-content: center; margin: 10px 0 0; min-height: 44px; padding: 8px 10px; text-align: center; color: var(--muted); font-weight: 600; font-size: 0.9375rem; line-height: 1.4; }
+.rings-daily-link:active { opacity: .75; }
+.rc-img { background: rgba(255,255,255,.06); aspect-ratio: 3 / 2; }
+@media (prefers-reduced-motion: reduce) {
+  .rings-banner::after, .tab-new, .rings-nudge { animation: none; }
+}
+
+/* Rings result: cross-link to Daily (gold) or a quiet "both done" line */
+.rings-nudge-daily { background: linear-gradient(105deg, #0050c8 0%, #0a84ff 55%, #4aa3ff 100%); color: #fff; box-shadow: 0 6px 18px rgba(10, 132, 255, .28); margin: 14px 0 4px; }
+.rings-nudge-daily small, .rings-nudge-daily .chev { color: rgba(255, 255, 255, .88); }
+.rings-cross-done { margin: 14px 0 8px; text-align: center; font-weight: 600; font-size: 0.9375rem; line-height: 1.4; color: var(--muted); }
+
+/* Rings primary Play: solid violet, distinct from gold Daily/Share (and survives force-dark). */
+.btn-rings-play {
+  background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 52%, #6d4aff 100%);
+  color: #fff;
+  border-radius: 980px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(94, 92, 230, .3);
+}
+.btn-rings-play:active { transform: scale(.98); opacity: .92; }
+
+/* Rings promo: quiet tab until Saturday; slim teaser Saturday; NEW from Saturday */
+.tabbar a.tab-rings { flex-direction: column; gap: 0; line-height: 1.15; }
+.tab-rings-sub { display: block; max-width: 100%; margin-top: 1px; font-size: 9px; font-weight: 600; letter-spacing: 0; line-height: 1.15; color: var(--muted); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tabbar a.tab-rings.tab-rings-quiet .tab-new,
+.tabbar a.tab-rings .tab-new[hidden] { display: none; }
+.rings-banner-teaser { box-shadow: 0 6px 16px rgba(94, 92, 230, .2); }
+.rings-banner-teaser::after { animation: none; }
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -1513,9 +1734,9 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
     <main id="app" class="screen" tabindex="-1"></main>
     <nav class="tabbar" id="tabbar">
       <a href="#/home" data-tab="home"><span>🪐</span>Today</a>
+      <a href="#/rings" data-tab="rings" class="tab-rings" aria-label="Rings, new"><span class="tab-ico"><svg class="rings-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="5.15" fill="currentColor" opacity=".18"/><circle cx="12" cy="12" r="5.15" fill="none" stroke="currentColor" stroke-width="1.7"/><ellipse cx="12" cy="12.2" rx="10.6" ry="3.35" fill="none" stroke="currentColor" stroke-width="1.55" transform="rotate(-22 12 12.2)"/><path d="M3.9 13.6c3.2-1.7 13-2.5 16.3-.3" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/></svg></span>Rings<span class="tab-new" role="note" aria-label="New"><svg class="tab-new-spark" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 .5l1.05 3.85H11.5L8.15 6.7l1.2 3.8L6 8.25 2.65 10.5l1.2-3.8L.5 4.35h4.45z" fill="currentColor"/></svg>NEW</span></a>
       <a href="#/topics" data-tab="topics"><span>🎯</span>Topics</a>
       <a href="#/duel" data-tab="duel"><span>⚔️</span>Duel</a>
-      <a href="#/leaderboard" data-tab="leaderboard"><span>🏆</span>Ranks</a>
       <a href="#/me" data-tab="me"><span>👤</span>Me</a>
     </nav>
   </div>
@@ -4263,8 +4484,59 @@ const cv = draw(document.createElement('canvas'), d);
 const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/png'); } catch (e) { r(null); } });
 return { canvas: cv, blob, url: cv.toDataURL('image/png') };
 }
-QB.shareCard = { draw, render };
+/** Rings share card: 1080x1080, brand colours, no theme or answers. d: { no, marks[bool], links, ring, total, max, masterNo, url } */
+function drawRings(cv, d) {
+cv.width = 1080; cv.height = 1080;
+const x = cv.getContext('2d'), W = 1080, F = '-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Roboto,Arial,sans-serif';
+x.fillStyle = '#000'; x.fillRect(0, 0, W, W);
+let g = x.createRadialGradient(540, 500, 0, 540, 540, 620); g.addColorStop(0, '#1a0d4a'); g.addColorStop(.45, '#0c0c14'); g.addColorStop(1, '#000'); x.fillStyle = g; x.fillRect(0, 0, W, W);
+// Saturn
+const cx = 540, cy = 430;
+x.save(); x.translate(cx, cy);
+x.strokeStyle = 'rgba(245,197,66,.55)'; x.lineWidth = 10; x.beginPath(); x.ellipse(0, 8, 210, 64, -0.38, 0, Math.PI * 2); x.stroke();
+g = x.createRadialGradient(-40, -50, 10, 0, 0, 120); g.addColorStop(0, '#fff1b8'); g.addColorStop(1, '#e39b12');
+x.fillStyle = g; x.beginPath(); x.arc(0, 0, 108, 0, Math.PI * 2); x.fill();
+x.strokeStyle = '#f5c542'; x.lineWidth = 10; x.beginPath(); x.ellipse(0, 8, 210, 64, -0.38, -0.2, Math.PI - 0.15); x.stroke();
+x.fillStyle = '#1b0f5c'; x.font = 'bold 96px Georgia,"Times New Roman",serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('?', 0, 8);
+x.restore();
+// 5 link dots, no answers
+const marks = d.marks || [];
+const n = Math.max(5, marks.length);
+const y = 640, gap = 86, x0 = cx - (n - 1) * gap / 2;
+marks.forEach((ok, i) => {
+const X = x0 + i * gap;
+x.beginPath(); x.arc(X, y, 22, 0, Math.PI * 2);
+if (ok) { x.fillStyle = '#30d158'; x.fill(); }
+else { x.strokeStyle = '#636366'; x.lineWidth = 5; x.stroke(); }
+});
+x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+x.fillStyle = '#a1a1a6'; x.font = '600 32px ' + F;
+x.fillText('QUORBIT RINGS #' + (d.no || 1), cx, 96);
+x.fillStyle = '#f5f5f7'; x.font = '700 120px ' + F;
+x.fillText((d.total != null ? d.total : 0) + '/' + (d.max || 150), cx, 800);
+x.fillStyle = '#f5c542'; x.font = '600 40px ' + F;
+const sub = 'Links ' + (d.links || 0) + '  ·  Ring ' + (d.ring || 0) + (d.masterNo ? '  ·  Ring Master #' + d.masterNo : '');
+x.fillText(sub, cx, 870);
+x.fillStyle = '#6e6e73'; x.font = '400 28px ' + F;
+x.fillText(d.url || 'iquorbit.com', cx, 1020);
+return cv;
+}
+async function renderRings(d) {
+try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+const cv = drawRings(document.createElement('canvas'), d);
+const encode = async q => {
+const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/jpeg', q); } catch (e) { r(null); } });
+const url = cv.toDataURL('image/jpeg', q);
+return { canvas: cv, blob, url, type: 'image/jpeg', quality: q };
+};
+let out = await encode(0.85);
+if (out.blob && out.blob.size > 150000) out = await encode(0.72);
+if (out.blob && out.blob.size > 150000) out = await encode(0.6);
+return out;
+}
+QB.shareCard = { draw, render, drawRings, renderRings };
 })();
+
 </script>
   <script>
 window.QB_SLIDER = {
@@ -4388,6 +4660,571 @@ QB.slider = { START, ITEMS, valid, eligible, itemFor, snap, fmt, label, grade, g
 })(window.QB);
 </script>
   <script>
+/* Quorbit · Rings: one weekly round. 5 "Link" MCQs (10 pts each), then the Ring: 60 s to type the hidden link (100/80/60/30,
+or 70/55/40/20 after the hint). One play per round per device (localStorage), no streak impact. The live "Ring Masters"
+count is a per-round Firestore doc that clients may only read by id or bump by exactly one play (see quorbit_firebase/firestore.rules). */
+(function (root) {
+const QB = root && root.QB;
+// ---------------------------------------------------------------- round data
+const ROUNDS = [{
+id: 'r01-lamborghini', no: 1, opensOn: '2026-11-22', lang: 'Italian',
+title: 'Ring #1',
+theme: 'Lamborghini cars not named after bulls',
+hint: 'Translate your 5 answers into Italian, and see what connects them.',
+questions: [
+{ q: "In 1977, Ohio State's Big Ear telescope picked up a strong radio burst, and astronomer Jerry Ehman circled it on the printout with a one-word note. What word did he write?",
+options: ['Wow', 'Eureka', 'Signal', 'Alien'], answer: 'Wow' },
+{ q: 'Fulgurites are tubes of natural glass that form in sand when what hits it?',
+options: ['Lightning', 'Meteorites', 'Lava', 'Hail'], answer: 'Lightning' },
+{ q: 'In the UK, the monarch sends a personal card to mark which milestone?',
+options: ['100th birthday', 'Golden wedding', 'Retirement', 'Knighthood'], answer: '100th birthday' },
+{ q: "Richard Dawkins' 1976 bestseller argued that evolution works at the level of the gene. What was the title's missing word: 'The ___ Gene'?",
+options: ['Selfish', 'Blind', 'Restless', 'Hidden'], answer: 'Selfish' },
+{ q: 'Pedants insist that what began on 1 January 2001, not 2000?',
+options: ['The third millennium', 'The Space Age', 'The Digital Era', 'The 21st-century census'], answer: 'The third millennium' }
+],
+// Ring tiers, best first. A guess scores a tier if it is close to one of its phrases, or contains every concept in one of its `all` sets.
+concepts: {
+lambo: ['lamborghini', 'lamborghinis', 'lambo', 'lambos', 'lamborgini', 'lamborghni', 'lamberghini', 'santagata', 'automobililamborghini'],
+not: ['not', 'non', 'no', 'never', 'without', 'except', 'other', 'besides', 'avoid', 'avoids', 'avoided', 'avoiding', 'arent', 'isnt', 'dont', 'doesnt', 'unlike', 'outside', 'beyond', 'breaking', 'break', 'breaks', 'exception', 'exceptions', 'nonbull', 'nonbulls', 'bullless', 'bullfree'],
+bull: ['bull', 'bulls', 'bullfight', 'bullfighting', 'bullfighter', 'toro', 'tori', 'taurine', 'taurus', 'nonbull', 'nonbulls', 'bullless', 'bullfree', 'cattle', 'cow', 'cows', 'bovine', 'bovines', 'ox', 'oxen', 'oxs', 'bul', 'buls', 'boll', 'bols', 'bulll', 'bulles'],
+car: ['car', 'cars', 'model', 'models', 'name', 'names', 'named', 'naming', 'nameplate', 'nameplates', 'supercar', 'supercars', 'vehicle', 'vehicles', 'automobile', 'automobiles', 'auto', 'autos', 'motor', 'motors', 'lineup', 'range', 'concept', 'concepts', 'hypercar', 'hypercars', 'sportscar', 'sportscars'],
+italy: ['italian', 'italy', 'italia', 'italiano', 'italiana'],
+fast: ['supercar', 'supercars', 'sportscar', 'sportscars', 'hypercar', 'hypercars', 'super', 'sports', 'sport', 'sporty', 'exotic', 'luxury', 'racing', 'race'],
+vehicle: ['car', 'cars', 'vehicle', 'vehicles', 'automobile', 'automobiles', 'auto', 'autos', 'motor', 'motors', 'supercar', 'supercars', 'hypercar', 'hypercars', 'sportscar', 'sportscars', 'automotive', 'carmaker']
+},
+ring: [
+{ pts: 100, hintPts: 70, label: 'Exact link', display: 'Non-bull-inspired names of Lamborghini cars',
+phrases: ['Non-bull-inspired names of Lamborghini cars', 'Lamborghini cars not named after bulls', 'Lamborghini models not named after bulls', 'non-bull Lamborghini names', 'Lamborghinis without bull names', 'Lamborghini models whose names are not bull-inspired'], all: [['lambo', 'not', 'bull']] },
+{ pts: 80, hintPts: 55, label: 'Lamborghini', accepted: ['Lamborghini cars', 'Lamborghini bulls / names'],
+phrases: ['Lamborghini', 'Lamborghini cars', 'Lamborghini models', 'Lamborghini car names', 'Lambo', 'Lamborghini bulls / names', 'Lamborghini bulls'], all: [['lambo']] },
+{ pts: 60, hintPts: 40, label: 'Italian supercars', accepted: ['Italian supercars'],
+phrases: ['Italian supercars', 'Italian sports cars', 'Italian cars'], all: [['italy', 'fast'], ['italy', 'vehicle']] },
+{ pts: 30, hintPts: 20, label: 'Cars', accepted: ['Things that inspired car names'],
+phrases: ['cars', 'car names', 'vehicles', 'supercars', 'Things that inspired car names'], all: [['vehicle'], ['fast', 'vehicle']] }
+],
+reveal: [
+{ name: 'Countach', from: 'Wow', text: "Piedmontese gasp of wonder, per designer Gandini.", img: 'images/rings/r01_countach.webp', alt: 'A red Lamborghini Countach with its scissor door open', credit: 'ilikewaffles11, CC BY 2.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Lamborghini_Countach_LP5000_QV_(14022104157).jpg' },
+{ name: 'Sián', from: 'Lightning', text: "Bolognese for \"lightning\"; Lamborghini's first hybrid, 2019.", img: 'images/rings/r01_sian.webp', alt: 'A gold Lamborghini Sián at the 2019 IAA', credit: 'Alexander Migl, CC BY-SA 4.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Lamborghini_Sian_at_IAA_2019_IMG_0332.jpg' },
+{ name: 'Centenario', from: '100th birthday', text: "Italian for \"centenary,\" for Ferruccio's 100th birthday.", img: 'images/rings/r01_centenario.webp', alt: 'A black and orange Lamborghini Centenario', credit: 'MrWalkr, CC BY-SA 4.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:2016_Lamborghini_Centenario_LC25.jpg' },
+{ name: 'Egoista', from: 'Selfish', text: "Italian for \"selfish\"; a 2013 one-off by Walter de'Silva.", img: 'images/rings/r01_egoista.webp', alt: 'The one-off Lamborghini Egoista, front view', credit: 'Herranderssvensson, CC BY-SA 3.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Lamborghini_Egoista_front.jpg' },
+{ name: 'Terzo Millennio', from: 'The third millennium', text: "Italian for \"third millennium\"; a 2017 MIT electric concept.", img: 'images/rings/r01_terzo.webp', alt: 'The Lamborghini Terzo Millennio concept', credit: 'Thesupermat, CC BY-SA 4.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Festival_automobile_international_2018_-_Lamborghini_Terzo_Millennio_-_015_(cropped).jpg' }
+],
+sources: [
+{ label: 'Lamborghini: Gandini on the name Countach', url: 'https://www.lamborghini.com/de-en/nachrichten/not-just-bulls-creator-tells-us-story-behind-name-countach' },
+{ label: 'Car and Driver: Countach name origin', url: 'https://www.caranddriver.com/features/a24406140/lamborghini-countach-name-origin/' },
+{ label: 'Lamborghini press release: Sián (2019)', url: 'https://www.thenewsmarket.com/news/the-lamborghini-si-n--limited-edition-hybrid-super-sports-car-previews-the-future/s/7a80157a-abb5-4371-886c-324e89a3a8c1' },
+{ label: 'Carscoops: Sián, first hybrid Lamborghini', url: 'https://www.carscoops.com/2019/09/new-lamborghini-sian-breaks-cover-as-brands-first-hybrid-and-most-powerful-supercar/' },
+{ label: 'Lamborghini: Centenario', url: 'https://www.lamborghini.com/es-en/noticias/lamborghini-centenario-perfect-few' },
+{ label: 'CAR magazine: Centenario at Geneva 2016', url: 'https://www.carmagazine.co.uk/car-news/motor-shows-events/geneva/2016/new-lamborghini-centenario-unveiled-at-the-2016-geneva-motor-show/' },
+{ label: 'The New York Times: Egoista (2013)', url: 'https://archive.nytimes.com/wheels.blogs.nytimes.com/2013/05/13/lamborghini-surprises-its-50th-anniversary-faithful-with-a-new-concept/' },
+{ label: 'Auto&Design: Egoista design history', url: 'https://autodesignmagazine.com/en/2020/05/the-best-concept-cars-of-the-2000s-lamborghini-egoista/' },
+{ label: 'MIT News: Terzo Millennio (2017)', url: 'https://news.mit.edu/2017/mit-and-lamborghini-developing-terzo-millenio-electric-car-of-the-future-1117' },
+{ label: 'Road & Track: Terzo Millennio concept', url: 'https://www.roadandtrack.com/new-cars/future-cars/a13436049/lamborgini-terzo-millennio-concept-photos-info/' }
+]
+}];
+const LINK_PTS = 10, Q_SECS = 25, RING_SECS = 60;
+const MAX = ROUNDS.length ? ROUNDS[0].questions.length * LINK_PTS + ROUNDS[0].ring[0].pts : 150;
+
+// ---------------------------------------------------------------- pure scoring (unit-testable in node)
+const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, ' and ').replace(/[’']/g, '');
+const toks = s => norm(s).replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+function lev(a, b) {
+const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+let prev = Array.from({ length: n + 1 }, (_, j) => j);
+for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; }
+return prev[n];
+}
+const tol = n => (n >= 9 ? 2 : n >= 5 ? 1 : 0);
+/** token t is close to word w: exact, a plural/verb ending of it, or within a length-scaled edit distance (first letter must agree) */
+function near(t, w) {
+if (t === w) return true;
+if (w.length >= 4 && (t === w + 's' || t === w + 'es' || t === w + 'ed' || t === w + 'ing' || t === w + 'd')) return true;
+return t[0] === w[0] && Math.abs(t.length - w.length) <= 2 && lev(t, w) <= tol(w.length);
+}
+function hasConcept(tokens, joined, words) {
+return words.some(w => tokens.some(t => near(t, w)) || (w.length >= 7 && joined.includes(w)));
+}
+/** Score a typed Ring guess. Returns { tier: index into round.ring or -1, pts } */
+function scoreRing(round, guess, usedHint) {
+const tokens = toks(guess); if (!tokens.length) return { tier: -1, pts: 0 };
+const joined = tokens.join('');
+// "non-bull" / "nonbull" style: split a leading non/not off a token as an extra token
+tokens.slice().forEach(t => { const m = t.match(/^(non|not|no)(bull.*|cattle.*|cow.*|bovine.*|ox.*)$/); if (m) tokens.push(m[1], m[2]); });
+for (let i = 0; i < round.ring.length; i++) {
+const T = round.ring[i];
+const phraseHit = T.phrases.some(p => { const pj = toks(p).join(''); return pj === joined || (pj.length >= 6 && lev(pj, joined) <= tol(pj.length)); });
+const conceptHit = (T.all || []).some(set => set.every(c => hasConcept(tokens, joined, round.concepts[c] || [])));
+if (phraseHit || conceptHit) return { tier: i, pts: usedHint ? T.hintPts : T.pts };
+}
+return { tier: -1, pts: 0 };
+}
+const roundOpen = (r, today) => today >= r.opensOn;
+/** The live round: the latest one that has opened (each runs until the next opens). preview=true: the first round, whatever the date. */
+function currentRound(today, preview) {
+if (preview) return ROUNDS[0];
+const open = ROUNDS.filter(r => roundOpen(r, today));
+return open.length ? open[open.length - 1] : null;
+}
+const nextRound = today => ROUNDS.find(r => !roundOpen(r, today)) || null;
+// Days a new Ring drops (JS getDay in Asia/Kolkata): 0 Sunday, 3 Wednesday. Preview treats every day as a drop day.
+const DROP_DAYS = [0, 3];
+const weekdayIST = dateStr => new Date(dateStr + 'T12:00:00+05:30').getDay();
+const isDropDay = (dateStr, preview, days) => !!(preview || (days || DROP_DAYS).includes(weekdayIST(dateStr)));
+const firstOpenDate = () => (ROUNDS[0] && ROUNDS[0].opensOn) || '2026-11-22';
+function shiftISTDate(dateStr, days) {
+const t = Date.parse(dateStr + 'T12:00:00+05:30') + days * 86400000;
+return new Date(t).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+}
+function promoPhase(dateStr) {
+const open = firstOpenDate();
+const teaser = shiftISTDate(open, -1);
+if (!dateStr || dateStr < teaser) return 'quiet';
+if (dateStr < open) return 'teaser';
+return 'live';
+}
+const DROP_DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+function nextDropWeekday(dateStr, days) {
+const set = (days || DROP_DAYS);
+const from = weekdayIST(dateStr);
+for (let i = 1; i <= 7; i++) {
+const d = (from + i) % 7;
+if (set.includes(d)) return DROP_DAY_NAMES[d];
+}
+return DROP_DAY_NAMES[set[0] || 0];
+}
+function resultCrossLink(opts) {
+opts = opts || {};
+if (!opts.dailyDone) return { kind: 'daily', href: '#/play', title: "Now play today's Daily Trivia →" };
+return { kind: 'done', title: 'Daily done ✓ · Next Ring ' + (opts.nextWeekday || nextDropWeekday(opts.date)) };
+}
+/** Labels shown on the result screen. Each label must score its listed points via scoreRing. */
+function acceptedAnswers(round, usedHint) {
+const out = [];
+(round.ring || []).forEach((T, i) => {
+const pts = usedHint ? T.hintPts : T.pts;
+const labels = i === 0 ? [T.display || T.phrases[0]] : (T.accepted || [T.label]);
+labels.forEach(label => out.push({ label, pts, tier: i, top: i === 0 }));
+});
+return out;
+}
+function shouldAutoLand(opts) {
+opts = opts || {};
+const hash = 'hash' in opts ? (opts.hash || '') : '';
+const search = 'search' in opts ? (opts.search || '') : '';
+const h = hash;
+if (h && h !== '#' && h !== '#/') return false;
+let q; try { q = new URLSearchParams(search); } catch (e) { return false; }
+if (q.get('duel') || q.get('date')) return false;
+const ref = (q.get('ref') || '').trim();
+if (ref && ref !== 'rings') return false;
+const date = opts.date || '';
+const preview = !!opts.preview;
+if (!date || promoPhase(date) !== 'live') return false;
+const r = currentRound(date, preview);
+if (!r || !isDropDay(date, preview)) return false;
+if (opts.played) return false;
+return true;
+}
+const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, nextDropWeekday, resultCrossLink, promoPhase, firstOpenDate, shiftISTDate, LINK_PTS, Q_SECS, RING_SECS, MAX, near, shouldAutoLand };
+if (typeof module === 'object' && module.exports) { module.exports = api; return; }
+
+// ---------------------------------------------------------------- live Ring Masters counter (Firestore REST, no SDK)
+const FS_PROJECT = 'quorbit-1904e', FS_KEY = 'AIzaSyCS0-1a7K7IB9jvJIiMFbKH9sRVb9sPG3c'; // public web key, same as auth.js
+const FS_BASE = `https://firestore.googleapis.com/v1/projects/${FS_PROJECT}/databases/(default)/documents`;
+const docName = id => `projects/${FS_PROJECT}/databases/(default)/documents/rings/${id}`;
+const intOf = v => (v && v.integerValue != null ? Number(v.integerValue) : 0);
+async function fsCounts(docId) {
+const r = await fetch(`${FS_BASE}/rings/${docId}?key=${FS_KEY}`);
+if (r.status === 404) return { players: 0, solvers: 0 };
+if (!r.ok) throw new Error('counts ' + r.status);
+const j = await r.json(); return { players: intOf(j.fields && j.fields.players), solvers: intOf(j.fields && j.fields.solvers) };
+}
+/** One play: players +1, solvers +1 if exact. The transform results are the counts right after this play, so a solver's own number is exact. */
+async function fsRecord(docId, solved) {
+try { if (new URLSearchParams(location.search).get('ringsDate')) { const c = await fsCounts(docId); return { players: (c.players || 0) + 1, solvers: (c.solvers || 0) + (solved ? 1 : 0) }; } } catch (e) { return { players: 0, solvers: 0 }; }
+const body = { writes: [{ transform: { document: docName(docId), fieldTransforms: [
+{ fieldPath: 'players', increment: { integerValue: '1' } }, { fieldPath: 'solvers', increment: { integerValue: solved ? '1' : '0' } }] } }] };
+const r = await fetch(`${FS_BASE}:commit?key=${FS_KEY}`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+if (!r.ok) throw new Error('record ' + r.status);
+const j = await r.json(); const tr = (j.writeResults && j.writeResults[0] && j.writeResults[0].transformResults) || [];
+return { players: intOf(tr[0]), solvers: intOf(tr[1]) };
+}
+
+QB.rings = function (K) {
+const { U, esc, view, on, go, toast, copyText, setGuard, isSignedIn, every, sfx } = K;
+const $app = document.getElementById('app');
+const PREVIEW_RINGS = false; /* live: ?rings=preview does not unlock early */
+const MOCK_DAY = (() => { try { const v = new URLSearchParams(location.search).get('ringsDate'); return v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null; } catch (e) { return null; } })();
+const today = () => MOCK_DAY || U.istDateString();
+const KEY = 'qb:rings';
+const docOf = r => (PREVIEW_RINGS && !roundOpen(r, today()) ? r.id + '-preview' : r.id); // preview plays before opening day never touch the real count
+const saveKey = r => (MOCK_DAY ? 'mock:' + MOCK_DAY + ':' : '') + r.id;
+const load = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
+const save = all => { try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) {} };
+const getRec = r => load()[saveKey(r)] || null;
+const putRec = (r, rec) => { const all = load(); all[saveKey(r)] = rec; save(all); };
+const prettyDay = d => { try { return new Date(d + 'T12:00:00+05:30').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }); } catch (e) { return d; } };
+const q = s => $app.querySelector(s);
+const ICO = '<svg class="rings-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="5.15" fill="currentColor" opacity=".18"/><circle cx="12" cy="12" r="5.15" fill="none" stroke="currentColor" stroke-width="1.7"/><ellipse cx="12" cy="12.2" rx="10.6" ry="3.35" fill="none" stroke="currentColor" stroke-width="1.55" transform="rotate(-22 12 12.2)"/><path d="M3.9 13.6c3.2-1.7 13-2.5 16.3-.3" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/></svg>';
+const newBadge = hid => `<span class="tab-new"${hid ? ' aria-hidden="true"' : ' role="note" aria-label="New"'}><svg class="tab-new-spark" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 .5l1.05 3.85H11.5L8.15 6.7l1.2 3.8L6 8.25 2.65 10.5l1.2-3.8L.5 4.35h4.45z" fill="currentColor"/></svg>NEW</span>`;
+
+function faqHTML(open) {
+return `<details class="card htp rings-faq" id="ringsFaq"${open ? ' open' : ''}>
+<summary>${ICO} How Rings works</summary>
+<ol>
+<li><span><b>5 Links, then one Ring.</b> Answer 5 quick questions (${LINK_PTS} pts each, ${Q_SECS} s each). Running out of time only loses that question.</span></li>
+<li><span><b>Find the Ring.</b> Your 5 answers share a hidden link. You get ${RING_SECS} seconds to type it.</span></li>
+<li><span><b>Hints lower your max.</b> Exact match 100, close 80 / 60 / 30. After the hint: 70 / 55 / 40 / 20.</span></li>
+<li><span><b>Close, and exact.</b> Several phrasings are accepted. Whichever is the closest match to the computed answer counts as an exact match and gets full marks. Other close links still score on the lower tiers. The theme's list is indicative and may not be exhaustive.</span></li>
+<li><span><b>Sources are shown</b> after every round, with the story behind each answer.</span></li>
+<li><span><b>One play per round on this device.</b> Rings never affect your Daily streak.</span></li>
+</ol>
+</details>`;
+}
+function mastersLine(c, rec) {
+if (!c) return `<p class="rm-line muted small" id="rmLine">Ring Masters count unavailable right now.</p>`;
+if (rec && rec.master && rec.masterNo) return `<p class="rm-line" id="rmLine"><b>You're Ring Master #${rec.masterNo} this week!</b><br><span class="muted small">${pct(c)}% of players found the exact link.</span></p>`;
+if (!c.solvers) return `<p class="rm-line" id="rmLine"><b>Be the first Ring Master.</b><br><span class="muted small">Nobody has found the exact link yet.</span></p>`;
+return `<p class="rm-line" id="rmLine"><b>${c.solvers} Ring Master${c.solvers === 1 ? '' : 's'} this week</b><br><span class="muted small">${pct(c)}% of players found the exact link.</span></p>`;
+}
+const pct = c => (c.players ? Math.max(1, Math.round(100 * c.solvers / c.players)) : 0);
+function loadMasters(r, rec) {
+const box = q('#rmBox'); if (!box) return Promise.resolve(null);
+const pend = rec && rec.done && !rec.recorded ? fsRecord(docOf(r), !!rec.master).then(c => { rec.recorded = true; if (rec.master) rec.masterNo = c.solvers; putRec(r, rec); return c; }) : fsCounts(docOf(r));
+return pend.then(c => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(c, rec); return c; }).catch(() => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(null, rec); return null; });
+}
+
+// ---------------------------------------------------------------- Rings tab
+function page(arg) {
+if (arg === 'play') return play();
+if (arg === 'ring') return ringStep();
+const r = currentRound(today(), PREVIEW_RINGS), nx = nextRound(today());
+if (!r) {
+view(`<section class="hero rings-hero"><p class="kicker">Weekly · new</p><h1 class="title">Rings</h1>
+<p class="lead whisper">5 Links. One hidden Ring.</p></section>
+<section class="card rings-card"><p class="rings-kicker">${nx ? esc(nx.title) : 'Ring #1'}</p>
+<h2 class="rings-h">Opens ${nx ? esc(prettyDay(nx.opensOn)) : 'soon'}</h2>
+<p class="muted small">Answer 5 quick questions, then work out what links them. A new Ring every week.</p></section>
+${faqHTML(true)}`, 'rings');
+return;
+}
+const rec = getRec(r);
+if (rec && rec.done) return resultView(r, rec);
+const started = rec && rec.answers && rec.answers.length;
+view(`<section class="hero rings-hero"><p class="kicker">Weekly${PREVIEW_RINGS ? ' · preview' : ''}</p><h1 class="title">Rings</h1>
+<p class="lead whisper">5 Links. One hidden Ring.</p></section>
+<section class="card rings-card" id="ringsIntro">
+<p class="rings-kicker">${esc(r.title)} · week of ${esc(prettyDay(r.opensOn))}</p>
+<h2 class="rings-h">What links the five?</h2>
+<p class="muted small">5 Links × ${LINK_PTS} pts, then ${RING_SECS} s to type the Ring for up to 100. Max ${MAX}.</p>
+<div class="rings-dots" aria-hidden="true">${r.questions.map(() => '<i></i>').join('')}<b class="rings-dots-ico">${ICO}</b></div>
+<a class="btn btn-rings-play btn-big" href="#/rings/play" id="ringsPlay">${started ? `Resume · Link ${Math.min(5, rec.answers.length + 1)}/5` : `Play ${esc(r.title)}`}</a>
+<a class="rings-daily-link" href="#/home" id="ringsPlayDaily">Or play today's Daily Trivia&nbsp;→</a>
+<div id="rmBox" class="rm-box"><p class="rm-line muted small">Loading Ring Masters…</p></div>
+</section>
+${faqHTML(false)}
+${PREVIEW_RINGS ? `<p class="muted small center">Preview mode: this play is kept apart from the live round.</p>` : ''}`, 'rings');
+loadMasters(r, null);
+}
+/** Today promo: none before Saturday; slim 'opens tomorrow' teaser on Saturday; full Play banner once live and unplayed. */
+function homeCard() {
+const day = today();
+const phase = promoPhase(day);
+if (phase === 'quiet') return '';
+if (phase === 'teaser') {
+return `<a class="rings-banner rings-banner-teaser" href="#/rings" id="ringsHome">
+<span class="rings-banner-ico">${ICO}</span>
+<div><b>Rings · opens tomorrow</b><small>Sunday · 5 Links, one hidden Ring</small></div>
+<span class="chev" aria-hidden="true">›</span>
+</a>`;
+}
+const r = currentRound(day, PREVIEW_RINGS);
+if (!r) return '';
+const rec = getRec(r);
+if (rec && rec.done) return '';
+return `<a class="rings-banner" href="#/rings" id="ringsHome">
+${newBadge(false)}
+<span class="rings-banner-ico">${ICO}</span>
+<div><b>Play Rings</b><small>${esc(r.title)} · 5 Links, one hidden Ring</small></div>
+<span class="chev" aria-hidden="true">›</span>
+</a>`;
+}
+function shouldLandHere() {
+return api.shouldAutoLand({
+hash: typeof location !== 'undefined' ? location.hash : '',
+search: typeof location !== 'undefined' ? location.search : '',
+date: today(),
+preview: PREVIEW_RINGS,
+played: !!(function () { const r = currentRound(today(), PREVIEW_RINGS); const rec = r && getRec(r); return rec && rec.done; })()
+});
+}
+/** After the Daily: nudge if this week's Ring is still unplayed (any day it is open). */
+function nudgeCard() {
+if (promoPhase(today()) !== 'live') return '';
+const r = currentRound(today(), PREVIEW_RINGS);
+if (!r) return '';
+const rec = getRec(r);
+if (rec && rec.done) return '';
+return `<a class="rings-nudge" href="#/rings" id="ringsNudge">${ICO}<div><b>Now try this week's Ring&nbsp;→</b><small>${esc(r.title)} · 5 Links, one hidden Ring</small></div><span class="chev">›</span></a>`;
+}
+
+// ---------------------------------------------------------------- the 5 Links
+function play() {
+const r = currentRound(today(), PREVIEW_RINGS); if (!r) return go('#/rings');
+let rec = getRec(r) || { answers: [], at: Date.now() };
+if (rec.done) return go('#/rings');
+if (rec.cur != null && rec.cur === rec.answers.length) rec.answers.push({ pick: null, ok: false, time: true }); // left mid-question: it counts as lost
+if (rec.answers.length >= r.questions.length) { rec.cur = null; putRec(r, rec); return go('#/rings/ring'); }
+const i = rec.answers.length, Q = r.questions[i];
+rec.cur = i; putRec(r, rec);
+if (i === 0 && QB.track) QB.track('rings-start');
+let over = false, paused = 0, pausedAt = 0; const t0 = Date.now();
+setGuard({ kind: 'rings', hash: '#/rings/play', title: 'Leave the Ring?', body: 'This question will count as missed. Your other answers are kept.', active: () => !over,
+pause: () => { pausedAt = Date.now(); }, resume: () => { if (pausedAt) paused += Date.now() - pausedAt; pausedAt = 0; } });
+const opts = Q.options.slice();
+view(`<div class="gamebar"><button class="quit-btn" id="quitBtn" type="button" aria-label="Leave the Ring">✕ Quit</button>
+<div class="dots">${r.questions.map((_, k) => `<span class="dot ${k < i ? (rec.answers[k].ok ? 'ok' : 'bad') : k === i ? 'now' : ''}"></span>`).join('')}</div>
+<div class="score-mini"><small>LINKS</small><b class="rings-score">${rec.answers.filter(a => a.ok).length * LINK_PTS}</b></div></div>
+<div class="round-banner"><span class="rb-ico">${ICO}</span><div class="rb-text"><div class="rb-name">Link ${i + 1} of ${r.questions.length}</div><div class="rb-cat">${esc(r.title)} · Rings</div></div><div class="rb-right"><span class="rb-pts">${LINK_PTS}</span></div></div>
+<div class="qhead"><div class="timer" id="timer" role="timer" aria-label="Seconds left">
+<span class="t-pill"><b id="timerNum">${Q_SECS}</b><small>s</small></span><span class="t-bar"><span class="timer-fill" id="timerFill"></span></span></div>
+<h2 class="question" id="qtext">${esc(Q.q)}</h2></div>
+<div class="options" id="options">${opts.map((o, k) => `<button type="button" class="opt" data-opt="${esc(o)}"><span class="opt-key">${'ABCD'[k]}</span><span class="opt-label">${esc(o)}</span></button>`).join('')}</div>
+<div id="reveal"></div>`, 'rings');
+document.body.classList.add('in-play');
+on('#quitBtn', 'click', () => K.goBack ? K.goBack() : go('#/rings'));
+const fill = q('#timerFill'), num = q('#timerNum'), tm = q('#timer'); let lastSec = Q_SECS;
+const tick = () => {
+if (over || pausedAt) return;
+const left = Math.max(0, Q_SECS * 1000 - (Date.now() - t0 - paused)); const sec = Math.ceil(left / 1000);
+if (fill) fill.style.transform = `scaleX(${left / (Q_SECS * 1000)})`; if (num) num.textContent = sec;
+if (tm) { tm.classList.toggle('warn', sec <= 10 && sec > 5); tm.classList.toggle('danger', sec <= 5); }
+if (sec !== lastSec && sec <= 5 && sec > 0 && sfx && sfx.tick) sfx.tick(); lastSec = sec;
+if (left <= 0) finish(null);
+};
+every(tick, 100);
+on('.opt', 'click', e => finish(e.currentTarget.dataset.opt));
+function finish(pick) {
+if (over) return; over = true; setGuard(null);
+const ok = pick === Q.answer;
+$app.querySelectorAll('.opt').forEach(b => {
+b.disabled = true;
+if (ok && b.dataset.opt === Q.answer) b.classList.add('correct');
+else if (b.dataset.opt === pick) b.classList.add('wrong');
+});
+const tmEl = q('#timer'); if (tmEl) tmEl.classList.add('done');
+try { ok ? sfx.correct() : pick ? sfx.wrong() : sfx.timeup(); } catch (e) {}
+rec.answers.push({ pick, ok, time: !pick }); rec.cur = null; putRec(r, rec);
+const last = rec.answers.length >= r.questions.length;
+const goNext = () => { if (last) go('#/rings/ring'); else play(); };
+if (!ok) {
+q('#reveal').innerHTML = `<p class="rings-missed" id="ringsFb">${pick ? 'Missed' : "Time's up · missed"}</p>`;
+setTimeout(goNext, 750);
+return;
+}
+q('#reveal').innerHTML = `<section class="card rings-fb ok" id="ringsFb">
+<p class="rings-fb-t"><b>+${LINK_PTS} · Right</b> · Link ${i + 1}: <b>${esc(Q.answer)}</b></p>
+<p class="muted small">Keep it in mind: all five answers share one hidden link.</p>
+<button class="btn btn-gold" id="ringsNext" type="button">${last ? 'Find the Ring' : `Next · Link ${i + 2}`}</button></section>`;
+on('#ringsNext', 'click', goNext);
+const fb = q('#ringsFb'); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+}
+
+// ---------------------------------------------------------------- the Ring (typed link)
+function ringStep() {
+const r = currentRound(today(), PREVIEW_RINGS); if (!r) return go('#/rings');
+const rec = getRec(r); if (!rec || rec.done) return go('#/rings');
+if (rec.answers.length < r.questions.length) return go('#/rings/play');
+if (!rec.ringAt) { rec.ringAt = Date.now(); putRec(r, rec); }
+let over = false, hint = !!rec.hint;
+setGuard({ kind: 'rings', hash: '#/rings/ring', title: 'Leave the Ring?', body: 'Your Ring clock keeps running while you are away.', active: () => !over });
+const links = rec.answers.filter(a => a.ok).length * LINK_PTS;
+view(`<div class="round-banner"><span class="rb-ico">${ICO}</span><div class="rb-text"><div class="rb-name">Find the Ring</div><div class="rb-cat">${esc(r.title)} · Links ${links}/${r.questions.length * LINK_PTS}</div></div><div class="rb-right"><span class="rb-pts" id="ringMax">${hint ? 70 : 100}</span></div></div>
+<div class="timer" id="timer" role="timer" aria-label="Seconds left"><span class="t-pill"><b id="timerNum">${RING_SECS}</b><small>s</small></span><span class="t-bar"><span class="timer-fill" id="timerFill"></span></span></div>
+<form class="typed rings-typed" id="ringForm" autocomplete="off">
+<label class="rings-in-lab" for="ringInput">Type the hidden Ring</label>
+<div class="rings-in-row">
+<textarea id="ringInput" class="input" rows="2" placeholder="Type the link…" aria-label="The hidden link" autocapitalize="off" spellcheck="false" maxlength="80"></textarea>
+<button class="btn btn-gold" type="submit" id="ringBtn">Lock it</button>
+</div>
+</form>
+<div class="rings-hint" id="hintBox">${hint ? `<p class="rings-hint-t" id="hintText">💡 ${esc(r.hint)}</p>` : `<button class="btn btn-ghost small" id="hintBtn" type="button">💡 Show hint <span class="muted">(max drops to 70)</span></button>`}</div>
+<section class="card rings-reveal" id="ringReveal"><p class="rings-kicker">Your 5 answers</p>
+<ol class="rings-ans">${r.questions.map((Q, k) => rec.answers[k] && rec.answers[k].ok
+? `<li class="ok"><span class="ra-n">${k + 1}</span><span>${esc(Q.answer)}</span></li>`
+: `<li class="miss"><span class="ra-n">${k + 1}</span><span>— missed</span></li>`).join('')}</ol>
+<p class="muted small">What links them?</p></section>
+${isSignedIn() ? '' : `<p class="muted small center rings-soft" id="ringsSoft">Playing as a guest. Sign up free after the Ring to save your score.</p>`}`, 'rings');
+document.body.classList.add('in-play');
+const fill = q('#timerFill'), num = q('#timerNum'), tm = q('#timer'), inp = q('#ringInput');
+setTimeout(() => { try { inp && inp.focus({ preventScroll: true }); } catch (e) {} }, 60);
+const tick = () => {
+if (over) return;
+const left = Math.max(0, RING_SECS * 1000 - (Date.now() - rec.ringAt)); const sec = Math.ceil(left / 1000);
+if (fill) fill.style.transform = `scaleX(${left / (RING_SECS * 1000)})`; if (num) num.textContent = sec;
+if (tm) { tm.classList.toggle('warn', sec <= 20 && sec > 10); tm.classList.toggle('danger', sec <= 10); }
+if (left <= 0) submit(true);
+};
+every(tick, 200); tick();
+// Keep the type box above the on-screen keyboard (iOS/Android visualViewport).
+const form = q('#ringForm');
+const dock = () => {
+if (!form || over) return;
+const vv = window.visualViewport;
+const kb = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
+form.classList.toggle('docked', kb > 60);
+form.style.bottom = kb > 60 ? kb + 'px' : '';
+if (kb > 60) { try { form.scrollIntoView({ block: 'end', behavior: 'auto' }); } catch (e) {} }
+};
+if (window.visualViewport) {
+window.visualViewport.addEventListener('resize', dock);
+window.visualViewport.addEventListener('scroll', dock);
+}
+if (inp) inp.addEventListener('focus', () => setTimeout(dock, 250));
+on('#hintBtn', 'click', () => {
+hint = true; rec.hint = true; putRec(r, rec);
+q('#hintBox').innerHTML = `<p class="rings-hint-t" id="hintText">💡 ${esc(r.hint)}</p>`; q('#ringMax').textContent = '70';
+if (QB.track) QB.track('rings-hint');
+});
+on('#ringForm', 'submit', e => { e.preventDefault(); submit(false); });
+if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(false); } });
+function submit(timeUp) {
+if (over) return; const guess = (inp && inp.value || '').trim();
+if (!guess && !timeUp) { inp && inp.focus(); return; }
+over = true; setGuard(null);
+const sc = scoreRing(r, guess, hint);
+Object.assign(rec, { done: true, guess, tier: sc.tier, ring: sc.pts, links, master: sc.tier === 0, timeUp: !!timeUp && !guess, finishedAt: Date.now() });
+putRec(r, rec);
+try { sc.pts ? (sfx.fanfare ? sfx.fanfare() : sfx.correct()) : sfx.wrong(); } catch (e) {}
+if (QB.track) { QB.track('rings-finish'); if (rec.master) QB.track('rings-master'); }
+location.replace('#/rings');
+}
+}
+
+// ---------------------------------------------------------------- result
+function shareText(r, rec) {
+const grid = rec.answers.map(a => (a.ok ? '🟢' : '⚫')).join('');
+const master = rec.master && rec.masterNo ? ` · Ring Master #${rec.masterNo}` : rec.master ? ' · Ring Master' : '';
+return `Quorbit Rings #${r.no} 🪐\nLinks ${grid} · Ring ${rec.ring} · ${rec.links + rec.ring}/${MAX}${master}\nhttps://iquorbit.com/?ref=rings`;
+}
+async function paintShareCard(r, rec) {
+if (!QB.shareCard || !QB.shareCard.renderRings) return null;
+try {
+return await QB.shareCard.renderRings({
+no: r.no, marks: rec.answers.map(a => !!a.ok), links: rec.links, ring: rec.ring,
+total: rec.links + rec.ring, max: MAX, masterNo: rec.master ? rec.masterNo : 0, url: 'iquorbit.com'
+});
+} catch (e) { return null; }
+}
+async function shareRing(r, rec) {
+const text = shareText(r, rec);
+const card = await paintShareCard(r, rec);
+let file = null;
+try { if (card && card.blob) file = new File([card.blob], 'quorbit-rings-' + r.no + '.jpg', { type: 'image/jpeg' }); } catch (e) {}
+if (navigator.share) {
+const data = { title: 'Quorbit Rings #' + r.no, text };
+try { if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file]; } catch (e) {}
+try { await navigator.share(data); if (QB.track) QB.track('rings-share'); return 'shared'; }
+catch (e) { if (e && e.name === 'AbortError') return 'abort'; }
+}
+const ok = await copyText(text);
+if (file) {
+const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = 'quorbit-rings-' + r.no + '.jpg';
+document.body.appendChild(a); a.click(); a.remove();
+}
+toast(ok ? (file ? 'Copied the text, and saved the image.' : 'Copied: paste it anywhere') : (file ? 'Image saved.' : 'Could not share'));
+if (QB.track) QB.track('rings-share');
+return 'copy';
+}
+function resultView(r, rec) {
+const T = rec.tier >= 0 ? r.ring[rec.tier] : null;
+const verdict = rec.master ? `${ICO} You found the exact link!` : T ? `Close: ${esc(T.label)}` : rec.timeUp ? "Time's up" : 'Not this time';
+const accepted = acceptedAnswers(r, !!rec.hint);
+const top = accepted.find(a => a.top) || accepted[0];
+const rest = accepted.filter(a => !a.top);
+const ask = !isSignedIn();
+const nx = ROUNDS.find(x => x.opensOn > r.opensOn) || null;
+const credits = r.reveal.filter(c => c.credit);
+let dailyDone = false;
+try {
+const date = (typeof QB !== 'undefined' && QB.ui && QB.ui.TODAY) || today();
+const recD = QB.store && QB.store.get && QB.store.get().daily && QB.store.get().daily[date];
+dailyDone = !!(recD && (recD.marks || recD.score != null));
+} catch (e) {}
+const cross = resultCrossLink({ dailyDone, date: today(), nextWeekday: nextDropWeekday(today()) });
+const crossHTML = cross.kind === 'daily'
+? `<a class="rings-nudge rings-nudge-daily" href="${cross.href}" id="ringsDailyNudge"><div><b>Now play today's Daily Trivia&nbsp;→</b><small>Seven rounds. Same for everyone.</small></div><span class="chev" aria-hidden="true">›</span></a>`
+: `<p class="rings-cross-done" id="ringsDailyNudge">${esc(cross.title)}</p>`;
+view(`<section class="hero rings-hero"><p class="kicker">${esc(r.title)} · result${PREVIEW_RINGS ? ' · preview' : ''}</p><h1 class="title">${verdict}</h1></section>
+<section class="card rings-score-card" id="ringsScore">
+<div class="rs-line"><span>Links <b>${rec.links}</b></span><span class="rs-sep">·</span><span>Ring <b>${rec.ring}</b></span><span class="rs-sep">·</span><span class="rs-total"><b>${rec.links + rec.ring}</b>/${MAX}</span></div>
+<p class="muted small">${rec.guess ? `You typed “${esc(rec.guess)}”` : 'No guess typed'}${rec.hint ? ' · hint used' : ''}</p>
+<div class="rings-accepted" id="ringsAccepted">
+<p class="rings-top"><small>TOP ANSWER</small><b>${esc(top.label)}</b><span class="muted"> · ${top.pts}</span></p>
+<ul>${rest.map(a => `<li>${esc(a.label)} <span class="muted">· ${a.pts}</span></li>`).join('')}</ul>
+</div>
+<div id="rmBox" class="rm-box"><p class="rm-line muted small">Counting Ring Masters…</p></div>
+${crossHTML}
+<button class="btn btn-gold" id="ringsShare" type="button">Share my Ring</button>
+<figure class="rings-share-fig" id="ringsShareFig">
+<img id="ringsShareImg" alt="Share card for this Ring — score only, no answers" width="1080" height="1080">
+<button type="button" class="link" id="ringsShareDl">Download image</button>
+</figure>
+</section>
+${ask ? `<section class="card postgame rings-signup" id="ringsSignup"><div class="pg-ask"><b>Sign up to save your Ring score and get next week's Ring</b>
+<p class="small muted">Free account. Your scores follow you to any device.</p>
+<a class="btn btn-ghost pg-signup" href="#/account" id="ringsSignupBtn">Sign up free</a></div></section>` : ''}
+<h2 class="section-title">The story behind each answer</h2>
+<ol class="rings-cars">${r.reveal.map((c) => `<li class="card rings-car">
+${c.img ? `<img class="rc-img" src="${esc(c.img)}" alt="${esc(c.alt || c.name)}" width="240" height="160" loading="lazy" decoding="async">` : `<span class="rc-tile">${esc(c.name)}</span>`}
+<div><p class="rc-h"><b>${esc(c.name)}</b><span class="muted small"> ← ${esc(c.from)}</span></p><p class="small">${esc(c.text)}</p></div></li>`).join('')}</ol>
+<details class="card rings-src" id="ringsSources"><summary>Sources</summary>
+<ul class="rings-src-list">${r.sources.map(src => `<li><a class="link" href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.label)}</a></li>`).join('')}</ul>
+${credits.length ? `<p class="rings-credits-h">Photos</p><ul class="rings-src-list">${credits.map(c => `<li>${esc(c.name)}: <a class="link" href="${esc(c.creditUrl)}" target="_blank" rel="noopener">${esc(c.credit)}</a></li>`).join('')}</ul><p class="rings-credits-n">Photos cropped and resized from Wikimedia Commons. Used under the stated licence.</p>` : ''}
+</details>
+<p class="muted small center rings-foot">${nx ? `Next Ring opens ${esc(prettyDay(nx.opensOn))}.` : 'A new Ring every week.'} Rings never affect your Daily streak.</p>
+${PREVIEW_RINGS ? `<button class="btn btn-ghost" id="ringsReplay" type="button">Replay (preview only)</button>` : ''}
+${faqHTML(false)}`, 'rings');
+let shareCard = null;
+const showCard = card => { shareCard = card; const img = q('#ringsShareImg'); if (img && card && card.url) { img.src = card.url; q('#ringsShareFig').classList.add('ready'); } };
+loadMasters(r, rec).then(() => paintShareCard(r, rec)).then(showCard);
+on('#ringsShare', 'click', () => shareRing(r, rec));
+on('#ringsShareDl', 'click', () => {
+if (!shareCard || !shareCard.url) return;
+const a = document.createElement('a'); a.href = shareCard.url; a.download = 'quorbit-rings-' + r.no + '.jpg';
+document.body.appendChild(a); a.click(); a.remove();
+});
+on('#ringsReplay', 'click', () => { const all = load(); delete all[saveKey(r)]; save(all); go('#/rings'); });
+}
+function applyChrome() {
+const tab = document.querySelector('#tabbar a.tab-rings'); if (!tab) return;
+const phase = promoPhase(today());
+const open = firstOpenDate();
+const openLabel = 'Opens ' + prettyDay(open);
+tab.classList.toggle('tab-rings-quiet', phase === 'quiet');
+tab.classList.toggle('tab-rings-teaser', phase === 'teaser');
+const neu = tab.querySelector('.tab-new');
+if (neu) neu.hidden = phase === 'quiet';
+let sub = tab.querySelector('.tab-rings-sub');
+if (phase === 'quiet' || phase === 'teaser') {
+if (!sub) { sub = document.createElement('small'); sub.className = 'tab-rings-sub'; tab.appendChild(sub); }
+sub.textContent = phase === 'teaser' ? 'Opens tomorrow' : openLabel;
+tab.setAttribute('aria-label', phase === 'teaser' ? 'Rings, opens tomorrow' : 'Rings, ' + openLabel);
+tab.title = phase === 'teaser' ? 'Rings opens tomorrow' : 'Rings, ' + openLabel;
+} else {
+if (sub) sub.remove();
+tab.setAttribute('aria-label', 'Rings, new');
+tab.removeAttribute('title');
+}
+}
+return { page, homeCard, nudgeCard, faqHTML, ROUNDS, scoreRing, shouldAutoLand: shouldLandHere, applyChrome };
+};
+Object.assign(QB.rings, api);
+})(typeof window !== 'undefined' ? window : null);
+</script>
+  <script>
 (function (QB) {
 const U = QB.util, S = QB.store, E = QB.engine, A = QB.api, sfx = QB.sfx, esc = U.esc;
 const $app = document.getElementById('app');
@@ -4454,6 +5291,8 @@ const pc = document.getElementById('pointsChip'); if (pc) { const tot = (S.get()
 pc.innerHTML = `<span class="hc-v">${L.icon} ${tot.toLocaleString('en-IN')}</span>`;
 pc.title = `${tot} lifetime points · ${L.name}`; pc.setAttribute('aria-label', `${tot} lifetime points, level ${L.name}: open your stats`); }
 document.querySelectorAll('#tabbar a').forEach(a => a.classList.toggle('active', a.dataset.tab === tab));
+document.body.classList.toggle('rings-ui', tab === 'rings');
+try { if (RX && RX.applyChrome) RX.applyChrome(); } catch (e) {}
 const rib = document.getElementById('previewRibbon');
 rib.hidden = !PREVIEW;
 if (PREVIEW) rib.innerHTML = `PREVIEW MODE · ${esc(U.prettyDate(TODAY))} · <a href="${location.pathname}">back to today</a>`;
@@ -4488,7 +5327,7 @@ const ta = document.createElement('textarea'); ta.value = text; document.body.ap
 let ok = false; try { ok = document.execCommand('copy'); } catch (e2) {} ta.remove(); return ok;
 }
 }
-const ROOTS = { home: 1, topics: 1, leaderboard: 1, me: 1, '': 1 };
+const ROOTS = { home: 1, topics: 1, leaderboard: 1, rings: 1, me: 1, '': 1 };
 const PARENT = { how: '#/home', lineup: '#/home', play: '#/home', result: '#/home', bonus: '#/result', catchup: '#/home', world: '#/home', practice: '#/home', credits: '#/me', topic: '#/topics',
 duel: '#/duel', pack: '#/topics', total: '#/topics', board: '#/leaderboard', stats: '#/me', pass: '#/me', archive: '#/me', submit: '#/me', join: '#/me',
 friends: '#/me', account: '#/me', settings: '#/me', faq: '#/me', terms: '#/me', privacy: '#/me', legal: '#/me', about: '#/me', contact: '#/me', pricing: '#/me', refund: '#/me', review: '#/me', desk: '#/me' };
@@ -4501,7 +5340,7 @@ if (r === 'catchup' && arg2 === 'bonus' && arg) return '#/catchup/' + arg + '/re
 if (r === 'catchup' && arg) return '#/catchup';
 return PARENT[r] || '#/home';
 }
-const isRoot = h => { const [r, arg] = routeOf(h); return r === 'duel' ? !arg : r === 'join' ? false : !!ROOTS[r] || !PARENT[r]; };
+const isRoot = h => { const [r, arg] = routeOf(h); return r === 'duel' || r === 'rings' ? !arg : r === 'join' ? false : !!ROOTS[r] || !PARENT[r]; };
 const navStack = [curHash()];
 let guard = null;
 const guardOn = () => !!(guard && guard.active());
@@ -4865,6 +5704,7 @@ const cta = done
 : `<div class="cta-inline"><a class="btn btn-gold btn-big" href="#/play" id="playBtn">Play</a></div>`;
 const news = newsState();
 view(`
+${RX ? RX.homeCard() : ''}
 <section class="hero">
 <p class="kicker">Daily quiz</p>
 <h1 class="title">${({ 5: 'Five', 7: 'Seven', 8: 'Eight' })[set.length] || set.length} rounds. One orbit.</h1>
@@ -5265,6 +6105,7 @@ view(`
 <p class="kicker">${U.episodeNo(TODAY) > 0 ? 'Episode #' + U.episodeNo(TODAY) : 'Preview'} · final score</p>
 <div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>${rec.score > rec.max ? `<p class="muted small center" id="overMax">🔥 combo · +${rec.score - rec.max} over base max ${rec.max}</p>` : ''}
 <div class="title-badge">${t.emoji} ${t.title}</div>
+${RX && RX.nudgeCard ? RX.nudgeCard() : ''}
 <div class="share-hero" id="shareHero">
 <button class="btn btn-gold btn-share" id="nativeShareBtn" type="button">Share your score</button>
 <p class="share-nudge" id="shareNudge">Can your friends beat ${shareCorrect}/${set.length}? Challenge them.</p>
@@ -6437,6 +7278,7 @@ view(`
 <div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>
 <div class="title-badge">${t.emoji} ${t.title}</div>
 <p class="muted small center">Saved as catch-up · today's streak is unchanged</p>
+${RX && RX.nudgeCard ? RX.nudgeCard() : ''}
 <div class="share-hero" id="shareHero">
 <button class="btn btn-gold btn-share" id="nativeShareBtn" type="button">Share your score</button>
 <p class="share-nudge" id="shareNudge">Can your friends beat ${shareCorrect}/${set.length}?</p>
@@ -6573,7 +7415,7 @@ routeSeq++; QB.audio.setIntensity(0); guard = null; floatCta(null);
 const h = (location.hash || '#/home').slice(2).split('/');
 const [r, arg, arg2] = h;
 const playing = r === 'play' || r === 'practice' || r === 'bonus' || (r === 'topic' && arg2 === 'play') || (r === 'pack' && arg2 === 'play')
-|| (r === 'duel' && !!arg) || (r === 'total' && !!arg) || (r === 'catchup' && arg && arg2 !== 'result');
+|| (r === 'duel' && !!arg) || (r === 'total' && !!arg) || (r === 'rings' && !!arg) || (r === 'catchup' && arg && arg2 !== 'result');
 document.body.classList.toggle('in-play', playing);
 if ((r === 'topic' || r === 'pack') && arg2 === 'play') { try { sessionStorage.setItem('qb:lastPlayedRoute', `#/${r}/${arg}`); } catch (e) {} }
 else if (r === 'play') { try { sessionStorage.removeItem('qb:lastPlayedRoute'); } catch (e) {} } // the Daily spans topics: exclude none
@@ -6602,6 +7444,7 @@ case 'topic': return arg2 === 'play' ? topicPlay(arg) : topicDetail(arg);
 case 'total': return arg ? totalPlay(arg) : totalHub();
 case 'duel': return !arg ? SX.duelHome() : arg === 'c' ? SX.duelPlay(null, null, true) : SX.duelPlay(arg, arg2 || 'ellipse');
 case 'leaderboard': return SX.leagues();
+case 'rings': return RX ? RX.page(arg) : SX.leagues();
 case 'join': return join();
 case 'me':
 case 'account': return SX.meProfile();
@@ -6639,7 +7482,7 @@ if (isPop || dir === 'tab') restoreScroll = h;
 { const ms = document.getElementById('menuSheet'); if (ms && !ms.hidden) { ms.hidden = true; document.body.classList.remove('menu-open'); const mb = document.getElementById('menuBtn'); mb && mb.setAttribute('aria-expanded', 'false'); } }
 duel.token = null; navigate(dir, () => route({ cache: dir === 'tab' || isPop }));
 });
-const TAB_OF = { topics: 'topics', topic: 'topics', library: 'topics', playlist: 'topics', pack: 'topics', total: 'topics', duel: 'duel', leaderboard: 'leaderboard', league: 'leaderboard',
+const TAB_OF = { topics: 'topics', topic: 'topics', library: 'topics', playlist: 'topics', pack: 'topics', total: 'topics', duel: 'duel', leaderboard: 'leaderboard', league: 'leaderboard', rings: 'rings',
 me: 'me', stats: 'me', pass: 'me', archive: 'me', submit: 'me', review: 'me', desk: 'me', join: 'me', credits: 'me', wrapped: 'me', badges: 'me',
 friends: 'me', account: 'me', settings: 'me', faq: 'me', terms: 'me', privacy: 'me', legal: 'me', about: 'me', contact: 'me', pricing: 'me', refund: 'me' };
 const tabOf = h => TAB_OF[routeOf(h)[0]] || 'home';
@@ -6679,6 +7522,7 @@ const s = S.get();
 return `
 <div class="menu-group"><h3>Play</h3>
 <a href="#/home" data-menu-nav>🪐 Today's episode</a>
+<a href="#/rings" data-menu-nav>🪐 Rings (weekly)</a>
 <a href="#/archive" data-menu-nav>📼 Episode archive</a>
 <a href="#/topics" data-menu-nav>🎯 Topics &amp; packs</a>
 <a href="#/total" data-menu-nav>✨ Quorbit Total</a>
@@ -6762,7 +7606,12 @@ try { if (matchMedia('(prefers-reduced-motion: reduce)').matches) document.query
 const SX = QB.sections({ U, S, E, A, sfx, esc, view, on, later, every, go, toast, onShow, scoreboard, wagonWheel, REDUCE, TODAY, PREVIEW, imgSrc, answerAreaHTML, needsTypedUI, mcqOptionsOf,
 stats, sourceLine, creditLine, contribLine, segmented, bindSegmented, floatCta, goBack, route: () => route(), copyText, soundCard, displayCard, bindSound, bindDisplay,
 confirmModal, applyDisplay, setGuard: g => { guard = g; } });
+const RX = QB.rings ? QB.rings({ U, esc, view, on, go, toast, copyText, every, sfx, goBack, isSignedIn: isAuthSignedIn, setGuard: g => { guard = g; } }) : null;
 if (SX.CH && !/^#\/duel/.test(location.hash)) { history.replaceState(history.state, '', location.pathname + location.search + '#/duel'); navStack[navStack.length - 1] = '#/duel'; }
+else if (RX && RX.shouldAutoLand && RX.shouldAutoLand()) {
+history.replaceState(history.state, '', location.pathname + location.search + '#/rings');
+navStack[navStack.length - 1] = '#/rings';
+}
 QB.ui = { route, TODAY, PREVIEW, confirmModal, wagonWheel, navStack, screenCache, scrollMem, HAS_VT, SX };
 route();
 })(window.QB);
