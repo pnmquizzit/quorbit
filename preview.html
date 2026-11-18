@@ -4715,7 +4715,7 @@ function resultView(r, rec) {
 const T = rec.tier >= 0 ? r.ring[rec.tier] : null;
 const verdict = rec.master ? '💍 You found the exact link!' : T ? `Close: ${esc(T.label)}` : rec.timeUp ? "Time's up" : 'Not this time';
 const ask = !isSignedIn();
-const nx = nextRound(today());
+const nx = ROUNDS.find(x => x.opensOn > r.opensOn) || null;
 view(`<section class="hero rings-hero"><p class="kicker">${esc(r.title)} · result${PREVIEW_RINGS ? ' · preview' : ''}</p><h1 class="title">${verdict}</h1></section>
 <section class="card rings-score-card" id="ringsScore">
 <div class="rs-line"><span>Links <b>${rec.links}</b></span><span class="rs-sep">·</span><span>Ring <b>${rec.ring}</b></span><span class="rs-sep">·</span><span class="rs-total"><b>${rec.links + rec.ring}</b>/${MAX}</span></div>
