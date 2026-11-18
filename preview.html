@@ -1554,6 +1554,93 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
 .rings-banner { animation: rings-banner-pulse 3.6s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .rings-banner, .rings-banner::after { animation: none; } }
 .rings-banner, .rings-banner b, .rings-banner small { font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Segoe UI", system-ui, sans-serif; }
+
+/* ---- Rings v3: Saturn icon, graphic NEW, input, choice, sources, share ---- */
+.rings-ico { width: 1.25em; height: 1.25em; display: block; overflow: visible; }
+.tabbar a .tab-ico { display: grid; place-items: center; height: 22px; filter: grayscale(.6); }
+.tabbar a .tab-ico .rings-ico { width: 22px; height: 22px; color: var(--ink); }
+.tabbar a.active .tab-ico { filter: none; }
+.rb-ico .rings-ico, .rings-choice-ico .rings-ico, .rings-nudge .rings-ico, .btn-rings .rings-ico { width: 22px; height: 22px; display: inline-block; vertical-align: -5px; }
+.rings-dots-ico .rings-ico { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; }
+.rings-faq summary .rings-ico, .title .rings-ico { width: 1.1em; height: 1.1em; display: inline-block; vertical-align: -0.2em; margin-right: 4px; }
+
+.tab-new { display: inline-flex; align-items: center; gap: 2px; position: absolute; top: 1px; right: 6px; left: auto; translate: none; font-size: 6px; font-weight: 800; letter-spacing: .07em; line-height: 1; padding: 2px 4px 2px 3px; border-radius: 999px; color: #1b0f5c; background: linear-gradient(105deg, #ffe566 0%, #ffd60a 55%, #ff9f0a 100%); box-shadow: 0 0 0 1px rgba(255,214,10,.35), 0 0 10px rgba(255,214,10,.45); animation: tab-new-glow 2.4s ease-in-out infinite; pointer-events: none; }
+.tab-new-spark { width: 7px; height: 7px; color: #1b0f5c; flex: none; }
+@keyframes tab-new-glow { 0%, 100% { box-shadow: 0 0 0 1px rgba(255,214,10,.35), 0 0 8px rgba(255,214,10,.4); } 50% { box-shadow: 0 0 0 1px rgba(255,214,10,.55), 0 0 14px rgba(255,214,10,.7); } }
+@media (prefers-reduced-motion: reduce) { .tab-new { animation: none; } }
+
+.rings-choice { position: relative; margin: 4px 0 16px; padding: 18px 16px 16px; border-radius: 18px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 48%, #bf5af2 100%); box-shadow: 0 8px 22px rgba(94, 92, 230, .28); overflow: hidden; text-align: center; }
+.rings-choice .tab-new { top: 8px; right: 10px; }
+.rings-choice-ico { display: inline-flex; margin: 2px 0 6px; }
+.rings-choice-ico .rings-ico { width: 36px; height: 36px; color: #fff; }
+.rings-choice .rings-h { color: #fff; margin: 0 0 4px; }
+.rings-choice p { color: rgba(245,245,247,.86); margin: 0 0 14px; }
+.rings-choice-btns { display: flex; flex-direction: column; gap: 8px; }
+.btn-rings { background: #fff; color: #3b1d8f; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; border-radius: 14px; }
+.btn-rings:active { transform: scale(.98); }
+.rings-choice .btn-ghost { color: #fff; border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.08); min-height: 48px; }
+.rings-nudge { display: flex; align-items: center; gap: 12px; margin: 12px 0 14px; padding: 14px 16px; border-radius: 16px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 55%, #bf5af2 100%); box-shadow: 0 6px 18px rgba(94, 92, 230, .25); text-decoration: none; }
+.rings-nudge div { flex: 1; min-width: 0; text-align: left; }
+.rings-nudge b { display: block; font-size: 1.0625rem; }
+.rings-nudge small { display: block; margin-top: 2px; color: rgba(245,245,247,.82); }
+.rings-nudge .chev { color: rgba(255,255,255,.85); }
+
+/* Ring type box: >=16px, tall enough, stays visible with the keyboard */
+body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input {
+  font-family: var(--rings-sans, inherit);
+  font-size: 16px !important;
+  line-height: 1.45;
+  letter-spacing: 0;
+  padding: 12px 14px;
+  min-height: 56px;
+  height: auto;
+  overflow: auto;
+  resize: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-text-size-adjust: 100%;
+  color: var(--ink);
+  background: rgba(255,255,255,.12);
+  border: 2px solid rgba(255,255,255,.35);
+}
+@media (max-width: 420px) {
+  body.rings-ui .typed .input, body.rings-ui .typed .btn, .rings-typed .input, .rings-typed .btn { min-height: 52px; }
+}
+.rings-typed { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 12px; width: 100%; }
+.rings-in-lab { font-size: 0.875rem; font-weight: 700; color: var(--muted); }
+.rings-in-row { display: flex; gap: 8px; align-items: stretch; width: 100%; }
+.rings-in-row .input { flex: 1; min-width: 0; }
+.rings-in-row .btn { flex: none; padding: 0 18px; }
+.rings-typed.docked { position: sticky; bottom: 0; z-index: 5; margin: 0 -8px; padding: 8px; background: rgba(0,0,0,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 12px 12px 0 0; }
+@media (max-width: 380px) {
+  .rings-in-row { flex-direction: column; }
+  .rings-in-row .btn { width: 100%; min-height: 48px; }
+}
+
+.rings-accepted { text-align: left; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
+.rings-top { margin: 0 0 8px; display: grid; gap: 2px; }
+.rings-top small { font-family: var(--mono); letter-spacing: 1.4px; color: var(--muted); font-size: 0.75rem; }
+.rings-top b { font-size: 1.0625rem; line-height: 1.35; }
+.rings-accepted ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.rings-accepted li { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.06); font-weight: 600; line-height: 1.35; font-size: 0.9375rem; }
+
+.rings-cars { display: grid; gap: 10px; margin-bottom: 8px; }
+.rings-car { display: flex; gap: 12px; align-items: center; padding: 10px 12px; }
+.rc-img { width: 120px; height: 80px; flex: none; border-radius: 10px; object-fit: cover; background: rgba(255,255,255,.06); }
+.rc-tile { width: 120px; height: 80px; flex: none; border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 6px; font-weight: 700; font-size: 0.8125rem; background: linear-gradient(135deg, #3b1d8f, #5e5ce6); color: #fff; }
+
+.rings-src { margin-top: 12px; margin-bottom: 8px; padding: 12px 14px; }
+.rings-src summary { cursor: pointer; font-weight: 700; font-size: 0.9375rem; line-height: 1.4; color: var(--ink); }
+.rings-src-list { margin: 10px 0 0; padding-left: 1.15em; }
+.rings-src-list li { margin: 8px 0; line-height: 1.5; font-size: 0.9375rem; }
+.rings-src .link, .rings-src a { overflow-wrap: anywhere; word-break: break-word; font-size: 0.9375rem; line-height: 1.45; font-weight: 600; }
+.rings-credits-h { margin: 14px 0 0; font-weight: 700; font-size: 0.875rem; }
+.rings-credits-n { margin: 10px 0 0; font-size: 0.8125rem; line-height: 1.45; color: var(--muted); }
+.rings-foot { margin: 16px 0 8px; padding-bottom: 8px; }
+.rings-share-fig { margin: 12px 0 0; display: none; }
+.rings-share-fig.ready { display: grid; gap: 6px; justify-items: center; }
+.rings-share-fig img { width: 220px; height: 220px; border-radius: 12px; background: #000; }
+
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -1593,7 +1680,7 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
     <main id="app" class="screen" tabindex="-1"></main>
     <nav class="tabbar" id="tabbar">
       <a href="#/home" data-tab="home"><span>🪐</span>Today</a>
-      <a href="#/rings" data-tab="rings" class="tab-rings"><span>💍</span>Rings<span class="tab-new" aria-hidden="true">NEW</span></a>
+      <a href="#/rings" data-tab="rings" class="tab-rings" aria-label="Rings, new"><span class="tab-ico"><svg class="rings-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="5.15" fill="currentColor" opacity=".18"/><circle cx="12" cy="12" r="5.15" fill="none" stroke="currentColor" stroke-width="1.7"/><ellipse cx="12" cy="12.2" rx="10.6" ry="3.35" fill="none" stroke="currentColor" stroke-width="1.55" transform="rotate(-22 12 12.2)"/><path d="M3.9 13.6c3.2-1.7 13-2.5 16.3-.3" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/></svg></span>Rings<span class="tab-new" role="note" aria-label="New"><svg class="tab-new-spark" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 .5l1.05 3.85H11.5L8.15 6.7l1.2 3.8L6 8.25 2.65 10.5l1.2-3.8L.5 4.35h4.45z" fill="currentColor"/></svg>NEW</span></a>
       <a href="#/topics" data-tab="topics"><span>🎯</span>Topics</a>
       <a href="#/duel" data-tab="duel"><span>⚔️</span>Duel</a>
       <a href="#/me" data-tab="me"><span>👤</span>Me</a>
@@ -4343,8 +4430,52 @@ const cv = draw(document.createElement('canvas'), d);
 const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/png'); } catch (e) { r(null); } });
 return { canvas: cv, blob, url: cv.toDataURL('image/png') };
 }
-QB.shareCard = { draw, render };
+/** Rings share card: 1080x1080, brand colours, no theme or answers. d: { no, marks[bool], links, ring, total, max, masterNo, url } */
+function drawRings(cv, d) {
+cv.width = 1080; cv.height = 1080;
+const x = cv.getContext('2d'), W = 1080, F = '-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Roboto,Arial,sans-serif';
+x.fillStyle = '#000'; x.fillRect(0, 0, W, W);
+let g = x.createRadialGradient(540, 500, 0, 540, 540, 620); g.addColorStop(0, '#1a0d4a'); g.addColorStop(.45, '#0c0c14'); g.addColorStop(1, '#000'); x.fillStyle = g; x.fillRect(0, 0, W, W);
+// Saturn
+const cx = 540, cy = 430;
+x.save(); x.translate(cx, cy);
+x.strokeStyle = 'rgba(245,197,66,.55)'; x.lineWidth = 10; x.beginPath(); x.ellipse(0, 8, 210, 64, -0.38, 0, Math.PI * 2); x.stroke();
+g = x.createRadialGradient(-40, -50, 10, 0, 0, 120); g.addColorStop(0, '#fff1b8'); g.addColorStop(1, '#e39b12');
+x.fillStyle = g; x.beginPath(); x.arc(0, 0, 108, 0, Math.PI * 2); x.fill();
+x.strokeStyle = '#f5c542'; x.lineWidth = 10; x.beginPath(); x.ellipse(0, 8, 210, 64, -0.38, -0.2, Math.PI - 0.15); x.stroke();
+x.fillStyle = '#1b0f5c'; x.font = 'bold 96px Georgia,"Times New Roman",serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('?', 0, 8);
+x.restore();
+// 5 link dots, no answers
+const marks = d.marks || [];
+const n = Math.max(5, marks.length);
+const y = 640, gap = 86, x0 = cx - (n - 1) * gap / 2;
+marks.forEach((ok, i) => {
+const X = x0 + i * gap;
+x.beginPath(); x.arc(X, y, 22, 0, Math.PI * 2);
+if (ok) { x.fillStyle = '#30d158'; x.fill(); }
+else { x.strokeStyle = '#636366'; x.lineWidth = 5; x.stroke(); }
+});
+x.textAlign = 'center'; x.textBaseline = 'alphabetic';
+x.fillStyle = '#a1a1a6'; x.font = '600 32px ' + F;
+x.fillText('QUORBIT RINGS #' + (d.no || 1), cx, 96);
+x.fillStyle = '#f5f5f7'; x.font = '700 120px ' + F;
+x.fillText((d.total != null ? d.total : 0) + '/' + (d.max || 150), cx, 800);
+x.fillStyle = '#f5c542'; x.font = '600 40px ' + F;
+const sub = 'Links ' + (d.links || 0) + '  ·  Ring ' + (d.ring || 0) + (d.masterNo ? '  ·  Ring Master #' + d.masterNo : '');
+x.fillText(sub, cx, 870);
+x.fillStyle = '#6e6e73'; x.font = '400 28px ' + F;
+x.fillText(d.url || 'iquorbit.com', cx, 1020);
+return cv;
+}
+async function renderRings(d) {
+try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+const cv = drawRings(document.createElement('canvas'), d);
+const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/png'); } catch (e) { r(null); } });
+return { canvas: cv, blob, url: cv.toDataURL('image/png') };
+}
+QB.shareCard = { draw, render, drawRings, renderRings };
 })();
+
 </script>
   <script>
 window.QB_SLIDER = {
@@ -4468,8 +4599,12 @@ QB.slider = { START, ITEMS, valid, eligible, itemFor, snap, fmt, label, grade, g
 })(window.QB);
 </script>
   <script>
+/* Quorbit · Rings: one weekly round. 5 "Link" MCQs (10 pts each), then the Ring: 60 s to type the hidden link (100/80/60/30,
+or 70/55/40/20 after the hint). One play per round per device (localStorage), no streak impact. The live "Ring Masters"
+count is a per-round Firestore doc that clients may only read by id or bump by exactly one play (see quorbit_firebase/firestore.rules). */
 (function (root) {
 const QB = root && root.QB;
+// ---------------------------------------------------------------- round data
 const ROUNDS = [{
 id: 'r01-lamborghini', no: 1, opensOn: '2026-11-22', lang: 'Italian',
 title: 'Ring #1',
@@ -4479,14 +4614,15 @@ questions: [
 { q: "In 1977, Ohio State's Big Ear telescope picked up a strong radio burst, and astronomer Jerry Ehman circled it on the printout with a one-word note. What word did he write?",
 options: ['Wow', 'Eureka', 'Signal', 'Alien'], answer: 'Wow' },
 { q: 'Fulgurites are tubes of natural glass that form in sand when what hits it?',
-options: ['Lightning', 'Meteorites', 'Lava', 'Hail'], answer: 'Lightning', img: 'images/rings/r01_q2.webp', alt: 'A lightning bolt over a dark landscape' },
+options: ['Lightning', 'Meteorites', 'Lava', 'Hail'], answer: 'Lightning' },
 { q: 'In the UK, the monarch sends a personal card to mark which milestone?',
-options: ['100th birthday', 'Golden wedding', 'Retirement', 'Knighthood'], answer: '100th birthday', img: 'images/rings/r01_q3.webp', alt: 'A tall cake covered in lit candles' },
+options: ['100th birthday', 'Golden wedding', 'Retirement', 'Knighthood'], answer: '100th birthday' },
 { q: "Richard Dawkins' 1976 bestseller argued that evolution works at the level of the gene. What was the title's missing word: 'The ___ Gene'?",
-options: ['Selfish', 'Blind', 'Restless', 'Hidden'], answer: 'Selfish', img: 'images/rings/r01_q4.webp', alt: 'A man dining alone at a table laden with food' },
+options: ['Selfish', 'Blind', 'Restless', 'Hidden'], answer: 'Selfish' },
 { q: 'Pedants insist that what began on 1 January 2001, not 2000?',
-options: ['The third millennium', 'The Space Age', 'The Digital Era', 'The 21st-century census'], answer: 'The third millennium', img: 'images/rings/r01_q5.webp', alt: 'Sunrise over a calm sea' }
+options: ['The third millennium', 'The Space Age', 'The Digital Era', 'The 21st-century census'], answer: 'The third millennium' }
 ],
+// Ring tiers, best first. A guess scores a tier if it is close to one of its phrases, or contains every concept in one of its `all` sets.
 concepts: {
 lambo: ['lamborghini', 'lamborghinis', 'lambo', 'lambos', 'lamborgini', 'lamborghni', 'lamberghini', 'santagata', 'automobililamborghini'],
 not: ['not', 'non', 'no', 'never', 'without', 'except', 'other', 'besides', 'avoid', 'avoids', 'avoided', 'avoiding', 'arent', 'isnt', 'dont', 'doesnt', 'unlike', 'outside', 'beyond', 'breaking', 'break', 'breaks', 'exception', 'exceptions', 'nonbull', 'nonbulls', 'bullless', 'bullfree'],
@@ -4497,17 +4633,21 @@ fast: ['supercar', 'supercars', 'sportscar', 'sportscars', 'hypercar', 'hypercar
 vehicle: ['car', 'cars', 'vehicle', 'vehicles', 'automobile', 'automobiles', 'auto', 'autos', 'motor', 'motors', 'supercar', 'supercars', 'hypercar', 'hypercars', 'sportscar', 'sportscars', 'automotive', 'carmaker']
 },
 ring: [
-{ pts: 100, hintPts: 70, label: 'Exact link', phrases: ['Lamborghini cars not named after bulls', 'Lamborghini models not named after bulls', 'non-bull Lamborghini names', 'Lamborghinis without bull names', 'Lamborghini models whose names are not bull-inspired'], all: [['lambo', 'not', 'bull']] },
-{ pts: 80, hintPts: 55, label: 'Lamborghini', phrases: ['Lamborghini', 'Lamborghini cars', 'Lamborghini models', 'Lamborghini car names', 'Lambo'], all: [['lambo']] },
-{ pts: 60, hintPts: 40, label: 'Italian supercars', phrases: ['Italian supercars', 'Italian sports cars', 'Italian cars'], all: [['italy', 'fast'], ['italy', 'vehicle']] },
-{ pts: 30, hintPts: 20, label: 'Cars', phrases: ['cars', 'car names', 'vehicles', 'supercars'], all: [['vehicle'], ['fast', 'vehicle']] }
+{ pts: 100, hintPts: 70, label: 'Exact link', display: 'Non-bull-inspired names of Lamborghini cars',
+phrases: ['Non-bull-inspired names of Lamborghini cars', 'Lamborghini cars not named after bulls', 'Lamborghini models not named after bulls', 'non-bull Lamborghini names', 'Lamborghinis without bull names', 'Lamborghini models whose names are not bull-inspired'], all: [['lambo', 'not', 'bull']] },
+{ pts: 80, hintPts: 55, label: 'Lamborghini', accepted: ['Lamborghini cars', 'Lamborghini bulls / names'],
+phrases: ['Lamborghini', 'Lamborghini cars', 'Lamborghini models', 'Lamborghini car names', 'Lambo', 'Lamborghini bulls / names', 'Lamborghini bulls'], all: [['lambo']] },
+{ pts: 60, hintPts: 40, label: 'Italian supercars', accepted: ['Italian supercars'],
+phrases: ['Italian supercars', 'Italian sports cars', 'Italian cars'], all: [['italy', 'fast'], ['italy', 'vehicle']] },
+{ pts: 30, hintPts: 20, label: 'Cars', accepted: ['Things that inspired car names'],
+phrases: ['cars', 'car names', 'vehicles', 'supercars', 'Things that inspired car names'], all: [['vehicle'], ['fast', 'vehicle']] }
 ],
 reveal: [
-{ name: 'Countach', from: 'Wow', text: "Piedmontese gasp of wonder, per designer Gandini." },
-{ name: 'Sián', from: 'Lightning', text: "Bolognese for \"lightning\"; Lamborghini's first hybrid, 2019." },
-{ name: 'Centenario', from: '100th birthday', text: "Italian for \"centenary,\" for Ferruccio's 100th birthday." },
-{ name: 'Egoista', from: 'Selfish', text: "Italian for \"selfish\"; a 2013 one-off by Walter de'Silva." },
-{ name: 'Terzo Millennio', from: 'The third millennium', text: "Italian for \"third millennium\"; a 2017 MIT electric concept." }
+{ name: 'Countach', from: 'Wow', text: "Piedmontese gasp of wonder, per designer Gandini.", img: 'images/rings/r01_countach.webp', alt: 'A red Lamborghini Countach with its scissor door open', credit: 'ilikewaffles11, CC BY 2.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Lamborghini_Countach_LP5000_QV_(14022104157).jpg' },
+{ name: 'Sián', from: 'Lightning', text: "Bolognese for \"lightning\"; Lamborghini's first hybrid, 2019.", img: 'images/rings/r01_sian.webp', alt: 'A gold Lamborghini Sián at the 2019 IAA', credit: 'Alexander Migl, CC BY-SA 4.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Lamborghini_Sian_at_IAA_2019_IMG_0332.jpg' },
+{ name: 'Centenario', from: '100th birthday', text: "Italian for \"centenary,\" for Ferruccio's 100th birthday.", img: 'images/rings/r01_centenario.webp', alt: 'A black and orange Lamborghini Centenario', credit: 'MrWalkr, CC BY-SA 4.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:2016_Lamborghini_Centenario_LC25.jpg' },
+{ name: 'Egoista', from: 'Selfish', text: "Italian for \"selfish\"; a 2013 one-off by Walter de'Silva.", img: 'images/rings/r01_egoista.webp', alt: 'The one-off Lamborghini Egoista, front view', credit: 'Herranderssvensson, CC BY-SA 3.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Lamborghini_Egoista_front.jpg' },
+{ name: 'Terzo Millennio', from: 'The third millennium', text: "Italian for \"third millennium\"; a 2017 MIT electric concept.", img: 'images/rings/r01_terzo.webp', alt: 'The Lamborghini Terzo Millennio concept', credit: 'Thesupermat, CC BY-SA 4.0', creditUrl: 'https://commons.wikimedia.org/wiki/File:Festival_automobile_international_2018_-_Lamborghini_Terzo_Millennio_-_015_(cropped).jpg' }
 ],
 sources: [
 { label: 'Lamborghini: Gandini on the name Countach', url: 'https://www.lamborghini.com/de-en/nachrichten/not-just-bulls-creator-tells-us-story-behind-name-countach' },
@@ -4524,6 +4664,8 @@ sources: [
 }];
 const LINK_PTS = 10, Q_SECS = 25, RING_SECS = 60;
 const MAX = ROUNDS.length ? ROUNDS[0].questions.length * LINK_PTS + ROUNDS[0].ring[0].pts : 150;
+
+// ---------------------------------------------------------------- pure scoring (unit-testable in node)
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/&/g, ' and ').replace(/[’']/g, '');
 const toks = s => norm(s).replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
 function lev(a, b) {
@@ -4533,6 +4675,7 @@ for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur
 return prev[n];
 }
 const tol = n => (n >= 9 ? 2 : n >= 5 ? 1 : 0);
+/** token t is close to word w: exact, a plural/verb ending of it, or within a length-scaled edit distance (first letter must agree) */
 function near(t, w) {
 if (t === w) return true;
 if (w.length >= 4 && (t === w + 's' || t === w + 'es' || t === w + 'ed' || t === w + 'ing' || t === w + 'd')) return true;
@@ -4541,9 +4684,11 @@ return t[0] === w[0] && Math.abs(t.length - w.length) <= 2 && lev(t, w) <= tol(w
 function hasConcept(tokens, joined, words) {
 return words.some(w => tokens.some(t => near(t, w)) || (w.length >= 7 && joined.includes(w)));
 }
+/** Score a typed Ring guess. Returns { tier: index into round.ring or -1, pts } */
 function scoreRing(round, guess, usedHint) {
 const tokens = toks(guess); if (!tokens.length) return { tier: -1, pts: 0 };
 const joined = tokens.join('');
+// "non-bull" / "nonbull" style: split a leading non/not off a token as an extra token
 tokens.slice().forEach(t => { const m = t.match(/^(non|not|no)(bull.*|cattle.*|cow.*|bovine.*|ox.*)$/); if (m) tokens.push(m[1], m[2]); });
 for (let i = 0; i < round.ring.length; i++) {
 const T = round.ring[i];
@@ -4554,14 +4699,31 @@ if (phraseHit || conceptHit) return { tier: i, pts: usedHint ? T.hintPts : T.pts
 return { tier: -1, pts: 0 };
 }
 const roundOpen = (r, today) => today >= r.opensOn;
+/** The live round: the latest one that has opened (each runs until the next opens). preview=true: the first round, whatever the date. */
 function currentRound(today, preview) {
 if (preview) return ROUNDS[0];
 const open = ROUNDS.filter(r => roundOpen(r, today));
 return open.length ? open[open.length - 1] : null;
 }
 const nextRound = today => ROUNDS.find(r => !roundOpen(r, today)) || null;
-const api = { ROUNDS, scoreRing, currentRound, nextRound, LINK_PTS, Q_SECS, RING_SECS, MAX, near };
+// Days a new Ring drops (JS getDay in Asia/Kolkata): 0 Sunday, 3 Wednesday. Preview treats every day as a drop day.
+const DROP_DAYS = [0, 3];
+const weekdayIST = dateStr => new Date(dateStr + 'T12:00:00+05:30').getDay();
+const isDropDay = (dateStr, preview, days) => !!(preview || (days || DROP_DAYS).includes(weekdayIST(dateStr)));
+/** Labels shown on the result screen. Each label must score its listed points via scoreRing. */
+function acceptedAnswers(round, usedHint) {
+const out = [];
+(round.ring || []).forEach((T, i) => {
+const pts = usedHint ? T.hintPts : T.pts;
+const labels = i === 0 ? [T.display || T.phrases[0]] : (T.accepted || [T.label]);
+labels.forEach(label => out.push({ label, pts, tier: i, top: i === 0 }));
+});
+return out;
+}
+const api = { ROUNDS, scoreRing, currentRound, nextRound, acceptedAnswers, isDropDay, DROP_DAYS, weekdayIST, LINK_PTS, Q_SECS, RING_SECS, MAX, near };
 if (typeof module === 'object' && module.exports) { module.exports = api; return; }
+
+// ---------------------------------------------------------------- live Ring Masters counter (Firestore REST, no SDK)
 const FS_PROJECT = 'quorbit-1904e', FS_KEY = 'AIzaSyCS0-1a7K7IB9jvJIiMFbKH9sRVb9sPG3c'; // public web key, same as auth.js
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${FS_PROJECT}/databases/(default)/documents`;
 const docName = id => `projects/${FS_PROJECT}/databases/(default)/documents/rings/${id}`;
@@ -4572,6 +4734,7 @@ if (r.status === 404) return { players: 0, solvers: 0 };
 if (!r.ok) throw new Error('counts ' + r.status);
 const j = await r.json(); return { players: intOf(j.fields && j.fields.players), solvers: intOf(j.fields && j.fields.solvers) };
 }
+/** One play: players +1, solvers +1 if exact. The transform results are the counts right after this play, so a solver's own number is exact. */
 async function fsRecord(docId, solved) {
 const body = { writes: [{ transform: { document: docName(docId), fieldTransforms: [
 { fieldPath: 'players', increment: { integerValue: '1' } }, { fieldPath: 'solvers', increment: { integerValue: solved ? '1' : '0' } }] } }] };
@@ -4580,6 +4743,7 @@ if (!r.ok) throw new Error('record ' + r.status);
 const j = await r.json(); const tr = (j.writeResults && j.writeResults[0] && j.writeResults[0].transformResults) || [];
 return { players: intOf(tr[0]), solvers: intOf(tr[1]) };
 }
+
 QB.rings = function (K) {
 const { U, esc, view, on, go, toast, copyText, setGuard, isSignedIn, every, sfx } = K;
 const $app = document.getElementById('app');
@@ -4594,9 +4758,12 @@ const getRec = r => load()[saveKey(r)] || null;
 const putRec = (r, rec) => { const all = load(); all[saveKey(r)] = rec; save(all); };
 const prettyDay = d => { try { return new Date(d + 'T12:00:00+05:30').toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' }); } catch (e) { return d; } };
 const q = s => $app.querySelector(s);
+const ICO = '<svg class="rings-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="5.15" fill="currentColor" opacity=".18"/><circle cx="12" cy="12" r="5.15" fill="none" stroke="currentColor" stroke-width="1.7"/><ellipse cx="12" cy="12.2" rx="10.6" ry="3.35" fill="none" stroke="currentColor" stroke-width="1.55" transform="rotate(-22 12 12.2)"/><path d="M3.9 13.6c3.2-1.7 13-2.5 16.3-.3" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round"/></svg>';
+const newBadge = hid => `<span class="tab-new"${hid ? ' aria-hidden="true"' : ' role="note" aria-label="New"'}><svg class="tab-new-spark" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M6 .5l1.05 3.85H11.5L8.15 6.7l1.2 3.8L6 8.25 2.65 10.5l1.2-3.8L.5 4.35h4.45z" fill="currentColor"/></svg>NEW</span>`;
+
 function faqHTML(open) {
 return `<details class="card htp rings-faq" id="ringsFaq"${open ? ' open' : ''}>
-<summary>💍 How Rings works</summary>
+<summary>${ICO} How Rings works</summary>
 <ol>
 <li><span><b>5 Links, then one Ring.</b> Answer 5 quick questions (${LINK_PTS} pts each, ${Q_SECS} s each). Running out of time only loses that question.</span></li>
 <li><span><b>Find the Ring.</b> Your 5 answers share a hidden link. You get ${RING_SECS} seconds to type it.</span></li>
@@ -4619,6 +4786,8 @@ const box = q('#rmBox'); if (!box) return;
 const pend = rec && rec.done && !rec.recorded ? fsRecord(docOf(r), !!rec.master).then(c => { rec.recorded = true; if (rec.master) rec.masterNo = c.solvers; putRec(r, rec); return c; }) : fsCounts(docOf(r));
 pend.then(c => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(c, rec); }).catch(() => { const b = q('#rmBox'); if (b) b.innerHTML = mastersLine(null, rec); });
 }
+
+// ---------------------------------------------------------------- Rings tab
 function page(arg) {
 if (arg === 'play') return play();
 if (arg === 'ring') return ringStep();
@@ -4641,7 +4810,7 @@ view(`<section class="hero rings-hero"><p class="kicker">Weekly${PREVIEW_RINGS ?
 <p class="rings-kicker">${esc(r.title)} · week of ${esc(prettyDay(r.opensOn))}</p>
 <h2 class="rings-h">What links the five?</h2>
 <p class="muted small">5 Links × ${LINK_PTS} pts, then ${RING_SECS} s to type the Ring for up to 100. Max ${MAX}.</p>
-<div class="rings-dots" aria-hidden="true">${r.questions.map(() => '<i></i>').join('')}<b>💍</b></div>
+<div class="rings-dots" aria-hidden="true">${r.questions.map(() => '<i></i>').join('')}<b class="rings-dots-ico">${ICO}</b></div>
 <a class="btn btn-gold btn-big" href="#/rings/play" id="ringsPlay">${started ? `Resume · Link ${Math.min(5, rec.answers.length + 1)}/5` : `Play ${esc(r.title)}`}</a>
 <div id="rmBox" class="rm-box"><p class="rm-line muted small">Loading Ring Masters…</p></div>
 </section>
@@ -4649,15 +4818,33 @@ ${faqHTML(false)}
 ${PREVIEW_RINGS ? `<p class="muted small center">Preview mode: this play is kept apart from the live round.</p>` : ''}`, 'rings');
 loadMasters(r, null);
 }
+/** Drop-day landing: Play Rings vs Play Daily Trivia, only when this week's Ring is unplayed. */
 function homeCard() {
-const r = currentRound(today(), PREVIEW_RINGS), nx = nextRound(today());
-if (!r && !nx) return '';
-const rec = r ? getRec(r) : null;
-const open = !!r;
-const title = !open ? `Opens ${prettyDay(nx.opensOn)}` : rec && rec.done ? 'See your Ring' : 'Play Rings';
-const sub = !open ? `${esc(nx.title)} · 5 Links, one hidden Ring` : rec && rec.done ? `Played · ${rec.links} + ${rec.ring} = ${rec.links + rec.ring}/${MAX}` : `${esc(r.title)} · 5 Links, one hidden Ring`;
-return `<a class="rings-banner" href="#/rings" id="ringsHome"><span class="tab-new">NEW</span><span class="rings-banner-ico" aria-hidden="true">💍</span><div><b>${title}</b><small>${sub}</small></div><span class="chev">›</span></a>`;
+const r = currentRound(today(), PREVIEW_RINGS);
+if (!r || !isDropDay(today(), PREVIEW_RINGS)) return '';
+const rec = getRec(r);
+if (rec && rec.done) return '';
+return `<section class="rings-choice" id="ringsHome">
+${newBadge(false)}
+<span class="rings-choice-ico">${ICO}</span>
+<h2 class="rings-h">It's a Ring day</h2>
+<p class="muted small">${esc(r.title)} · 5 Links, one hidden Ring</p>
+<div class="rings-choice-btns">
+<a class="btn btn-rings" href="#/rings" id="ringsPlayHome">${ICO} Play Rings</a>
+<a class="btn btn-ghost" href="#/play" id="ringsPlayDaily">Play Daily Trivia</a>
+</div>
+</section>`;
 }
+/** After the Daily: nudge if this week's Ring is still unplayed (any day it is open). */
+function nudgeCard() {
+const r = currentRound(today(), PREVIEW_RINGS);
+if (!r) return '';
+const rec = getRec(r);
+if (rec && rec.done) return '';
+return `<a class="rings-nudge" href="#/rings" id="ringsNudge">${ICO}<div><b>Now try this week's Ring →</b><small>${esc(r.title)} · 5 Links, one hidden Ring</small></div><span class="chev">›</span></a>`;
+}
+
+// ---------------------------------------------------------------- the 5 Links
 function play() {
 const r = currentRound(today(), PREVIEW_RINGS); if (!r) return go('#/rings');
 let rec = getRec(r) || { answers: [], at: Date.now() };
@@ -4674,7 +4861,7 @@ const opts = Q.options.slice();
 view(`<div class="gamebar"><button class="quit-btn" id="quitBtn" type="button" aria-label="Leave the Ring">✕ Quit</button>
 <div class="dots">${r.questions.map((_, k) => `<span class="dot ${k < i ? (rec.answers[k].ok ? 'ok' : 'bad') : k === i ? 'now' : ''}"></span>`).join('')}</div>
 <div class="score-mini"><small>LINKS</small><b class="rings-score">${rec.answers.filter(a => a.ok).length * LINK_PTS}</b></div></div>
-<div class="round-banner"><span class="rb-ico">💍</span><div class="rb-text"><div class="rb-name">Link ${i + 1} of ${r.questions.length}</div><div class="rb-cat">${esc(r.title)} · Rings</div></div><div class="rb-right"><span class="rb-pts">${LINK_PTS}</span></div></div>
+<div class="round-banner"><span class="rb-ico">${ICO}</span><div class="rb-text"><div class="rb-name">Link ${i + 1} of ${r.questions.length}</div><div class="rb-cat">${esc(r.title)} · Rings</div></div><div class="rb-right"><span class="rb-pts">${LINK_PTS}</span></div></div>
 <div class="qhead"><div class="timer" id="timer" role="timer" aria-label="Seconds left">
 <span class="t-pill"><b id="timerNum">${Q_SECS}</b><small>s</small></span><span class="t-bar"><span class="timer-fill" id="timerFill"></span></span></div>
 <h2 class="question" id="qtext">${esc(Q.q)}</h2></div>
@@ -4712,14 +4899,15 @@ setTimeout(goNext, 750);
 return;
 }
 q('#reveal').innerHTML = `<section class="card rings-fb ok" id="ringsFb">
-${Q.img ? `<img class="rings-img" src="${esc(Q.img)}" alt="${esc(Q.alt || '')}" width="640" height="640" decoding="async">` : ''}
 <p class="rings-fb-t"><b>+${LINK_PTS} · Right</b> · Link ${i + 1}: <b>${esc(Q.answer)}</b></p>
 <p class="muted small">Keep it in mind: all five answers share one hidden link.</p>
-<button class="btn btn-gold" id="ringsNext" type="button">${last ? 'Find the Ring 💍' : `Next · Link ${i + 2}`}</button></section>`;
+<button class="btn btn-gold" id="ringsNext" type="button">${last ? 'Find the Ring' : `Next · Link ${i + 2}`}</button></section>`;
 on('#ringsNext', 'click', goNext);
 const fb = q('#ringsFb'); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 }
+
+// ---------------------------------------------------------------- the Ring (typed link)
 function ringStep() {
 const r = currentRound(today(), PREVIEW_RINGS); if (!r) return go('#/rings');
 const rec = getRec(r); if (!rec || rec.done) return go('#/rings');
@@ -4728,17 +4916,21 @@ if (!rec.ringAt) { rec.ringAt = Date.now(); putRec(r, rec); }
 let over = false, hint = !!rec.hint;
 setGuard({ kind: 'rings', hash: '#/rings/ring', title: 'Leave the Ring?', body: 'Your Ring clock keeps running while you are away.', active: () => !over });
 const links = rec.answers.filter(a => a.ok).length * LINK_PTS;
-view(`<div class="round-banner"><span class="rb-ico">💍</span><div class="rb-text"><div class="rb-name">Find the Ring</div><div class="rb-cat">${esc(r.title)} · Links ${links}/${r.questions.length * LINK_PTS}</div></div><div class="rb-right"><span class="rb-pts" id="ringMax">${hint ? 70 : 100}</span></div></div>
+view(`<div class="round-banner"><span class="rb-ico">${ICO}</span><div class="rb-text"><div class="rb-name">Find the Ring</div><div class="rb-cat">${esc(r.title)} · Links ${links}/${r.questions.length * LINK_PTS}</div></div><div class="rb-right"><span class="rb-pts" id="ringMax">${hint ? 70 : 100}</span></div></div>
 <div class="timer" id="timer" role="timer" aria-label="Seconds left"><span class="t-pill"><b id="timerNum">${RING_SECS}</b><small>s</small></span><span class="t-bar"><span class="timer-fill" id="timerFill"></span></span></div>
+<form class="typed rings-typed" id="ringForm" autocomplete="off">
+<label class="rings-in-lab" for="ringInput">Type the hidden Ring</label>
+<div class="rings-in-row">
+<textarea id="ringInput" class="input" rows="2" placeholder="Type the link…" aria-label="The hidden link" autocapitalize="off" spellcheck="false" maxlength="80"></textarea>
+<button class="btn btn-gold" type="submit" id="ringBtn">Lock it</button>
+</div>
+</form>
+<div class="rings-hint" id="hintBox">${hint ? `<p class="rings-hint-t" id="hintText">💡 ${esc(r.hint)}</p>` : `<button class="btn btn-ghost small" id="hintBtn" type="button">💡 Show hint <span class="muted">(max drops to 70)</span></button>`}</div>
 <section class="card rings-reveal" id="ringReveal"><p class="rings-kicker">Your 5 answers</p>
 <ol class="rings-ans">${r.questions.map((Q, k) => rec.answers[k] && rec.answers[k].ok
 ? `<li class="ok"><span class="ra-n">${k + 1}</span><span>${esc(Q.answer)}</span></li>`
 : `<li class="miss"><span class="ra-n">${k + 1}</span><span>— missed</span></li>`).join('')}</ol>
-<p class="muted small">What links them? Type the hidden Ring.</p></section>
-<form class="typed" id="ringForm" autocomplete="off">
-<input id="ringInput" class="input" placeholder="Type the link…" aria-label="The hidden link" autocapitalize="off" spellcheck="false" maxlength="80">
-<button class="btn btn-gold" type="submit" id="ringBtn">💍 Lock it</button></form>
-<div class="rings-hint" id="hintBox">${hint ? `<p class="rings-hint-t" id="hintText">💡 ${esc(r.hint)}</p>` : `<button class="btn btn-ghost small" id="hintBtn" type="button">💡 Show hint <span class="muted">(max drops to 70)</span></button>`}</div>
+<p class="muted small">What links them?</p></section>
 ${isSignedIn() ? '' : `<p class="muted small center rings-soft" id="ringsSoft">Playing as a guest. Sign up free after the Ring to save your score.</p>`}`, 'rings');
 document.body.classList.add('in-play');
 const fill = q('#timerFill'), num = q('#timerNum'), tm = q('#timer'), inp = q('#ringInput');
@@ -4751,12 +4943,28 @@ if (tm) { tm.classList.toggle('warn', sec <= 20 && sec > 10); tm.classList.toggl
 if (left <= 0) submit(true);
 };
 every(tick, 200); tick();
+// Keep the type box above the on-screen keyboard (iOS/Android visualViewport).
+const form = q('#ringForm');
+const dock = () => {
+if (!form || over) return;
+const vv = window.visualViewport;
+const kb = vv ? Math.max(0, window.innerHeight - (vv.height + vv.offsetTop)) : 0;
+form.classList.toggle('docked', kb > 60);
+form.style.bottom = kb > 60 ? kb + 'px' : '';
+if (kb > 60) { try { form.scrollIntoView({ block: 'end', behavior: 'auto' }); } catch (e) {} }
+};
+if (window.visualViewport) {
+window.visualViewport.addEventListener('resize', dock);
+window.visualViewport.addEventListener('scroll', dock);
+}
+if (inp) inp.addEventListener('focus', () => setTimeout(dock, 250));
 on('#hintBtn', 'click', () => {
 hint = true; rec.hint = true; putRec(r, rec);
 q('#hintBox').innerHTML = `<p class="rings-hint-t" id="hintText">💡 ${esc(r.hint)}</p>`; q('#ringMax').textContent = '70';
 if (QB.track) QB.track('rings-hint');
 });
 on('#ringForm', 'submit', e => { e.preventDefault(); submit(false); });
+if (inp) inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(false); } });
 function submit(timeUp) {
 if (over) return; const guess = (inp && inp.value || '').trim();
 if (!guess && !timeUp) { inp && inp.focus(); return; }
@@ -4769,51 +4977,95 @@ if (QB.track) { QB.track('rings-finish'); if (rec.master) QB.track('rings-master
 location.replace('#/rings');
 }
 }
+
+// ---------------------------------------------------------------- result
 function shareText(r, rec) {
-const grid = rec.answers.map(a => (a.ok ? '🟩' : '⬛')).join('');
-return `🪐 Quorbit ${r.title}\nLinks ${grid} ${rec.links} · Ring ${rec.ring}${rec.hint ? ' (hint)' : ''}\n${rec.links + rec.ring}/${MAX}${rec.master ? ' · 💍 Ring Master' : ''}\nhttps://iquorbit.com/?ref=rings`;
+const grid = rec.answers.map(a => (a.ok ? '🟢' : '⚫')).join('');
+const master = rec.master && rec.masterNo ? ` · Ring Master #${rec.masterNo}` : rec.master ? ' · Ring Master' : '';
+return `Quorbit Rings #${r.no} 🪐\nLinks ${grid} · Ring ${rec.ring} · ${rec.links + rec.ring}/${MAX}${master}\nhttps://iquorbit.com/?ref=rings`;
+}
+async function paintShareCard(r, rec) {
+if (!QB.shareCard || !QB.shareCard.renderRings) return null;
+try {
+return await QB.shareCard.renderRings({
+no: r.no, marks: rec.answers.map(a => !!a.ok), links: rec.links, ring: rec.ring,
+total: rec.links + rec.ring, max: MAX, masterNo: rec.master ? rec.masterNo : 0, url: 'iquorbit.com'
+});
+} catch (e) { return null; }
+}
+async function shareRing(r, rec) {
+const text = shareText(r, rec);
+const card = await paintShareCard(r, rec);
+let file = null;
+try { if (card && card.blob) file = new File([card.blob], 'quorbit-rings-' + r.no + '.png', { type: 'image/png' }); } catch (e) {}
+if (navigator.share) {
+const data = { title: 'Quorbit Rings #' + r.no, text };
+try { if (file && navigator.canShare && navigator.canShare({ files: [file] })) data.files = [file]; } catch (e) {}
+try { await navigator.share(data); if (QB.track) QB.track('rings-share'); return 'shared'; }
+catch (e) { if (e && e.name === 'AbortError') return 'abort'; }
+}
+const ok = await copyText(text);
+if (file) {
+const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = 'quorbit-rings-' + r.no + '.png';
+document.body.appendChild(a); a.click(); a.remove();
+}
+toast(ok ? (file ? 'Copied the text, and saved the image.' : 'Copied: paste it anywhere') : (file ? 'Image saved.' : 'Could not share'));
+if (QB.track) QB.track('rings-share');
+return 'copy';
 }
 function resultView(r, rec) {
 const T = rec.tier >= 0 ? r.ring[rec.tier] : null;
-const verdict = rec.master ? '💍 You found the exact link!' : T ? `Close: ${esc(T.label)}` : rec.timeUp ? "Time's up" : 'Not this time';
-const scoreNote = rec.master
-? 'Several phrasings are accepted; the closest match to the computed answer counts as an exact match.'
-: T
-? 'Several phrasings are accepted; only the closest match to the computed answer is an exact match (full marks).'
-: 'Several phrasings are accepted; the closest match to the computed answer would have counted as an exact match.';
+const verdict = rec.master ? `${ICO} You found the exact link!` : T ? `Close: ${esc(T.label)}` : rec.timeUp ? "Time's up" : 'Not this time';
+const accepted = acceptedAnswers(r, !!rec.hint);
+const top = accepted.find(a => a.top) || accepted[0];
+const rest = accepted.filter(a => !a.top);
 const ask = !isSignedIn();
 const nx = ROUNDS.find(x => x.opensOn > r.opensOn) || null;
+const credits = r.reveal.filter(c => c.credit);
 view(`<section class="hero rings-hero"><p class="kicker">${esc(r.title)} · result${PREVIEW_RINGS ? ' · preview' : ''}</p><h1 class="title">${verdict}</h1></section>
 <section class="card rings-score-card" id="ringsScore">
 <div class="rs-line"><span>Links <b>${rec.links}</b></span><span class="rs-sep">·</span><span>Ring <b>${rec.ring}</b></span><span class="rs-sep">·</span><span class="rs-total"><b>${rec.links + rec.ring}</b>/${MAX}</span></div>
 <p class="muted small">${rec.guess ? `You typed “${esc(rec.guess)}”` : 'No guess typed'}${rec.hint ? ' · hint used' : ''}</p>
-<p class="muted small">${scoreNote}</p>
-<p class="rings-theme"><small>THE RING</small><b>${esc(r.theme)}</b></p>
+<div class="rings-accepted" id="ringsAccepted">
+<p class="rings-top"><small>TOP ANSWER</small><b>${esc(top.label)}</b><span class="muted"> · ${top.pts}</span></p>
+<ul>${rest.map(a => `<li>${esc(a.label)} <span class="muted">· ${a.pts}</span></li>`).join('')}</ul>
+</div>
 <div id="rmBox" class="rm-box"><p class="rm-line muted small">Counting Ring Masters…</p></div>
 <button class="btn btn-gold" id="ringsShare" type="button">Share my Ring</button>
+<figure class="rings-share-fig" id="ringsShareFig">
+<img id="ringsShareImg" alt="Share card for this Ring — score only, no answers" width="1080" height="1080">
+<button type="button" class="link" id="ringsShareDl">Download image</button>
+</figure>
 </section>
 ${ask ? `<section class="card postgame rings-signup" id="ringsSignup"><div class="pg-ask"><b>Sign up to save your Ring score and get next week's Ring</b>
 <p class="small muted">Free account. Your scores follow you to any device.</p>
 <a class="btn btn-ghost pg-signup" href="#/account" id="ringsSignupBtn">Sign up free</a></div></section>` : ''}
 <h2 class="section-title">The story behind each answer</h2>
-<ol class="rings-cars">${r.reveal.map((c, k) => `<li class="card rings-car">
-${r.questions[k] && r.questions[k].img ? `<img class="rc-img" src="${esc(r.questions[k].img)}" alt="" width="96" height="96" loading="lazy" decoding="async">` : ''}
+<ol class="rings-cars">${r.reveal.map((c) => `<li class="card rings-car">
+${c.img ? `<img class="rc-img" src="${esc(c.img)}" alt="${esc(c.alt || c.name)}" width="240" height="160" loading="lazy" decoding="async">` : `<span class="rc-tile">${esc(c.name)}</span>`}
 <div><p class="rc-h"><b>${esc(c.name)}</b><span class="muted small"> ← ${esc(c.from)}</span></p><p class="small">${esc(c.text)}</p></div></li>`).join('')}</ol>
 <details class="card rings-src" id="ringsSources"><summary>Sources</summary>
-<ul>${r.sources.map(s => `<li><a class="link" href="${esc(s.url)}" target="_blank" rel="noopener">${esc(s.label)}</a></li>`).join('')}</ul></details>
-<p class="muted small center">${nx ? `Next Ring opens ${esc(prettyDay(nx.opensOn))}.` : 'A new Ring every week.'} Rings never affect your Daily streak.</p>
+<ul class="rings-src-list">${r.sources.map(src => `<li><a class="link" href="${esc(src.url)}" target="_blank" rel="noopener">${esc(src.label)}</a></li>`).join('')}</ul>
+${credits.length ? `<p class="rings-credits-h">Photos</p><ul class="rings-src-list">${credits.map(c => `<li>${esc(c.name)}: <a class="link" href="${esc(c.creditUrl)}" target="_blank" rel="noopener">${esc(c.credit)}</a></li>`).join('')}</ul><p class="rings-credits-n">Photos cropped and resized from Wikimedia Commons. Used under the stated licence.</p>` : ''}
+</details>
+<p class="muted small center rings-foot">${nx ? `Next Ring opens ${esc(prettyDay(nx.opensOn))}.` : 'A new Ring every week.'} Rings never affect your Daily streak.</p>
 ${PREVIEW_RINGS ? `<button class="btn btn-ghost" id="ringsReplay" type="button">Replay (preview only)</button>` : ''}
 ${faqHTML(false)}`, 'rings');
 loadMasters(r, rec);
-on('#ringsShare', 'click', async () => {
-const text = shareText(r, rec);
-if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
-const ok = await copyText(text); toast(ok ? 'Copied: paste it anywhere' : 'Could not copy');
-if (QB.track) QB.track('rings-share');
+let shareCard = null;
+paintShareCard(r, rec).then(card => {
+shareCard = card;
+const img = q('#ringsShareImg'); if (img && card && card.url) { img.src = card.url; q('#ringsShareFig').classList.add('ready'); }
+});
+on('#ringsShare', 'click', () => shareRing(r, rec));
+on('#ringsShareDl', 'click', () => {
+if (!shareCard || !shareCard.url) return;
+const a = document.createElement('a'); a.href = shareCard.url; a.download = 'quorbit-rings-' + r.no + '.png';
+document.body.appendChild(a); a.click(); a.remove();
 });
 on('#ringsReplay', 'click', () => { const all = load(); delete all[saveKey(r)]; save(all); go('#/rings'); });
 }
-return { page, homeCard, faqHTML, ROUNDS, scoreRing };
+return { page, homeCard, nudgeCard, faqHTML, ROUNDS, scoreRing };
 };
 Object.assign(QB.rings, api);
 })(typeof window !== 'undefined' ? window : null);
@@ -5703,6 +5955,7 @@ view(`
 <p class="kicker">${U.episodeNo(TODAY) > 0 ? 'Episode #' + U.episodeNo(TODAY) : 'Preview'} · final score</p>
 <div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>${rec.score > rec.max ? `<p class="muted small center" id="overMax">🔥 combo · +${rec.score - rec.max} over base max ${rec.max}</p>` : ''}
 <div class="title-badge">${t.emoji} ${t.title}</div>
+${RX && RX.nudgeCard ? RX.nudgeCard() : ''}
 <div class="share-hero" id="shareHero">
 <button class="btn btn-gold btn-share" id="nativeShareBtn" type="button">Share your score</button>
 <p class="share-nudge" id="shareNudge">Can your friends beat ${shareCorrect}/${set.length}? Challenge them.</p>
@@ -6875,6 +7128,7 @@ view(`
 <div class="big-score" id="bigScore">${scoreboard(rec.score, 3, 'xl')}<span class="of">${rec.score > rec.max ? '' : '/ ' + rec.max}</span></div>
 <div class="title-badge">${t.emoji} ${t.title}</div>
 <p class="muted small center">Saved as catch-up · today's streak is unchanged</p>
+${RX && RX.nudgeCard ? RX.nudgeCard() : ''}
 <div class="share-hero" id="shareHero">
 <button class="btn btn-gold btn-share" id="nativeShareBtn" type="button">Share your score</button>
 <p class="share-nudge" id="shareNudge">Can your friends beat ${shareCorrect}/${set.length}?</p>
@@ -7118,7 +7372,7 @@ const s = S.get();
 return `
 <div class="menu-group"><h3>Play</h3>
 <a href="#/home" data-menu-nav>🪐 Today's episode</a>
-<a href="#/rings" data-menu-nav>💍 Rings (weekly)</a>
+<a href="#/rings" data-menu-nav>🪐 Rings (weekly)</a>
 <a href="#/archive" data-menu-nav>📼 Episode archive</a>
 <a href="#/topics" data-menu-nav>🎯 Topics &amp; packs</a>
 <a href="#/total" data-menu-nav>✨ Quorbit Total</a>
