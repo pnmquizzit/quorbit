@@ -2577,7 +2577,7 @@ const COMBO = { after: 3, mult: 1.2 };
 const TIMER = CLOCK.medium;
 function clockFor(item) {
 const c = CLOCK[(item && item.difficulty) || 'medium'] || CLOCK.medium;
-return item && item.slot && item.slot.key === 'rapid' ? { seconds: c.seconds / 2, full: c.full / 2, min: c.min } : c;
+return item && item.slot && item.slot.key === 'rapid' && !(item.q && item.q.format === 'typed') ? { seconds: c.seconds / 2, full: c.full / 2, min: c.min } : c; // typed Rapid keeps the full clock (19 Nov: LIT27)
 }
 function secondsFor(item) { return clockFor(item).seconds; }
 function speedMult(ms, clock = TIMER) {
