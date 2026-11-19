@@ -5979,8 +5979,8 @@ ${contribLine(q)}
 </div>
 <section class="qcard${extras ? ' spotlight' : ''}" ${extras ? '' : 'hidden'}>
 ${host ? `<p class="host-line">${host}</p>` : ''}
-${isVisual ? `<div class="vis-wrap"><img decoding="async" class="vis-img b0" id="visImg" src="${imgSrc(q.image)}" alt="Picture clue"><div class="vis-meter" id="visMeter">Worth <b id="visPts">${E.withHints(base, st.hints)}</b> pts</div></div>${creditMini(q.image)}` : ''}
-${!isVisual && !isPic && q.image ? `<div class="vis-wrap"><img decoding="async" class="vis-img" src="${imgSrc(q.image)}" alt="Picture"></div>${creditMini(q.image)}` : ''}
+${isVisual ? `<div class="vis-wrap"><img decoding="async" class="vis-img b0" id="visImg" src="${imgSrc(q.image)}" alt="Picture clue"><div class="vis-meter" id="visMeter">Worth <b id="visPts">${E.withHints(base, st.hints)}</b> pts</div></div>` : ''}
+${!isVisual && !isPic && q.image ? `<div class="vis-wrap"><img decoding="async" class="vis-img" src="${imgSrc(q.image)}" alt="Picture"></div>` : ''}
 ${isClue ? `<ol class="clues" id="clues">${q.clues.map((c, i) => `<li class="${i < 2 ? 'shown' : ''}">${i < 2 ? esc(c) : '???'}</li>`).join('')}</ol>` : ''}
 ${isPic ? `<div class="pic-grid" id="picGrid">${q.images.map((k, i) => `<figure class="pic ${i < 2 ? 'shown' : ''}" data-i="${i}">
 <img decoding="async" src="${imgSrc(k)}" alt="Picture clue ${i + 1}" ${i < 2 ? '' : 'hidden'}><span class="pic-q" ${i < 2 ? 'hidden' : ''}>?</span>
