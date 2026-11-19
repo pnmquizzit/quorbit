@@ -32,15 +32,18 @@
   <meta name="format-detection" content="telephone=no">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&display=swap">
   <style>
 :root {
 color-scheme: dark;
 --ink: #f5f5f7; --muted: #a1a1a6; --deep: #000000; --stage: #0c0c0e; --purple: #1c1c1e; --violet: #2c2c2e;
 --gold: #ffd60a; --gold-2: #ffd60a; --amber: #ffd60a; --green: #30d158; --red: #ff453a; --yellow: #ff9f0a;
 --blue: #0a84ff; --card: rgba(28, 28, 30, 0.92); --line: rgba(255, 255, 255, 0.12); --r: 14px;
---display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
---serif: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
---mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+--display: "Exo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
+--serif: "Exo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
+--mono: "Exo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
 --nav-h: 56px; --top-h: 56px;
 --page-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 24px);
 --dock-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom, 0px) + 8px);
@@ -50,7 +53,7 @@ color-scheme: dark;
 html { height: auto; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; scroll-padding-bottom: calc(var(--nav-h) + env(safe-area-inset-bottom) + 90px); }
 html { color-scheme: only dark; }
 html, body { margin: 0; background: var(--deep); color: var(--ink); font-family: var(--display); }
-body { min-height: 100vh; min-height: 100svh; font-size: 1rem; line-height: 1.4; overscroll-behavior-y: none; }
+body { min-height: 100vh; min-height: 100svh; font-size: 17px; line-height: 1.45; overscroll-behavior-y: none; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; color: inherit; cursor: pointer; }
 code { background: rgba(255,255,255,.08); padding: 1px 5px; border-radius: 5px; font-size: .92em; }
@@ -65,7 +68,7 @@ background: var(--deep); }
 background: rgba(0,0,0,.72); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); }
 .brand { display: flex; align-items: center; gap: 8px; }
 .logo { width: 34px; height: 34px; filter: drop-shadow(0 0 8px rgba(245,197,66,.55)); }
-.brand-text { font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif; font-weight: 800; font-size: 1.4375rem; letter-spacing: -.3px; }
+.brand-text { font-family: var(--display); font-weight: 800; font-size: 1.4375rem; letter-spacing: -.3px; }
 .brand-text b { color: var(--gold); }
 .topbar-right { display: flex; gap: 8px; align-items: center; }
 .chip { padding: 6px 10px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid var(--line); font-weight: 700; font-size: 0.875rem; }
@@ -1125,7 +1128,7 @@ font-weight: 700;
 .qhead .question, .qhead h2.question, .qhead #qtext { font-size: 1.25rem; padding: 12px 12px 12px 14px; }
 .round-banner { padding-bottom: 8px; }
 .opt { min-height: 52px; padding: 14px 14px; font-size: 1rem; }
-.qmeta { font-size: 0.6875rem; }
+.qmeta { font-size: 12px; }
 }
 .options {
 display: grid;
@@ -1311,7 +1314,7 @@ color: var(--ink); text-decoration: none; font-weight: 600; font-size: 0.975rem;
 .menu-group a:active { background: rgba(245,197,66,.14); }
 body.menu-open { overflow: hidden; }
 body.menu-open .tabbar { opacity: 0; pointer-events: none; }
-.total-mini { display: inline-block; font-family: var(--mono); font-size: 0.6875rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; background: rgba(255,210,63,.18); color: var(--gold); border: 1px solid rgba(255,210,63,.45); vertical-align: middle; }
+.total-mini { display: inline-block; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; background: rgba(255,210,63,.18); color: var(--gold); border: 1px solid rgba(255,210,63,.45); vertical-align: middle; }
 .paid-later-chip { display: inline-block; margin: 8px 0 4px; font-family: var(--mono); font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.06); color: var(--muted); border: 1px solid rgba(255,255,255,.12); }
 .total-entry { position: relative; }
 .total-entry .total-mini { margin-left: auto; flex-shrink: 0; }
@@ -1363,7 +1366,7 @@ overflow-wrap: anywhere;
 .menu.quiet-legal a { font-size: 0.9375rem; }
 .menu-group a.menu-quiet { opacity: .72; font-size: 0.875rem; font-weight: 500; padding-top: 6px; padding-bottom: 6px; }
 label.declaration a { color: var(--gold-2); text-decoration: underline; text-underline-offset: 2px; }
-.more-orbit-kicker { margin: 0 0 2px; font-family: var(--mono); font-size: 0.6875rem; font-weight: 700;
+.more-orbit-kicker { margin: 0 0 2px; font-family: var(--mono); font-size: 12px; font-weight: 700;
 letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
 .postgame { margin: 12px 0 10px; padding: 14px 16px; text-align: left; }
 .pg-ask { position: relative; padding: 0 0 14px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
@@ -1405,7 +1408,7 @@ background: rgba(0,0,0,.88); cursor: zoom-out; animation: pop .2s ease; }
 .preroll { min-height: 62vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; }
 .pr-ring { width: 112px; height: 112px; border-radius: 50%; display: grid; place-items: center;
 border: 3px solid rgba(245, 197, 66, .85); box-shadow: 0 0 0 8px rgba(245, 197, 66, .08); }
-.pr-num { font: 800 56px/1 -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif; color: #f5c542; font-variant-numeric: tabular-nums; animation: prPop .9s ease-out; }
+.pr-num { font: 800 56px/1 var(--display); color: #f5c542; font-variant-numeric: tabular-nums; animation: prPop .9s ease-out; }
 .pr-sub { margin: 0; font-size: 15px; opacity: .75; letter-spacing: .01em; }
 .pr-skip { font-size: 14px; opacity: .6; }
 @keyframes prPop { from { transform: scale(1.18); opacity: .4; } to { transform: scale(1); opacity: 1; } }
@@ -1435,7 +1438,6 @@ background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08)
 .site-foot-story { color: var(--muted); font-size: .8125rem; line-height: 1.45; margin: 10px auto 4px; max-width: 34em; }
 .site-foot-maker { color: var(--muted); font-size: .8125rem; margin: 0; }
 .site-foot-maker a, .legal-block a { color: var(--gold); }
-
 .follow-quorbit { margin: 12px 0 0; display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .follow-quorbit-label { margin: 0 0 2px; color: var(--muted); font-size: .75rem; font-weight: 600; letter-spacing: .01em; }
 .follow-quorbit-links { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 2px 10px; max-width: 100%; }
@@ -1524,24 +1526,18 @@ body.has-float .screen { padding-bottom: calc(var(--nav-h) + 90px); }
 .rc-h { margin: 0 0 4px; } .rings-car p.small { margin: 0; line-height: 1.45; color: var(--ink); opacity: .9; }
 .rings-src ul { margin: 8px 0 0; padding-left: 18px; } .rings-src li { margin: 2px 0; } .rings-src .link { padding: 4px 0; font-weight: 600; font-size: 0.875rem; }
 .rings-signup .pg-ask b { display: block; margin-bottom: 4px; }
-
-/* Rings typography: Inter (plus SF on Apple), scoped so Daily is unchanged */
 body.rings-ui {
-  --rings-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", system-ui, sans-serif;
-  font-family: var(--rings-sans);
+--rings-sans: "Exo 2", system-ui, -apple-system, "Segoe UI", sans-serif;
+font-family: var(--rings-sans);
 }
 body.rings-ui .title, body.rings-ui .page-title, body.rings-ui .section-title,
 body.rings-ui .rb-name, body.rings-ui .rings-h, body.rings-ui .question,
 body.rings-ui .opt, body.rings-ui .btn, body.rings-ui .lead, body.rings-ui .input {
-  font-family: var(--rings-sans);
-  letter-spacing: -0.02em;
+font-family: var(--rings-sans);
+letter-spacing: -0.02em;
 }
 body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weight: 700; }
-
-/* Missed Link: brief mark, then the next question — no answer, no picture */
 .rings-missed { text-align: center; margin: 14px 0 0; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
-
-/* Result: one short credit line + picture; sources and FAQ stay collapsed */
 .rings-score-card { margin-bottom: 8px; }
 .rings-cars { display: grid; gap: 8px; }
 .rings-car { padding: 10px 12px; align-items: center; }
@@ -1550,8 +1546,6 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
 .rings-src, .rings-faq { margin-top: 10px; }
 .rings-src summary, .rings-faq summary { cursor: pointer; font-weight: 700; font-size: 0.875rem; color: var(--muted); }
 .rings-src summary { font-size: 0.8125rem; }
-
-/* Home: Play Rings banner sits above the Daily wheel; purple vs yellow Play */
 .rings-banner { position: relative; display: flex; align-items: center; gap: 12px; margin: 4px 0 14px; padding: 14px 16px; border-radius: 16px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 48%, #bf5af2 100%); box-shadow: 0 8px 22px rgba(94, 92, 230, .28); overflow: hidden; }
 .rings-banner:active { transform: scale(.98); }
 .rings-banner-ico { font-size: 1.5rem; filter: none; }
@@ -1565,8 +1559,6 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
 @keyframes rings-banner-pulse { 0%, 100% { box-shadow: 0 8px 22px rgba(94, 92, 230, .28); } 50% { box-shadow: 0 8px 26px rgba(191, 90, 242, .4); } }
 @media (prefers-reduced-motion: reduce) { .rings-banner, .rings-banner::after { animation: none; } }
 .rings-banner, .rings-banner b, .rings-banner small { font-family: var(--rings-sans, -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif); }
-
-/* ---- Rings v3: Saturn icon, graphic NEW, input, choice, sources, share ---- */
 .rings-ico { width: 1.25em; height: 1.25em; display: block; overflow: visible; }
 .tabbar a .tab-ico { display: grid; place-items: center; height: 22px; filter: grayscale(.6); }
 .tabbar a .tab-ico .rings-ico { width: 22px; height: 22px; color: var(--ink); }
@@ -1574,12 +1566,10 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
 .rb-ico .rings-ico, .rings-choice-ico .rings-ico, .rings-nudge .rings-ico, .btn-rings .rings-ico, .rings-banner-ico .rings-ico { width: 22px; height: 22px; display: inline-block; vertical-align: -5px; }
 .rings-dots-ico .rings-ico { width: 18px; height: 18px; display: inline-block; vertical-align: -3px; }
 .rings-faq summary .rings-ico, .title .rings-ico { width: 1.1em; height: 1.1em; display: inline-block; vertical-align: -0.2em; margin-right: 4px; }
-
 .tab-new { display: inline-flex; align-items: center; gap: 2px; position: absolute; top: 1px; right: 6px; left: auto; translate: none; font-size: 6px; font-weight: 800; letter-spacing: .07em; line-height: 1; padding: 2px 4px 2px 3px; border-radius: 999px; color: #1b0f5c; background: linear-gradient(105deg, #ffe566 0%, #ffd60a 55%, #ff9f0a 100%); box-shadow: 0 0 0 1px rgba(255,214,10,.35), 0 0 10px rgba(255,214,10,.45); animation: tab-new-glow 2.4s ease-in-out infinite; pointer-events: none; }
 .tab-new-spark { width: 7px; height: 7px; color: #1b0f5c; flex: none; }
 @keyframes tab-new-glow { 0%, 100% { opacity: 1; } 50% { opacity: .72; } }
 @media (prefers-reduced-motion: reduce) { .tab-new { animation: none; } }
-
 .rings-choice { position: relative; margin: 4px 0 16px; padding: 18px 16px 16px; border-radius: 18px; color: #f5f5f7; background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 48%, #bf5af2 100%); box-shadow: 0 8px 22px rgba(94, 92, 230, .28); overflow: hidden; text-align: center; }
 .rings-choice .tab-new { top: 8px; right: 10px; }
 .rings-choice-ico { display: inline-flex; margin: 2px 0 6px; }
@@ -1594,32 +1584,30 @@ body.rings-ui .title, body.rings-ui .rings-h, body.rings-ui .rb-name { font-weig
 .rings-nudge div { flex: 1; min-width: 0; text-align: left; }
 .rings-nudge b { display: block; font-size: 1.0625rem; }
 @media (max-width: 380px) {
-  .rings-nudge { gap: 8px; padding: 12px 12px; }
-  .rings-nudge b { font-size: 0.95rem; }
+.rings-nudge { gap: 8px; padding: 12px 12px; }
+.rings-nudge b { font-size: 0.95rem; }
 }
 .rings-nudge small { display: block; margin-top: 2px; color: rgba(245,245,247,.82); }
 .rings-nudge .chev { color: rgba(255,255,255,.85); }
-
-/* Ring type box: >=16px, tall enough, stays visible with the keyboard */
 body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input {
-  font-family: var(--rings-sans, inherit);
-  font-size: 16px !important;
-  line-height: 1.45;
-  letter-spacing: 0;
-  padding: 12px 14px;
-  min-height: 56px;
-  height: auto;
-  overflow: auto;
-  resize: none;
-  -webkit-appearance: none;
-  appearance: none;
-  -webkit-text-size-adjust: 100%;
-  color: var(--ink);
-  background: rgba(255,255,255,.12);
-  border: 2px solid rgba(255,255,255,.35);
+font-family: var(--rings-sans, inherit);
+font-size: 16px !important;
+line-height: 1.45;
+letter-spacing: 0;
+padding: 12px 14px;
+min-height: 56px;
+height: auto;
+overflow: auto;
+resize: none;
+-webkit-appearance: none;
+appearance: none;
+-webkit-text-size-adjust: 100%;
+color: var(--ink);
+background: rgba(255,255,255,.12);
+border: 2px solid rgba(255,255,255,.35);
 }
 @media (max-width: 420px) {
-  body.rings-ui .typed .input, body.rings-ui .typed .btn, .rings-typed .input, .rings-typed .btn { min-height: 52px; }
+body.rings-ui .typed .input, body.rings-ui .typed .btn, .rings-typed .input, .rings-typed .btn { min-height: 52px; }
 }
 .rings-typed { display: flex; flex-direction: column; gap: 8px; margin: 10px 0 12px; width: 100%; }
 .rings-in-lab { font-size: 0.875rem; font-weight: 700; color: var(--muted); }
@@ -1628,22 +1616,19 @@ body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input
 .rings-in-row .btn { flex: none; padding: 0 18px; }
 .rings-typed.docked { position: sticky; bottom: 0; z-index: 5; margin: 0 -8px; padding: 8px; background: rgba(0,0,0,.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 12px 12px 0 0; }
 @media (max-width: 380px) {
-  .rings-in-row { flex-direction: column; }
-  .rings-in-row .btn { width: 100%; min-height: 48px; }
+.rings-in-row { flex-direction: column; }
+.rings-in-row .btn { width: 100%; min-height: 48px; }
 }
-
 .rings-accepted { text-align: left; margin: 14px 0 0; padding-top: 12px; border-top: 1px solid var(--line); }
 .rings-top { margin: 0 0 8px; }
 .rings-top small { display: block; font-family: var(--mono); letter-spacing: 1.4px; color: var(--muted); font-size: 0.75rem; }
 .rings-top b { font-size: 1.0625rem; line-height: 1.35; }
 .rings-accepted ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .rings-accepted li { padding: 8px 10px; border-radius: 10px; background: rgba(255,255,255,.06); font-weight: 600; line-height: 1.35; font-size: 0.9375rem; }
-
 .rings-cars { display: grid; gap: 10px; margin-bottom: 8px; }
 .rings-car { display: flex; gap: 12px; align-items: center; padding: 10px 12px; }
 .rc-img { width: 120px; height: 80px; flex: none; border-radius: 10px; object-fit: cover; background: rgba(255,255,255,.06); }
 .rc-tile { width: 120px; height: 80px; flex: none; border-radius: 10px; display: grid; place-items: center; text-align: center; padding: 6px; font-weight: 700; font-size: 0.8125rem; background: linear-gradient(135deg, #3b1d8f, #5e5ce6); color: #fff; }
-
 .rings-src { margin-top: 12px; margin-bottom: 8px; padding: 12px 14px 16px; }
 .rings-src[open] { margin-bottom: 36px; }
 .rings-src summary { cursor: pointer; font-weight: 700; font-size: 0.9375rem; line-height: 1.4; color: var(--ink); }
@@ -1656,21 +1641,18 @@ body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-typed .input
 .rings-share-fig { margin: 12px 0 0; display: none; }
 .rings-share-fig.ready { display: grid; gap: 6px; justify-items: center; }
 .rings-share-fig img { width: 220px; height: 220px; border-radius: 12px; background: #000; }
-
-
-/* Rings v4: tab clearance, system fonts, cheap motion, Daily link on the Rings intro */
 :root { --rings-tab-clear: calc(70px + env(safe-area-inset-bottom, 0px)); }
 body.rings-ui .shell,
 body:has(#ringsHome) .shell,
 body:has(#ringsIntro) .shell,
 body:has(#ringsShareFig) .shell,
 body:has(#ringsNudge) .shell {
-  padding-bottom: calc(var(--rings-tab-clear) + 24px);
+padding-bottom: calc(var(--rings-tab-clear) + 24px);
 }
 html:has(body.rings-ui),
 html:has(#ringsHome),
 html:has(#ringsShareFig) {
-  scroll-padding-bottom: calc(var(--rings-tab-clear) + 48px);
+scroll-padding-bottom: calc(var(--rings-tab-clear) + 48px);
 }
 .rings-banner-ico { display: inline-flex; color: #fff; flex: none; }
 .rings-banner-ico .rings-ico { width: 26px; height: 26px; color: #fff; }
@@ -1678,31 +1660,118 @@ html:has(#ringsShareFig) {
 .rings-daily-link:active { opacity: .75; }
 .rc-img { background: rgba(255,255,255,.06); aspect-ratio: 3 / 2; }
 @media (prefers-reduced-motion: reduce) {
-  .rings-banner::after, .tab-new, .rings-nudge { animation: none; }
+.rings-banner::after, .tab-new, .rings-nudge { animation: none; }
 }
-
-/* Rings result: cross-link to Daily (gold) or a quiet "both done" line */
 .rings-nudge-daily { background: linear-gradient(105deg, #0050c8 0%, #0a84ff 55%, #4aa3ff 100%); color: #fff; box-shadow: 0 6px 18px rgba(10, 132, 255, .28); margin: 14px 0 4px; }
 .rings-nudge-daily small, .rings-nudge-daily .chev { color: rgba(255, 255, 255, .88); }
 .rings-cross-done { margin: 14px 0 8px; text-align: center; font-weight: 600; font-size: 0.9375rem; line-height: 1.4; color: var(--muted); }
-
-/* Rings primary Play: solid violet, distinct from gold Daily/Share (and survives force-dark). */
 .btn-rings-play {
-  background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 52%, #6d4aff 100%);
-  color: #fff;
-  border-radius: 980px;
-  font-weight: 700;
-  box-shadow: 0 6px 18px rgba(94, 92, 230, .3);
+background: linear-gradient(105deg, #3b1d8f 0%, #5e5ce6 52%, #6d4aff 100%);
+color: #fff;
+border-radius: 980px;
+font-weight: 700;
+box-shadow: 0 6px 18px rgba(94, 92, 230, .3);
 }
 .btn-rings-play:active { transform: scale(.98); opacity: .92; }
-
-/* Rings promo: quiet tab until Saturday; slim teaser Saturday; NEW from Saturday */
 .tabbar a.tab-rings { flex-direction: column; gap: 0; line-height: 1.15; }
 .tab-rings-sub { display: block; max-width: 100%; margin-top: 1px; font-size: 9px; font-weight: 600; letter-spacing: 0; line-height: 1.15; color: var(--muted); text-transform: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tabbar a.tab-rings.tab-rings-quiet .tab-new,
 .tabbar a.tab-rings .tab-new[hidden] { display: none; }
 .rings-banner-teaser { box-shadow: 0 6px 16px rgba(94, 92, 230, .2); }
 .rings-banner-teaser::after { animation: none; }
+body { font-size: 17px; line-height: 1.45; }
+.brand-text { font-family: var(--display); }
+.lead, .hero .lead, .hero .lead.whisper { font-size: 17px; line-height: 1.45; }
+.btn, .btn-big, .btn-gold, .btn-rings-play, .btn-share, .btn-wa, .btn-rings, .btn-float,
+.cta-inline .btn-gold, .cta-inline .btn-big, .cta-dock .btn-big, .typed .btn, .rings-in-row .btn,
+.rings-card .btn-big, .rings-fb .btn, .rings-hint .btn, .rings-score-card .btn,
+.rings-choice-btns .btn, .auth-card .btn-big, .slider-fine .btn, .slider-round .row2 .btn {
+min-height: 52px;
+border-radius: 16px;
+padding: 0 20px;
+font-size: 17px;
+font-weight: 700;
+box-sizing: border-box;
+}
+.btn-share { min-height: 56px; }
+.btn.small { min-height: 48px; border-radius: 16px; font-size: 0.875rem; padding: 9px 14px; width: auto; }
+.btn-tiny { min-height: 40px; border-radius: 16px; font-size: 0.875rem; }
+.btn-ghost { border-radius: 16px; }
+.icon-btn, #muteBtn {
+width: 44px; height: 44px; min-width: 44px; min-height: 44px; border-radius: 50%;
+}
+.chip {
+min-height: 36px;
+border-radius: 99px;
+padding: 0 14px;
+font-size: 14px;
+font-weight: 600;
+display: inline-flex;
+align-items: center;
+}
+.topbar .chip, .topbar-right .chip { padding: 0 10px; }
+.chip-btn {
+min-height: 48px;
+border-radius: 99px;
+padding: 0 14px;
+font-weight: 600;
+}
+.pg-chip { border-radius: 16px; }
+.input, .typed .input, select.input,
+body.rings-ui #ringInput, body.rings-ui .rings-typed .input, .rings-in-row .input, .auth-otp-input {
+font-family: var(--display);
+font-weight: 600;
+font-size: 20px;
+padding: 14px 16px;
+border-radius: 16px;
+border-width: 1.5px;
+}
+.question, h2.question, #qtext, .qhead .question, .qhead h2.question, .qhead #qtext, .host-say {
+font-size: 20px;
+line-height: 1.35;
+font-weight: 700;
+}
+.opt {
+min-height: 56px;
+border-radius: 16px;
+font-size: 17px;
+font-weight: 600;
+padding: 14px 16px;
+}
+.share-card { border-radius: 22px; padding: 16px; }
+.pts-gain { font-size: 17px; font-weight: 700; padding: 6px 11px; }
+.kicker, .hero .kicker, .slider-card .kicker, .rings-kicker, .lineup-show .kicker {
+font-size: 12px;
+}
+.more-orbit-kicker { font-size: 12px; }
+.tab-rings-sub { font-size: 12px; letter-spacing: 0.04em; }
+.tab-new, .tabbar a.tab-rings .tab-new { font-size: 12px; padding: 2px 5px; }
+.digits i, .timer-num, .countdown, .countdown-big, .t-pill, .t-pill b,
+.ep-no, .lineup .ln, .pts, .stats b, .big-score .of, .xp .lvl, .xp .xpn,
+.board .rk, .board .sc {
+font-variant-numeric: tabular-nums;
+}
+code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+.tabbar a { min-width: 0; overflow: hidden; }
+.tab-rings-sub {
+font-size: 12px;
+letter-spacing: 0;
+max-width: 100%;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+.gamebar { min-width: 0; }
+.gamebar .dots { min-width: 0; }
+.score-mini { min-width: 0; }
+@media (max-width: 380px) {
+.gamebar { gap: 6px; }
+.gamebar .dots { gap: 4px; }
+.score-mini { gap: 4px; }
+.score-mini small { letter-spacing: 1px; }
+.digits { gap: 2px; }
+.quit-btn { padding: 0 8px; }
+}
 </style>
   <!-- Cloudflare Web Analytics --><script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "fa6a028d4fc9449db1e1481bc1b39eaf"}'></script><!-- End Cloudflare Web Analytics -->
   <script data-goatcounter="https://iquorbit.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
@@ -4449,7 +4518,7 @@ QB.postgameChips = { CHIPS, pick, parentOf };
   <script>
 (function () {
 const QB = window.QB = window.QB || {};
-const F = '-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Roboto,Arial,"Apple Color Emoji","Noto Color Emoji",sans-serif';
+const F = '"Exo 2",system-ui,-apple-system,"Segoe UI",sans-serif';
 const DOT = { full: '#30d158', part: '#ffd60a', wrong: '#ff453a' }; // anything else (time / pass / missing) = hollow ring
 const MON = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
 function draw(cv, d) {
@@ -4487,7 +4556,7 @@ if (d.url) { x.fillStyle = '#6e6e73'; x.font = '400 28px ' + F; x.fillText(d.url
 return cv;
 }
 async function render(d) {
-try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+try { if (document.fonts) { await document.fonts.load('700 20px "Exo 2"'); if (document.fonts.ready) await document.fonts.ready; } } catch (e) {}
 const cv = draw(document.createElement('canvas'), d);
 const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/png'); } catch (e) { r(null); } });
 return { canvas: cv, blob, url: cv.toDataURL('image/png') };
@@ -4495,7 +4564,7 @@ return { canvas: cv, blob, url: cv.toDataURL('image/png') };
 /** Rings share card: 1080x1080, brand colours, no theme or answers. d: { no, marks[bool], links, ring, total, max, masterNo, url } */
 function drawRings(cv, d) {
 cv.width = 1080; cv.height = 1080;
-const x = cv.getContext('2d'), W = 1080, F = '-apple-system,BlinkMacSystemFont,"SF Pro Display","Inter","Helvetica Neue",Roboto,Arial,sans-serif';
+const x = cv.getContext('2d'), W = 1080, F = '"Exo 2",system-ui,-apple-system,"Segoe UI",sans-serif';
 x.fillStyle = '#000'; x.fillRect(0, 0, W, W);
 let g = x.createRadialGradient(540, 500, 0, 540, 540, 620); g.addColorStop(0, '#1a0d4a'); g.addColorStop(.45, '#0c0c14'); g.addColorStop(1, '#000'); x.fillStyle = g; x.fillRect(0, 0, W, W);
 // Saturn
@@ -4530,7 +4599,7 @@ x.fillText(d.url || 'iquorbit.com', cx, 1020);
 return cv;
 }
 async function renderRings(d) {
-try { if (document.fonts && document.fonts.ready) await document.fonts.ready; } catch (e) {}
+try { if (document.fonts) { await document.fonts.load('700 20px "Exo 2"'); if (document.fonts.ready) await document.fonts.ready; } } catch (e) {}
 const cv = drawRings(document.createElement('canvas'), d);
 const encode = async q => {
 const blob = await new Promise(r => { try { cv.toBlob(b => r(b), 'image/jpeg', q); } catch (e) { r(null); } });
