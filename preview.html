@@ -1445,6 +1445,9 @@ background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08)
 .follow-quorbit-links a:hover, .follow-quorbit-links a:focus-visible { color: var(--gold, var(--brand)); }
 .follow-quorbit-links a:focus-visible { outline: 2px solid var(--gold, var(--brand)); outline-offset: 2px; }
 .follow-quorbit-links svg { width: 16px; height: 16px; flex: 0 0 16px; display: block; }
+.site-foot-stats { margin: 14px 0 4px; padding: 0 16px; color: var(--muted); font-size: .8125rem; line-height: 1.55; letter-spacing: .01em; }
+.site-foot-stat-n { color: var(--gold, #ffd60a); font-weight: 600; font-variant-numeric: tabular-nums; }
+.site-foot-stat-sep { color: var(--muted); }
 .site-foot-badge { text-align: center; margin: 10px 0 0; }
 .site-foot-badge a { display: inline-block; line-height: 0; }
 .site-foot-badge img { max-width: 120px; height: auto; opacity: .7; }
@@ -5376,6 +5379,21 @@ if (PREVIEW) rib.innerHTML = `PREVIEW MODE · ${esc(U.prettyDate(TODAY))} · <a 
 let pendingEnter = null, viewDone = null, current = null, restoreScroll = null;
 const screenCache = {}, scrollMem = {};
 function settleView() { if (viewDone) { const f = viewDone; viewDone = null; f(); } }
+function fillPlayStats(root) {
+const el = (root || document).querySelector('[data-play-stats]');
+if (!el || el.dataset.bound === '1') return;
+el.dataset.bound = '1';
+fetch('https://submit.iquorbit.com/api/stats', { credentials: 'omit' })
+.then(r => { if (!r.ok) throw new Error('stats'); return r.json(); })
+.then(d => {
+const q = Number(d && d.questions), g = Number(d && d.games);
+if (!(q > 0) || !(g > 0)) return;
+const fmt = n => Math.round(n).toLocaleString('en-US');
+el.innerHTML = `<span class="site-foot-stat-n">${fmt(q)}</span> questions answered<span class="site-foot-stat-sep"> · </span><span class="site-foot-stat-n">${fmt(g)}</span> games played`;
+el.hidden = false;
+})
+.catch(() => { el.dataset.bound = '0'; });
+}
 function view(html, tab) {
 clearTimers();
 const el = document.createElement('div'); el.className = 'view' + (pendingEnter ? ' enter-' + pendingEnter : ''); el.innerHTML = html; pendingEnter = null;
@@ -5384,6 +5402,7 @@ const h = curHash(); const y = restoreScroll === h ? scrollMem[h] || 0 : 0; rest
 window.scrollTo(0, y);
 if (!current || current.el !== el) { current = { hash: h, el, tab: tab || lastTab, revive: null, rev: -1, day: TODAY }; if (isRoot(h)) screenCache[h] = current; }
 settleView();
+fillPlayStats();
 }
 function onShow(fn) { if (current) current.revive = fn; fn(); }
 function fromCache(h) {
@@ -5393,7 +5412,9 @@ if (pendingEnter) { el.classList.add('enter-' + pendingEnter); pendingEnter = nu
 $app.replaceChildren(el); refreshChrome(c.tab); current = c;
 window.scrollTo(0, scrollMem[h] || 0); restoreScroll = null;
 if (c.revive) c.revive();
-settleView(); return true;
+settleView();
+fillPlayStats(c.el);
+return true;
 }
 function on(sel, ev, fn) { $app.querySelectorAll(sel).forEach(el => el.addEventListener(ev, fn)); }
 function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
@@ -7000,6 +7021,7 @@ const appLinks = h => h.replace(/href="([a-z]+)\.html" data-app="([^"]+)"/g, 'hr
 function siteFooterHTML() {
 return `<footer class="site-foot">
 <nav class="site-foot-links" aria-label="About Quorbit">${LEGAL.order.map(k => `<a href="#/${k}">${LEGAL.pages[k].nav}</a>`).join('')}</nav>
+<p class="site-foot-stats" data-play-stats hidden></p>
 <nav class="follow-quorbit" aria-label="Follow Quorbit">
 <p class="follow-quorbit-label">Follow Quorbit</p>
 <div class="follow-quorbit-links">
